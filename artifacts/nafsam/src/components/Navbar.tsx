@@ -16,7 +16,6 @@ export default function Navbar({ t }: Props) {
     { href: "/songs", label: t.nav_songs },
     { href: "/videos", label: t.nav_videos },
     { href: "/writings", label: t.nav_writings },
-    { href: "/stats", label: t.nav_stats },
   ];
 
   return (

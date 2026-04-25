@@ -11,8 +11,6 @@ import Photos from "@/pages/Photos";
 import Songs from "@/pages/Songs";
 import Videos from "@/pages/Videos";
 import Writings from "@/pages/Writings";
-import Stats from "@/pages/Stats";
-import { startSession, endSession } from "@/lib/analytics";
 import { fetchSession } from "@/lib/auth";
 
 type AuthState = "checking" | "authed" | "anon";
@@ -36,12 +34,6 @@ function AppContent() {
   useEffect(() => {
     refresh();
   }, [location]);
-
-  useEffect(() => {
-    if (authState !== "authed") return;
-    startSession();
-    return () => endSession();
-  }, [authState]);
 
   return (
     <div className="app-shell">
@@ -70,9 +62,6 @@ function AppContent() {
           </Route>
           <Route path="/writings">
             <ProtectedRoute state={authState}><Writings t={t} lang={lang} /></ProtectedRoute>
-          </Route>
-          <Route path="/stats">
-            <ProtectedRoute state={authState}><Stats t={t} /></ProtectedRoute>
           </Route>
           <Route>
             <Redirect to="/" />
