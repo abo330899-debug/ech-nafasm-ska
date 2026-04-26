@@ -24,7 +24,7 @@ interface Props {
 }
 
 export default function Home({ t, lang }: Props) {
-  usePageAudio("song4.mp3");
+  usePageAudio("home_song.mp3");
   const data = usePrivateContent();
   const p = pickLangPages(data, lang);
 
