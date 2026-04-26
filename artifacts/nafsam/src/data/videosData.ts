@@ -125,4 +125,7 @@ export const videosData: VideoItem[] = [
   { title: "ذكرى 118", file: "bfcfaf95d12547f0b769ddcd84c3f755.MOV", quote: "Bazı görüntüler kalır; çünkü orada hâlâ söylenmemiş bir 'kal' vardır." },
   { title: "ذكرى 119", file: "5a655140e69b4d7bbe3ba0c8cf4bb40d.MOV", quote: "Sen, ömrümün en sessiz ama en derin sayfasısın." },
   { title: "ذكرى 120", file: "95f9780d1f3a463cb1c966bfabc9d82e.MOV", quote: "Bir kare daha... ve içimde bir özlem daha derinleşiyor." },
+  { title: "ذكرى 121", file: "2c15400f1fa04f7484731c984c984a70.MOV", quote: "Sen geçtiğinde, içimde sustuğum her şey yeniden konuşmaya başlıyor." },
+  { title: "ذكرى 122", file: "4ecc36df37b840c685f76364639fd04a.MOV", quote: "Bu görüntüde sen değil, içimdeki o eski ben de canlanıyor; ikimiz birden eksildik." },
+  { title: "ذكرى 123", file: "1ed9271c02964c99a64c6928e47370b4.MOV", quote: "Sen bir hatıra olarak değil, hâlâ devam eden bir özlem olarak yaşıyorsun bende." },
 ];
