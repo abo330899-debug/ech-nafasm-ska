@@ -32,7 +32,7 @@ Personal memory archive site with dark glassmorphism aesthetics. Frontend-only R
   - `public/media/login_song.mp3` - only public media (plays before login)
 - **Auth**: Server-side. POST /api/auth/login verifies password (env `NAFSAM_PASSWORDS`) and issues an HMAC-signed httpOnly cookie via `lib/session.ts` in api-server. `ProtectedRoute` calls /api/auth/session.
 - **Private archive**: All photos, posters, videos, audio (~1.5GB) live in `artifacts/api-server/private/{media,posters,images}` and stream only via authed `/api/private/{media,posters,images}/*`. Writings + story captions live in `artifacts/api-server/private/content.json` and load via authed `/api/private/content`.
-- **Required env**: `NAFSAM_SESSION_SECRET` (≥16 chars, required in prod), optional `NAFSAM_PASSWORDS` (comma-separated), optional `NAFSAM_OPEN_AT` (ISO date the archive unlocks).
+- **Required env**: `NAFSAM_SESSION_SECRET` (≥16 chars, required in prod), `NAFSAM_PASSWORDS` (comma-separated, **required in prod** — server throws if unset; no built-in fallback passwords exist), optional `NAFSAM_OPEN_AT` (ISO date the archive unlocks).
 
 ## Deployment
 - **Target**: Autoscale (default) — uses per-artifact configuration from `artifact.toml`

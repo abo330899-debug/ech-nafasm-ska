@@ -3,18 +3,6 @@ import { issueSession, clearSession, isAuthed } from "../lib/session";
 
 const router: IRouter = Router();
 
-const DEFAULT_PASSWORDS = [
-  "ashkim",
-  "nafasm",
-  "kaar",
-  "asgoori",
-  "lucifer",
-  "ech&ska",
-  "kchm",
-  "nafas",
-  "ech",
-];
-
 const DEFAULT_OPEN_AT = "2026-04-15T04:04:00";
 
 function getPasswords(): string[] {
@@ -22,7 +10,10 @@ function getPasswords(): string[] {
   if (raw && raw.trim()) {
     return raw.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
   }
-  return DEFAULT_PASSWORDS;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("NAFSAM_PASSWORDS env var is required in production");
+  }
+  return [];
 }
 
 function getOpenAt(): number {

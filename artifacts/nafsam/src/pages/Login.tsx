@@ -24,12 +24,12 @@ function getCountdown(target: number, now: Date): CountdownTime | null {
 }
 
 const USER_CARDS = [
-  { id: "Ashkim", name: "Ashkim" },
-  { id: "nafasim", name: "nafasim" },
-  { id: "kaar", name: "kaar" },
-  { id: "asgoori", name: "asgoori" },
-  { id: "lucifer", name: "Lucifer" },
-  { id: "ECHSKA", name: "ECH&SKA" },
+  { id: "Ashkim" },
+  { id: "nafasim" },
+  { id: "kaar" },
+  { id: "asgoori" },
+  { id: "lucifer" },
+  { id: "ECHSKA" },
 ];
 
 interface Props {
@@ -117,7 +117,6 @@ export default function Login({ t, onAuth }: Props) {
         <div className="user-cards-grid">
           {USER_CARDS.map((u) => (
             <div key={u.id} className="user-card glass">
-              <h4>{u.name}</h4>
               {countdown ? (
                 <div className="countdown-mini">
                   <span>
