@@ -81,4 +81,5 @@ externalPort = 8081
 [userenv]
 
 [userenv.shared]
+NAFSAM_PASSWORDS = "ech,ashkim,kaar,ska,nafas,nafasim,nafasm"
   
