@@ -3628,3 +3628,112 @@ input, textarea, select{ color-scheme:dark; }
   .fh:nth-child(2n){ display:none; }
   .floating-hearts{ opacity:.85; }
 }
+
+/* ============================================================
+   MAGNETIC BUTTONS — انجذاب لطيف نحو مؤشر الماوس + توهج وردي ذهبي
+   ============================================================ */
+.btn,
+.login-btn{
+  transform:translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 0);
+  transition:
+    transform .35s cubic-bezier(.22, 1, .36, 1),
+    box-shadow .4s var(--ease, ease-out),
+    border-color .4s var(--ease, ease-out),
+    background .35s var(--ease, ease-out);
+  will-change:transform;
+}
+
+.btn.is-magnetic,
+.login-btn.is-magnetic{
+  box-shadow:
+    0 0 0 1px rgba(216,165,124,.45),
+    0 14px 40px -12px rgba(216,165,124,.45),
+    0 0 28px rgba(216,165,124,.32),
+    0 0 60px rgba(216,165,124,.18);
+  border-color:rgba(216,165,124,.7);
+}
+
+.btn-outline.is-magnetic{
+  background:linear-gradient(135deg, rgba(216,165,124,.08), rgba(243,200,158,.05));
+  color:#fff;
+}
+
+/* صف من الومضات الناعمة عند الاقتراب */
+.btn::before, .login-btn::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:inherit;
+  background:radial-gradient(
+    120px circle at var(--mag-glow-x, 50%) var(--mag-glow-y, 50%),
+    rgba(216,165,124,.18),
+    transparent 70%
+  );
+  opacity:0;
+  transition:opacity .35s var(--ease, ease-out);
+  pointer-events:none;
+  z-index:0;
+}
+.btn.is-magnetic::before, .login-btn.is-magnetic::before{
+  opacity:1;
+}
+.btn{ position:relative; }
+.btn > *{ position:relative; z-index:1; }
+
+/* لا تنطبق على الأجهزة اللمسية */
+@media (hover: none){
+  .btn, .login-btn{
+    transform:none !important;
+  }
+  .btn.is-magnetic, .login-btn.is-magnetic{
+    box-shadow:none;
+  }
+}
+
+/* ============================================================
+   TYPEWRITER HERO TITLE — كتابة ناعمة جداً مع مؤشر يخفق
+   ============================================================ */
+.hero-title.typewriter{
+  display:inline-flex;
+  align-items:baseline;
+  gap:.18em;
+  white-space:normal;
+  min-height:1.15em;
+}
+.hero-title.typewriter .tw-text{
+  display:inline;
+  background:inherit;
+  -webkit-background-clip:inherit;
+  background-clip:inherit;
+  color:inherit;
+  -webkit-text-fill-color:inherit;
+}
+.hero-title.typewriter .tw-caret{
+  display:inline-block;
+  width:.06em;
+  min-width:2px;
+  height:.95em;
+  background:linear-gradient(180deg, #f3c89e, #d8a57c);
+  border-radius:2px;
+  margin-inline-start:.05em;
+  vertical-align:baseline;
+  transform:translateY(.08em);
+  box-shadow:0 0 12px rgba(216,165,124,.55);
+  animation:tw-blink 1.05s steps(1) infinite;
+  opacity:.85;
+}
+.hero-title.typewriter.is-done .tw-caret{
+  animation:tw-blink-soft 1.6s ease-in-out infinite;
+  opacity:.55;
+}
+@keyframes tw-blink{
+  0%,49%{ opacity:.95; }
+  50%,100%{ opacity:0; }
+}
+@keyframes tw-blink-soft{
+  0%,100%{ opacity:.55; }
+  50%{ opacity:.05; }
+}
+@media (prefers-reduced-motion: reduce){
+  .hero-title.typewriter .tw-caret{ animation:none; opacity:0; }
+}

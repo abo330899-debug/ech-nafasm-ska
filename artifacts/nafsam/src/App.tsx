@@ -3,6 +3,7 @@ import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wo
 import { useLang } from "@/hooks/useLang";
 import Rain from "@/components/Rain";
 import FloatingHearts from "@/components/FloatingHearts";
+import { useMagneticButtons } from "@/hooks/useMagneticButtons";
 import Navbar from "@/components/Navbar";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Login from "@/pages/Login";
@@ -28,6 +29,7 @@ function AppContent() {
   const { lang, setLang, t } = useLang();
   const [authState, setAuthState] = useState<AuthState>("checking");
   const [location] = useLocation();
+  useMagneticButtons();
 
   const refresh = async () => {
     const s = await fetchSession();

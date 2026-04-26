@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { type Translations, type Lang } from "@/i18n/translations";
 import TypedText from "@/components/TypedText";
+import TypewriterTitle from "@/components/TypewriterTitle";
 import Footer from "@/components/Footer";
 import usePageAudio from "@/hooks/usePageAudio";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
@@ -74,7 +75,8 @@ export default function Home({ t, lang }: Props) {
         <div className="hero-overlay" />
         <div className="hero-body">
           <span className="eyebrow">{t.hero_eyebrow}</span>
-          <h1 className="hero-title">{t.hero_title}</h1>
+          <TypewriterTitle text={t.hero_title} />
+
           <TypedText phrases={typedPhrases} />
           {p.hero_text && <p className="hero-text">{p.hero_text}</p>}
           {quotes.length > 0 && (
