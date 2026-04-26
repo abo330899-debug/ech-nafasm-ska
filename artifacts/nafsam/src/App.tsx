@@ -40,8 +40,26 @@ function AppContent() {
   };
 
   useEffect(() => {
+    setAuthState("checking");
     refresh();
   }, [location]);
+
+  useEffect(() => {
+    const interval = setInterval(refresh, 30_000);
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    const onFocus = () => refresh();
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
 
   return (
     <div className="app-shell">
