@@ -48,6 +48,25 @@ export default function Home({ t, lang }: Props) {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const HERO = "/api/private/images/hero.webp";
+    if (document.head.querySelector(`link[data-hero-preload="1"]`)) return;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "image";
+    link.href = HERO;
+    link.setAttribute("fetchpriority", "high");
+    link.setAttribute("data-hero-preload", "1");
+    document.head.appendChild(link);
+    const img = new Image();
+    (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority = "high";
+    img.decoding = "async";
+    img.src = HERO;
+    return () => {
+      if (link.parentNode) link.parentNode.removeChild(link);
+    };
+  }, []);
+
   return (
     <div className="page-content">
       <section className="hero">

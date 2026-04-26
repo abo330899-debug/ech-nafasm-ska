@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState, type ImgHTMLAttributes } from "react";
+import { prefetchImage } from "@/lib/prefetch";
 
-type Props = ImgHTMLAttributes<HTMLImageElement> & {
+type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "loading"> & {
   src: string;
   alt?: string;
   className?: string;
   wrapClassName?: string;
+  /** If "high", marks image as priority — eager load + fetchpriority high. */
+  priority?: "high" | "auto";
+  /** When this image finishes loading, warm the browser cache for these next URLs. */
+  nextSrc?: string | string[];
 };
 
 export default function LuxImage({
@@ -12,11 +17,14 @@ export default function LuxImage({
   alt = "",
   className = "",
   wrapClassName = "",
+  priority = "auto",
+  nextSrc,
   onLoad,
   ...rest
 }: Props) {
   const imgRef = useRef<HTMLImageElement | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const isPriority = priority === "high";
 
   useEffect(() => {
     const el = imgRef.current;
@@ -24,6 +32,12 @@ export default function LuxImage({
       setLoaded(true);
     }
   }, [src]);
+
+  useEffect(() => {
+    if (!loaded || !nextSrc) return;
+    if (Array.isArray(nextSrc)) nextSrc.forEach(prefetchImage);
+    else prefetchImage(nextSrc);
+  }, [loaded, nextSrc]);
 
   return (
     <span
@@ -35,8 +49,9 @@ export default function LuxImage({
         ref={imgRef}
         src={src}
         alt={alt}
-        loading="lazy"
+        loading={isPriority ? "eager" : "lazy"}
         decoding="async"
+        {...(isPriority ? { fetchpriority: "high" as never } : {})}
         className={`lux-img ${loaded ? "is-loaded" : ""} ${className}`}
         onLoad={(e) => {
           setLoaded(true);

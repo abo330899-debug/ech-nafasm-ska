@@ -45,7 +45,12 @@ export default function Songs({ t, lang }: Props) {
           <RevealCard key={i} className="song-card glass" index={i}>
             <h3>{s.title}</h3>
             {s.text && <p>{s.text}</p>}
-            <audio controls src={s.src} className="audio-player">
+            <audio
+              controls
+              preload="none"
+              src={s.src}
+              className="audio-player"
+            >
               Your browser does not support audio.
             </audio>
           </RevealCard>

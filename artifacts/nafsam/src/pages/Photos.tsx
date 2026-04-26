@@ -6,6 +6,7 @@ import { privateImage } from "@/lib/privateAssets";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
 import LuxImage from "@/components/LuxImage";
 import useReveal from "@/hooks/useReveal";
+import { prefetchImages } from "@/lib/prefetch";
 
 function RevealArticle({
   className = "",
@@ -66,6 +67,15 @@ export default function Photos({ t, lang }: Props) {
       lastFocusedRef.current?.focus?.();
     };
   }, [lightbox]);
+
+  useEffect(() => {
+    const data2 = data;
+    if (!data2) return;
+    const all = (data2.photos ?? [])
+      .slice(0, 6)
+      .map((n) => privateImage(`all_photos/${n}`));
+    prefetchImages(all);
+  }, [data]);
   const langKey: "ar" | "tr" = lang === "ar" ? "ar" : "tr";
   const captions = data?.captions?.[langKey] ?? [];
   const allPhotos = data?.photos ?? [];
@@ -110,7 +120,13 @@ export default function Photos({ t, lang }: Props) {
                 }
               }}
             >
-              <LuxImage src={ph.src} alt={ph.text ?? ""} className="photo-img" />
+              <LuxImage
+                src={ph.src}
+                alt={ph.text ?? ""}
+                className="photo-img"
+                priority={i < 2 ? "high" : "auto"}
+                nextSrc={specialPhotos[i + 1]?.src}
+              />
               <span className="photo-card-badge">{pad2(i + 1)}</span>
               {ph.text && (
                 <div className="photo-card-overlay">
@@ -138,6 +154,7 @@ export default function Photos({ t, lang }: Props) {
               src={privateImage("photo7.webp")}
               alt={p.photo7_text ?? ""}
               className="photo-img"
+              nextSrc={albumPhotos.slice(0, 2).map((x) => x.src)}
             />
             <span className="photo-card-badge photo-card-badge-featured">★</span>
           </div>
@@ -169,7 +186,15 @@ export default function Photos({ t, lang }: Props) {
                 }
               }}
             >
-              <LuxImage src={ph.src} alt={ph.title ?? ""} className="photo-img" />
+              <LuxImage
+                src={ph.src}
+                alt={ph.title ?? ""}
+                className="photo-img"
+                nextSrc={[
+                  albumPhotos[i + 1]?.src,
+                  albumPhotos[i + 2]?.src,
+                ].filter(Boolean) as string[]}
+              />
               <span className="photo-card-badge">{pad2(i + 1)}</span>
               {ph.title && (
                 <div className="photo-card-overlay">
