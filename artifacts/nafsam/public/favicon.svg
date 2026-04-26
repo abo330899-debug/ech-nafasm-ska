@@ -13,6 +13,6 @@
   <rect x="3" y="3" width="174" height="174" rx="33" fill="none" stroke="url(#rose)" stroke-width="1.5" opacity="0.55"/>
   <g transform="translate(90 90)">
     <circle r="48" fill="none" stroke="url(#rose)" stroke-width="2" opacity="0.4"/>
-    <text x="0" y="22" text-anchor="middle" font-family="'Tajawal','Amiri','Noto Naskh Arabic',serif" font-size="78" font-weight="700" fill="url(#rose)">ن</text>
+    <text x="0" y="26" text-anchor="middle" font-family="'Playfair Display','Cormorant Garamond','Times New Roman',serif" font-size="86" font-weight="600" font-style="italic" fill="url(#rose)">E</text>
   </g>
 </svg>
