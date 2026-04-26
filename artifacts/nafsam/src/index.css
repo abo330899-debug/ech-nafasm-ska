@@ -2244,3 +2244,312 @@ audio,video{filter:saturate(.95)}
   .photos-luxe .photo-card:hover .photo-img,
   .videos-luxe .v-card:hover .v-thumb video{transform:none;filter:none}
 }
+
+/* ============================================================
+   MOBILE POLISH — Dark cinematic memory gallery (≤768px)
+   Layout/responsive fixes only. No content changes.
+   ============================================================ */
+@media (max-width:768px){
+  /* ----- Global container hardening ----- */
+  html,body{
+    overflow-x:hidden;
+    width:100%;
+    max-width:100%;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  img,video,iframe{max-width:100%;height:auto}
+
+  .page-content,
+  .photos-luxe,
+  .videos-luxe{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+  }
+  .page-header{padding:24px 16px 8px}
+  .page-header h1{font-size:1.55rem;line-height:1.25}
+  .page-header p{font-size:.92rem;line-height:1.6;max-width:92%;margin:8px auto 0}
+
+  /* ----- Navbar — keep inside viewport, scroll if needed ----- */
+  nav,.nav-top{
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+  }
+  .links{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    justify-content:flex-start;
+    padding:6px 12px;
+    gap:6px;
+  }
+  .links::-webkit-scrollbar{display:none}
+  .links a{
+    flex:0 0 auto;
+    font-size:.78rem;
+    padding:6px 12px;
+    white-space:nowrap;
+  }
+  .links a.active{
+    color:#d8a57c;
+    border-color:rgba(216,165,124,.45);
+    background:rgba(216,165,124,.08);
+  }
+
+  /* ----- Hero ----- */
+  .hero{
+    min-height:420px;
+    padding:0;
+  }
+  .hero-body{
+    padding:96px 16px 48px;
+    max-width:100%;
+    width:100%;
+  }
+  .hero-title{
+    font-size:clamp(2rem,8.5vw,2.6rem);
+    line-height:1.2;
+    text-align:center;
+  }
+  .typed,.hero-text,.quote-rotator{
+    max-width:90%;
+    margin-left:auto;
+    margin-right:auto;
+    text-align:center;
+  }
+  .hero-text{font-size:.95rem;line-height:1.7}
+  .elapsed-counter{
+    flex-wrap:wrap;
+    gap:8px;
+    font-size:.78rem;
+    padding:0 8px;
+  }
+  .hero-buttons{
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
+    padding:0 8px;
+  }
+  .hero-buttons .btn{flex:1 1 140px;min-height:44px;font-size:.9rem}
+
+  /* ----- Cards section (home grid) ----- */
+  .cards-section{padding:24px 14px}
+  .cards-grid{
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .cards-grid .card{padding:16px;border-radius:18px;min-height:auto}
+  .cards-grid .card h3{font-size:1rem;margin-bottom:6px}
+  .cards-grid .card p{font-size:.82rem;line-height:1.55}
+
+  /* ----- Timeline (vertical, RTL-aware) ----- */
+  .timeline{padding:20px 14px}
+  .timeline-card{padding:14px;border-radius:16px}
+  .timeline-card h3{font-size:1rem}
+  .timeline-card p{font-size:.85rem;line-height:1.7}
+  .timeline-img{
+    width:100%;
+    height:auto;
+    aspect-ratio:4 / 3;
+    object-fit:cover;
+    border-radius:12px;
+  }
+
+  /* ----- Photos luxe — cards consistent, no black gaps ----- */
+  .photos-luxe .photo-grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:12px;
+    padding:16px 14px;
+  }
+  .photos-luxe .photo-card{
+    border-radius:20px;
+    overflow:hidden;
+    min-height:auto;
+    height:auto;
+  }
+  .photos-luxe .photo-card-media{
+    aspect-ratio:4 / 5;
+    width:100%;
+    height:auto;
+    min-height:0;
+    max-height:none;
+    overflow:hidden;
+  }
+  .photos-luxe .photo-img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .photos-luxe .photo-card-overlay{padding:12px 12px 14px}
+  .photos-luxe .photo-card-featured{
+    grid-column:1 / -1;
+  }
+  .photos-luxe .photo-card-featured .photo-card-media{aspect-ratio:4 / 5}
+  .photos-luxe .album-caption{padding:10px 12px 14px}
+
+  /* photos lightbox on mobile */
+  .photos-luxe .lightbox-overlay{padding:12px}
+  .photos-luxe .lightbox-content{
+    width:calc(100vw - 24px);
+    max-width:100%;
+    max-height:calc(100vh - 24px);
+    border-radius:22px;
+    padding:14px;
+    overflow-y:auto;
+  }
+  .photos-luxe .lightbox-img{
+    width:100%;
+    max-height:60vh;
+    object-fit:contain;
+    border-radius:16px;
+  }
+  .photos-luxe .lightbox-close{
+    position:absolute;
+    top:10px;
+    inset-inline-end:10px;
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    z-index:10;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(7,11,22,.85);
+    border:1px solid rgba(216,165,124,.45);
+    color:#f7efe7;
+  }
+
+  /* ----- Videos luxe — single column, tight cards ----- */
+  .videos-luxe .v-gallery{
+    grid-template-columns:1fr;
+    gap:14px;
+    padding:16px 14px;
+  }
+  .videos-luxe .v-card{
+    border-radius:22px;
+    overflow:hidden;
+  }
+  .videos-luxe .v-card-media,
+  .videos-luxe .v-thumb{
+    aspect-ratio:16 / 10;
+    width:100%;
+    height:auto;
+    min-height:0;
+    overflow:hidden;
+  }
+  .videos-luxe .v-thumb img,
+  .videos-luxe .v-thumb video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .videos-luxe .v-play{
+    width:62px;
+    height:62px;
+  }
+  .videos-luxe .v-card-info,
+  .videos-luxe .v-card-footer{padding:12px 14px 14px}
+  .videos-luxe .v-card-title{font-size:.98rem;line-height:1.4}
+  .videos-luxe .v-card-sub{font-size:.8rem;line-height:1.5}
+
+  /* ----- Video modal — phone-friendly ----- */
+  .videos-luxe .v-modal{padding:12px}
+  .videos-luxe .v-modal-box{
+    width:calc(100vw - 24px);
+    max-width:100%;
+    max-height:calc(100vh - 24px);
+    border-radius:24px;
+    padding:14px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+  }
+  .videos-luxe .v-modal-media,
+  .videos-luxe .v-modal-media-mp4,
+  .videos-luxe .v-modal-media-youtube,
+  .videos-luxe .v-modal-media-mega{
+    width:100%;
+    aspect-ratio:16 / 10;
+    max-height:52vh;
+    border-radius:18px;
+    overflow:hidden;
+    background:#000;
+  }
+  .videos-luxe .v-modal-video{
+    width:100%;
+    height:100%;
+    max-height:52vh;
+    object-fit:contain;
+    background:#000;
+    border-radius:18px;
+  }
+  .videos-luxe .v-modal-media-youtube iframe,
+  .videos-luxe .v-modal-media iframe{
+    width:100%;
+    height:100%;
+    border:0;
+    display:block;
+  }
+  .videos-luxe .v-modal-info{
+    padding:14px 6px 6px;
+    flex:0 0 auto;
+  }
+  .videos-luxe .v-modal-title{font-size:1.05rem;line-height:1.35}
+  .videos-luxe .v-modal-quote,
+  .videos-luxe .v-modal-sub{font-size:.85rem;line-height:1.6}
+  .videos-luxe .v-modal-actions{
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .videos-luxe .v-modal-actions .v-btn,
+  .videos-luxe .v-modal-actions .v-btn-cta{
+    flex:1 1 120px;
+    min-height:44px;
+    font-size:.88rem;
+  }
+  .videos-luxe .v-modal-close{
+    position:absolute;
+    top:10px;
+    inset-inline-end:10px;
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    z-index:20;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(7,11,22,.85);
+    border:1px solid rgba(216,165,124,.45);
+    color:#f7efe7;
+    backdrop-filter:blur(8px);
+  }
+}
+
+/* ----- Extra small phones (≤430px) ----- */
+@media (max-width:430px){
+  .hero-body{padding:88px 14px 40px}
+  .hero-title{font-size:clamp(1.85rem,9vw,2.3rem)}
+  .cards-grid{grid-template-columns:1fr;gap:12px}
+  .photos-luxe .photo-grid{
+    grid-template-columns:1fr;
+    gap:14px;
+    padding:14px 12px;
+  }
+  .photos-luxe .photo-card-media{aspect-ratio:4 / 5}
+  .videos-luxe .v-gallery{padding:14px 12px}
+  .links a{font-size:.75rem;padding:5px 10px}
+  .elapsed-counter{font-size:.74rem;gap:6px}
+  .elapsed-counter span{padding:3px 8px}
+}
+
+/* ----- Tiny phones (≤360px) ----- */
+@media (max-width:360px){
+  .hero-title{font-size:1.7rem}
+  .page-header h1{font-size:1.35rem}
+  .videos-luxe .v-modal-media,
+  .videos-luxe .v-modal-video{max-height:46vh}
+}
