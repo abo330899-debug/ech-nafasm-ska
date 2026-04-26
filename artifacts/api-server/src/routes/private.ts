@@ -42,7 +42,7 @@ function sendPrivate(
     return;
   }
   res.sendFile(target, {
-    headers: { "Cache-Control": "private, max-age=3600" },
+    headers: { "Cache-Control": "no-store" },
   });
 }
 
