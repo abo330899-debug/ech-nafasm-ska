@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
 import { useLang } from "@/hooks/useLang";
 import Rain from "@/components/Rain";
+import FloatingHearts from "@/components/FloatingHearts";
 import Navbar from "@/components/Navbar";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Login from "@/pages/Login";
@@ -64,6 +65,7 @@ function AppContent() {
   return (
     <div className="app-shell">
       <Rain />
+      <FloatingHearts />
       {authState === "authed" && <Navbar t={t} />}
       <LanguageSwitcher lang={lang} setLang={setLang} mini />
       <main>

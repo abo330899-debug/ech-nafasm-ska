@@ -3567,3 +3567,64 @@ html, body{ -webkit-overflow-scrolling:touch; }
 
 /* Form controls inherit dark theme on mobile */
 input, textarea, select{ color-scheme:dark; }
+
+/* ============================================================
+   FLOATING HEARTS — أيقونات قلوب تطفو ببطء في الخلفية
+   ============================================================ */
+.floating-hearts{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:1;
+  overflow:hidden;
+  transition:opacity .6s var(--ease, ease-out);
+  will-change:opacity;
+}
+.floating-hearts.is-scrolling{ opacity:.35; }
+
+.fh{
+  position:absolute;
+  bottom:-40px;
+  display:block;
+  color:var(--rose-gold, #d8a57c);
+  opacity:0;
+  filter:drop-shadow(0 0 6px rgba(216,165,124,.35));
+  animation-name:fh-float;
+  animation-iteration-count:infinite;
+  animation-timing-function:cubic-bezier(.4,0,.2,1);
+  will-change:transform,opacity;
+}
+.fh svg{ width:100%; height:100%; display:block; }
+.fh--soft{ color:#f3c89e; filter:drop-shadow(0 0 5px rgba(243,200,158,.28)); }
+
+@keyframes fh-float{
+  0%{
+    transform:translate3d(0,0,0) scale(.85);
+    opacity:0;
+  }
+  12%{
+    opacity:var(--fh-opacity, .18);
+  }
+  50%{
+    transform:translate3d(calc(var(--fh-drift, 0px) * .6), -55vh, 0) scale(1);
+    opacity:var(--fh-opacity, .18);
+  }
+  88%{
+    opacity:calc(var(--fh-opacity, .18) * .5);
+  }
+  100%{
+    transform:translate3d(var(--fh-drift, 0px), -110vh, 0) scale(.95);
+    opacity:0;
+  }
+}
+
+/* احترام تفضيل تقليل الحركة */
+@media (prefers-reduced-motion: reduce){
+  .floating-hearts{ display:none; }
+}
+
+/* تخفيف العدد البصري على الموبايل (نخفي نصفها بترتيب nth-child) */
+@media (max-width:520px){
+  .fh:nth-child(2n){ display:none; }
+  .floating-hearts{ opacity:.85; }
+}
