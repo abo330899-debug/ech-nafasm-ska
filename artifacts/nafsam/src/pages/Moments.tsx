@@ -19,21 +19,21 @@ export default function Moments({ t, lang }: Props) {
       title: p.moment1_title,
       text: p.moment1_text,
       memory: p.moment1_memory,
-      image: `/api/private/images/photo1.jpg`,
+      image: `/api/private/images/photo1.webp`,
     },
     {
       time: p.moment2_time,
       title: p.moment2_title,
       text: p.moment2_text,
       memory: p.moment2_memory,
-      image: `/api/private/images/photo2.png`,
+      image: `/api/private/images/photo2.webp`,
     },
     {
       time: p.moment3_time,
       title: p.moment3_title,
       text: p.moment3_text,
       memory: p.moment3_memory,
-      image: `/api/private/images/photo3.png`,
+      image: `/api/private/images/photo3.webp`,
     },
   ].filter((m) => m.title || m.text);
 
@@ -50,7 +50,7 @@ export default function Moments({ t, lang }: Props) {
             <div className="timeline-marker" />
             <div className="timeline-card glass">
               {m.time && <span className="timeline-time">{m.time}</span>}
-              <img src={m.image} alt={m.title ?? ""} className="timeline-img" />
+              <img src={m.image} alt={m.title ?? ""} className="timeline-img" loading="lazy" decoding="async" />
               {m.title && <h3>{m.title}</h3>}
               {m.text && <p>{m.text}</p>}
               {m.memory && <blockquote className="timeline-memory">{m.memory}</blockquote>}

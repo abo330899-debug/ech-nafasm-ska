@@ -44,12 +44,12 @@ export default function Photos({ t, lang }: Props) {
   const allPhotos = data?.photos ?? [];
 
   const specialPhotos = [
-    { src: privateImage("photo1.jpg"), text: p.photo1_text },
-    { src: privateImage("photo2.png"), text: p.photo2_text },
-    { src: privateImage("photo3.png"), text: p.photo3_text },
-    { src: privateImage("photo4.jpg"), text: p.photo4_text },
-    { src: privateImage("photo5.jpg"), text: p.photo5_text },
-    { src: privateImage("photo6.jpg"), text: p.photo6_text },
+    { src: privateImage("photo1.webp"), text: p.photo1_text },
+    { src: privateImage("photo2.webp"), text: p.photo2_text },
+    { src: privateImage("photo3.webp"), text: p.photo3_text },
+    { src: privateImage("photo4.webp"), text: p.photo4_text },
+    { src: privateImage("photo5.webp"), text: p.photo5_text },
+    { src: privateImage("photo6.webp"), text: p.photo6_text },
   ];
 
   const albumPhotos = allPhotos.map((name, i) => {
@@ -83,7 +83,7 @@ export default function Photos({ t, lang }: Props) {
                 }
               }}
             >
-              <img src={ph.src} alt={ph.text ?? ""} className="photo-img" loading="lazy" />
+              <img src={ph.src} alt={ph.text ?? ""} className="photo-img" loading="lazy" decoding="async" />
               <span className="photo-card-badge">{pad2(i + 1)}</span>
               {ph.text && (
                 <div className="photo-card-overlay">
@@ -97,21 +97,22 @@ export default function Photos({ t, lang }: Props) {
         <article className="photo-card glass photo-card-featured">
           <div
             className="photo-card-media"
-            onClick={() => setLightbox(privateImage("photo7.jpg"))}
+            onClick={() => setLightbox(privateImage("photo7.webp"))}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                setLightbox(privateImage("photo7.jpg"));
+                setLightbox(privateImage("photo7.webp"));
               }
             }}
           >
             <img
-              src={privateImage("photo7.jpg")}
+              src={privateImage("photo7.webp")}
               alt={p.photo7_text ?? ""}
               className="photo-img"
               loading="lazy"
+              decoding="async"
             />
             <span className="photo-card-badge photo-card-badge-featured">★</span>
           </div>
@@ -143,7 +144,7 @@ export default function Photos({ t, lang }: Props) {
                 }
               }}
             >
-              <img src={ph.src} alt={ph.title ?? ""} className="photo-img" loading="lazy" />
+              <img src={ph.src} alt={ph.title ?? ""} className="photo-img" loading="lazy" decoding="async" />
               <span className="photo-card-badge">{pad2(i + 1)}</span>
               {ph.title && (
                 <div className="photo-card-overlay">
@@ -182,6 +183,7 @@ export default function Photos({ t, lang }: Props) {
             src={lightbox}
             alt=""
             className="lightbox-img"
+            decoding="async"
             onClick={(e) => e.stopPropagation()}
           />
         </div>
