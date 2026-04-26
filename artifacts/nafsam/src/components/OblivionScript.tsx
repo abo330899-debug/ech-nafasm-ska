@@ -2,12 +2,24 @@ import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "nafsam_oblivion_done_v1";
 const COUNTDOWN_FROM = 10;
-const NAME = "إلهام";
-const REVEAL_TEXT = "سَقَطَت الأقنعة.. فحررتُ روحي من سجنكِ";
 
 type Phase = "countdown" | "blurring" | "revealed";
 
-export default function OblivionScript() {
+interface Props {
+  name: string;
+  hint: string;
+  revealed: string;
+  dir?: "ltr" | "rtl";
+  lang?: string;
+}
+
+export default function OblivionScript({
+  name,
+  hint,
+  revealed,
+  dir = "rtl",
+  lang = "ar",
+}: Props) {
   const [phase, setPhase] = useState<Phase>(() => {
     if (typeof window === "undefined") return "countdown";
     try {
@@ -44,18 +56,18 @@ export default function OblivionScript() {
             <div className="oblivion-counter" aria-live="polite">
               <span className="oc-num">{Math.max(0, seconds)}</span>
             </div>
-            <h2 className="oblivion-name" lang="ar" dir="rtl">
-              {NAME}
+            <h2 className="oblivion-name" lang={lang} dir={dir}>
+              {name}
             </h2>
-            <p className="oblivion-hint" lang="ar" dir="rtl">
-              لحظات قبل المحو الأخير…
+            <p className="oblivion-hint" lang={lang} dir={dir}>
+              {hint}
             </p>
           </>
         )}
 
         {phase === "revealed" && (
-          <div className="oblivion-revealed" lang="ar" dir="rtl">
-            <span className="or-text">{REVEAL_TEXT}</span>
+          <div className="oblivion-revealed" lang={lang} dir={dir}>
+            <span className="or-text">{revealed}</span>
           </div>
         )}
       </div>

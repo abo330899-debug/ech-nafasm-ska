@@ -1,23 +1,23 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 
-const TITLE = "من نِصفِ الروح.. إلى نِصفِها الضائع.";
+interface Props {
+  startDelayMs?: number;
+  title: string;
+  paragraphs: string[];
+  silverAnchor: string;
+  memoryPattern: string;
+  dir?: "ltr" | "rtl";
+  lang?: string;
+}
 
-const BODY =
-  "إلهام.. تعلمين جيداً أنكِ طفتِ العالم وجربتِ كل شيء، ثم اخترتِني لأنكِ وجدتِ فيّ ما تطلبه الأنثى من رجولةٍ، غيرةٍ، كرامةٍ، وسخاءٍ في عطاءٍ صادق. كنتُ لكِ الذكي، والشيطان، والطفل الذي يحتمي بذراعكِ، كنتُ روحاً لروحكِ. كأننا كنا جسدين لروحٍ واحدة (ستار وإلهام).\n\n" +
-  "أقولها لكِ بثقة الأوفياء: ستقضين بقية حياتكِ تبحثين عن ظلي في وجوه الآخرين، ستشتاقين لريحتي، لجنوني، ولأسلوبي.. ولن تجدي. ستدركين أن أنوثتكِ لم تزهر ولم تشعري بكيانكِ كامرأة إلا معي، ومهما حاولوا أو جربتِ، سيبقى ذلك الشعور محصوراً في ذكرياتي أنا.\n\n" +
-  "أما أنا.. وبما أنكِ كنتِ تقولين دائماً أنني 'كثير الذكاء'، فذكائي يخبرني أنني لن أجد مِثلكِ أبداً، ولن تأخذ امرأةٌ أخرى مكان شعرةٍ منكِ. لذا، سأرحم نفسي من عناء البحث عن 'إلهام' في جسدٍ آخر. أعلنُ اليوم اعتزالي لجنس حواء؛ تكفيني الذكريات المحبوسة في هذه الصفحة.\n\n" +
-  "انتبهي على نفسكِ يا ابنتي الصغيرة.. الشوقُ شَيّبني، والكرامةُ حَرّرتني.";
-
-const SILVER_ANCHOR = "الشوقُ";
-const MEMORY_REGEX = /(الذكريات|ذكرياتي)/g;
-
-function renderSegment(text: string, prefix: string) {
+function buildSegment(text: string, prefix: string, memoryRegex: RegExp | null) {
   if (!text) return null;
+  if (!memoryRegex) return text;
   const parts: React.ReactNode[] = [];
   let lastIdx = 0;
   let match: RegExpExecArray | null;
-  MEMORY_REGEX.lastIndex = 0;
-  while ((match = MEMORY_REGEX.exec(text)) !== null) {
+  memoryRegex.lastIndex = 0;
+  while ((match = memoryRegex.exec(text)) !== null) {
     if (match.index > lastIdx) {
       parts.push(
         <Fragment key={`${prefix}-t-${lastIdx}`}>
@@ -31,6 +31,7 @@ function renderSegment(text: string, prefix: string) {
       </span>,
     );
     lastIdx = match.index + match[0].length;
+    if (match[0].length === 0) memoryRegex.lastIndex += 1;
   }
   if (lastIdx < text.length) {
     parts.push(
@@ -42,17 +43,32 @@ function renderSegment(text: string, prefix: string) {
   return parts;
 }
 
-interface Props {
-  startDelayMs?: number;
-}
+export default function FarewellPassage({
+  startDelayMs = 1100,
+  title,
+  paragraphs,
+  silverAnchor,
+  memoryPattern,
+  dir = "rtl",
+  lang = "ar",
+}: Props) {
+  const TITLE = title;
+  const BODY = useMemo(() => paragraphs.join("\n\n"), [paragraphs]);
+  const memoryRegex = useMemo(() => {
+    if (!memoryPattern) return null;
+    try {
+      return new RegExp(`(${memoryPattern})`, "gi");
+    } catch {
+      return null;
+    }
+  }, [memoryPattern]);
 
-export default function FarewellPassage({ startDelayMs = 1100 }: Props) {
   const [titleCount, setTitleCount] = useState(0);
   const [bodyCount, setBodyCount] = useState(0);
   const [titleDone, setTitleDone] = useState(false);
   const [bodyDone, setBodyDone] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
   const [started, setStarted] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setTitleCount(0);
@@ -80,7 +96,7 @@ export default function FarewellPassage({ startDelayMs = 1100 }: Props) {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [TITLE, BODY]);
 
   useEffect(() => {
     if (!started) return;
@@ -94,14 +110,14 @@ export default function FarewellPassage({ startDelayMs = 1100 }: Props) {
         return;
       }
       const ch = TITLE.charAt(i - 1);
-      const isLong = /[\.؟!]/.test(ch);
+      const isLong = /[\.؟!?]/.test(ch);
       const isMid = /[،؛:\-—…]/.test(ch);
       const delay = isLong ? 480 : isMid ? 280 : ch === " " ? 60 : 80 + Math.random() * 50;
       t = window.setTimeout(tick, delay);
     };
     t = window.setTimeout(tick, startDelayMs);
     return () => window.clearTimeout(t);
-  }, [started, startDelayMs]);
+  }, [started, startDelayMs, TITLE]);
 
   useEffect(() => {
     if (!titleDone) return;
@@ -116,7 +132,7 @@ export default function FarewellPassage({ startDelayMs = 1100 }: Props) {
       }
       const ch = BODY.charAt(i - 1);
       const isPara = ch === "\n";
-      const isLong = /[\.؟!]/.test(ch);
+      const isLong = /[\.؟!?]/.test(ch);
       const isMid = /[،؛:\-—…]/.test(ch);
       const isComma = /[,]/.test(ch);
       let delay = 60 + Math.random() * 55;
@@ -129,11 +145,11 @@ export default function FarewellPassage({ startDelayMs = 1100 }: Props) {
     };
     t = window.setTimeout(tick, 700);
     return () => window.clearTimeout(t);
-  }, [titleDone]);
+  }, [titleDone, BODY]);
 
   const visibleTitle = TITLE.slice(0, titleCount);
   const visibleBody = BODY.slice(0, bodyCount);
-  const silverStart = BODY.indexOf(SILVER_ANCHOR);
+  const silverStart = silverAnchor ? BODY.indexOf(silverAnchor) : -1;
   const hasSilver = silverStart >= 0 && bodyCount > silverStart;
   const normalText = hasSilver ? visibleBody.slice(0, silverStart) : visibleBody;
   const silverText = hasSilver ? visibleBody.slice(silverStart) : "";
@@ -142,17 +158,17 @@ export default function FarewellPassage({ startDelayMs = 1100 }: Props) {
     <div
       ref={ref}
       className={`farewell-block ${titleDone ? "title-done" : ""} ${bodyDone ? "body-done" : ""}`}
-      lang="ar"
-      dir="rtl"
+      lang={lang}
+      dir={dir}
     >
       <h2 className={`farewell-title ${titleDone ? "is-done" : ""}`}>
         <span className="ft-text">{visibleTitle}</span>
         {!titleDone && <span className="ft-caret" aria-hidden="true" />}
       </h2>
       <p className={`farewell-passage ${bodyDone ? "is-done" : ""} ${started ? "has-started" : ""}`}>
-        <span className="fp-text">{renderSegment(normalText, "n")}</span>
+        <span className="fp-text">{buildSegment(normalText, "n", memoryRegex)}</span>
         {hasSilver && (
-          <span className="fp-text fp-silver">{renderSegment(silverText, "s")}</span>
+          <span className="fp-text fp-silver">{buildSegment(silverText, "s", memoryRegex)}</span>
         )}
         {titleDone && !bodyDone && <span className="fp-caret" aria-hidden="true" />}
       </p>
