@@ -4166,3 +4166,151 @@ html.is-idle::after{
     transition:none !important;
   }
 }
+
+/* ============================================================
+   FAREWELL BLOCK — العنوان البارز + المحتوى الفلسفي
+   ============================================================ */
+.farewell-block{
+  max-width:760px;
+  margin:1.8rem auto 1.6rem;
+  text-align:center;
+  position:relative;
+}
+
+.farewell-title{
+  font-family:'Cormorant Garamond','Playfair Display','Tajawal',serif;
+  font-size:clamp(1.55rem, 3.6vw, 2.5rem);
+  line-height:1.35;
+  font-weight:600;
+  letter-spacing:.005em;
+  margin:0 0 1.2rem;
+  color:transparent;
+  background:linear-gradient(180deg, #fff8ec 0%, #f3c89e 55%, #d8a57c 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 26px rgba(216,165,124,.22));
+  text-shadow:0 1px 30px rgba(0,0,0,.55);
+  animation:title-blur-rise 1.2s cubic-bezier(.22, 1, .36, 1) both;
+}
+.farewell-title .ft-text{
+  display:inline;
+  background:inherit;
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  color:transparent;
+}
+.farewell-title .ft-caret{
+  display:inline-block;
+  width:.05em;
+  min-width:2px;
+  height:.85em;
+  background:linear-gradient(180deg, #f3c89e, #d8a57c);
+  border-radius:2px;
+  margin-inline-start:.08em;
+  vertical-align:-.08em;
+  box-shadow:0 0 12px rgba(216,165,124,.55);
+  animation:tw-blink 1.05s steps(1) infinite;
+  opacity:.9;
+}
+@keyframes title-blur-rise{
+  0%{ opacity:0; filter:blur(14px) drop-shadow(0 0 0 transparent); transform:translateY(8px); }
+  100%{ opacity:1; filter:blur(0) drop-shadow(0 0 26px rgba(216,165,124,.22)); transform:translateY(0); }
+}
+
+.farewell-passage .fp-text{
+  display:inline;
+}
+.farewell-passage .fp-silver{
+  background:linear-gradient(180deg, #f4f4f5 0%, #cdd0d6 50%, #9aa0aa 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  color:transparent;
+  filter:drop-shadow(0 0 18px rgba(220,225,235,.25));
+  letter-spacing:.01em;
+  font-weight:500;
+}
+
+/* ============================================================
+   MEMORY WORD — توهج ذهبي + غبار يتطاير من كلمة "ذكريات"
+   ============================================================ */
+.memory-word{
+  position:relative;
+  display:inline-block;
+  background:linear-gradient(100deg, #d8a57c 0%, #fff8ec 50%, #d8a57c 100%);
+  background-size:240% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  color:transparent;
+  filter:drop-shadow(0 0 12px rgba(243,200,158,.55));
+  font-weight:600;
+  animation:
+    memory-shimmer 3.6s ease-in-out infinite,
+    memory-pop .9s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes memory-shimmer{
+  0%, 100%{ background-position:0% 50%; }
+  50%{ background-position:100% 50%; }
+}
+@keyframes memory-pop{
+  0%{ filter:blur(8px) drop-shadow(0 0 0 transparent); transform:scale(.94); }
+  100%{ filter:blur(0) drop-shadow(0 0 12px rgba(243,200,158,.55)); transform:scale(1); }
+}
+
+/* غبار ذهبي يتطاير من الكلمة (بـ 6 ذرات على شكل box-shadow) */
+.memory-word::before,
+.memory-word::after{
+  content:"";
+  position:absolute;
+  width:3px;
+  height:3px;
+  border-radius:50%;
+  background:#f3c89e;
+  pointer-events:none;
+  opacity:0;
+  top:50%;
+  left:50%;
+  box-shadow:
+    0 0 4px #f3c89e,
+    0 0 8px rgba(216,165,124,.6);
+}
+.memory-word::before{
+  animation:memory-dust-1 1.8s ease-out forwards;
+}
+.memory-word::after{
+  animation:memory-dust-2 2.1s ease-out forwards;
+  animation-delay:.15s;
+}
+@keyframes memory-dust-1{
+  0%{ opacity:0; transform:translate(-50%, -50%) scale(.4); }
+  20%{ opacity:.95; }
+  100%{
+    opacity:0;
+    transform:translate(-180%, -340%) scale(.6);
+    box-shadow:
+      14px -6px 0 0 #f3c89e, 14px -6px 6px 0 rgba(243,200,158,.5),
+      -22px -10px 0 0 #d8a57c, -22px -10px 6px 0 rgba(216,165,124,.4),
+      6px -22px 0 0 #fff8ec, 6px -22px 6px 0 rgba(255,248,236,.3);
+  }
+}
+@keyframes memory-dust-2{
+  0%{ opacity:0; transform:translate(-50%, -50%) scale(.4); }
+  20%{ opacity:.85; }
+  100%{
+    opacity:0;
+    transform:translate(120%, -300%) scale(.5);
+    box-shadow:
+      -14px -8px 0 0 #f3c89e, -14px -8px 6px 0 rgba(243,200,158,.5),
+      18px -16px 0 0 #d8a57c, 18px -16px 6px 0 rgba(216,165,124,.4),
+      -6px -26px 0 0 #fff8ec, -6px -26px 6px 0 rgba(255,248,236,.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .farewell-title{ animation:none; }
+  .memory-word{ animation:none; filter:drop-shadow(0 0 8px rgba(243,200,158,.4)); }
+  .memory-word::before, .memory-word::after{ display:none; }
+}
