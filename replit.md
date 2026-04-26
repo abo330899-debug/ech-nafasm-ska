@@ -21,7 +21,8 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ### Nafsam (artifacts/nafsam)
 Personal memory archive site with dark glassmorphism aesthetics. Frontend-only React+Vite app.
 - **Features**: Animated rain, multilingual support (TR/FA/AR/EN), countdown timers, riddle-based login, typed text animation, rotating quotes
-- **Pages**: Home, Login, Moments, Photos, Songs, Videos, Writings
+- **Pages**: Home, Login, Moments (cinematic memory archive: hero + photo album + videos + timeline + final letter, all-in-one), Photos, Songs, Videos, Writings
+- **Memory Archive**: `pages/Moments.tsx` is the redesigned luxury memory archive. Uses navy/rose-gold/amber palette with bokeh background, glassmorphism cards, accessible video modal + photo lightbox, horizontal timeline rail, and final letter panel. CSS classes prefixed `mem-` in `index.css` to avoid conflicts.
 - **Tech**: React, Vite, wouter routing, custom CSS (no Tailwind), Inter font
 - **Port**: 19579, preview path: /
 - **Key files**:
