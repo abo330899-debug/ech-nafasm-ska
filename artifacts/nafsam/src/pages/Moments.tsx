@@ -1,7 +1,35 @@
+import { type CSSProperties, type ReactNode } from "react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import Footer from "@/components/Footer";
 import usePageAudio from "@/hooks/usePageAudio";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
+import LuxImage from "@/components/LuxImage";
+import useReveal from "@/hooks/useReveal";
+
+function RevealBlock({
+  className = "",
+  index,
+  children,
+}: {
+  className?: string;
+  index?: number;
+  children: ReactNode;
+}) {
+  const { ref, inView } = useReveal<HTMLDivElement>();
+  const style: CSSProperties | undefined =
+    typeof index === "number"
+      ? ({ ["--i" as never]: Math.min(index, 8) } as CSSProperties)
+      : undefined;
+  return (
+    <div
+      ref={ref}
+      className={`${className} reveal ${inView ? "in-view" : ""}`}
+      style={style}
+    >
+      {children}
+    </div>
+  );
+}
 
 interface Props {
   t: Translations;
@@ -46,16 +74,20 @@ export default function Moments({ t, lang }: Props) {
 
       <div className="timeline">
         {moments.map((m, i) => (
-          <div key={i} className={`timeline-item ${i % 2 === 0 ? "left" : "right"}`}>
+          <RevealBlock
+            key={i}
+            className={`timeline-item ${i % 2 === 0 ? "left" : "right"}`}
+            index={i}
+          >
             <div className="timeline-marker" />
             <div className="timeline-card glass">
               {m.time && <span className="timeline-time">{m.time}</span>}
-              <img src={m.image} alt={m.title ?? ""} className="timeline-img" loading="lazy" decoding="async" />
+              <LuxImage src={m.image} alt={m.title ?? ""} className="timeline-img" />
               {m.title && <h3>{m.title}</h3>}
               {m.text && <p>{m.text}</p>}
               {m.memory && <blockquote className="timeline-memory">{m.memory}</blockquote>}
             </div>
-          </div>
+          </RevealBlock>
         ))}
       </div>
 

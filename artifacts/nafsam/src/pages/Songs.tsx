@@ -1,6 +1,7 @@
 import { type Translations, type Lang } from "@/i18n/translations";
 import Footer from "@/components/Footer";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
+import RevealCard from "@/components/RevealCard";
 
 interface Props {
   t: Translations;
@@ -41,13 +42,13 @@ export default function Songs({ t, lang }: Props) {
 
       <div className="songs-list">
         {songs.map((s, i) => (
-          <div key={i} className="song-card glass">
+          <RevealCard key={i} className="song-card glass" index={i}>
             <h3>{s.title}</h3>
             {s.text && <p>{s.text}</p>}
             <audio controls src={s.src} className="audio-player">
               Your browser does not support audio.
             </audio>
-          </div>
+          </RevealCard>
         ))}
       </div>
 

@@ -1,9 +1,36 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from "react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import Footer from "@/components/Footer";
 import usePageAudio from "@/hooks/usePageAudio";
 import { privateImage } from "@/lib/privateAssets";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
+import LuxImage from "@/components/LuxImage";
+import useReveal from "@/hooks/useReveal";
+
+function RevealArticle({
+  className = "",
+  index,
+  children,
+}: {
+  className?: string;
+  index?: number;
+  children: ReactNode;
+}) {
+  const { ref, inView } = useReveal<HTMLElement>();
+  const style: CSSProperties | undefined =
+    typeof index === "number"
+      ? ({ ["--i" as never]: Math.min(index, 8) } as CSSProperties)
+      : undefined;
+  return (
+    <article
+      ref={ref as React.RefObject<HTMLElement>}
+      className={`${className} ${inView ? "in-view" : ""}`}
+      style={style}
+    >
+      {children}
+    </article>
+  );
+}
 
 interface Props {
   t: Translations;
@@ -70,7 +97,7 @@ export default function Photos({ t, lang }: Props) {
 
       <div className="photo-grid">
         {specialPhotos.map((ph, i) => (
-          <article key={`s-${i}`} className="photo-card glass">
+          <RevealArticle key={`s-${i}`} className="photo-card glass" index={i}>
             <div
               className="photo-card-media"
               onClick={() => setLightbox(ph.src)}
@@ -83,7 +110,7 @@ export default function Photos({ t, lang }: Props) {
                 }
               }}
             >
-              <img src={ph.src} alt={ph.text ?? ""} className="photo-img" loading="lazy" decoding="async" />
+              <LuxImage src={ph.src} alt={ph.text ?? ""} className="photo-img" />
               <span className="photo-card-badge">{pad2(i + 1)}</span>
               {ph.text && (
                 <div className="photo-card-overlay">
@@ -91,10 +118,10 @@ export default function Photos({ t, lang }: Props) {
                 </div>
               )}
             </div>
-          </article>
+          </RevealArticle>
         ))}
 
-        <article className="photo-card glass photo-card-featured">
+        <RevealArticle className="photo-card glass photo-card-featured" index={6}>
           <div
             className="photo-card-media"
             onClick={() => setLightbox(privateImage("photo7.webp"))}
@@ -107,12 +134,10 @@ export default function Photos({ t, lang }: Props) {
               }
             }}
           >
-            <img
+            <LuxImage
               src={privateImage("photo7.webp")}
               alt={p.photo7_text ?? ""}
               className="photo-img"
-              loading="lazy"
-              decoding="async"
             />
             <span className="photo-card-badge photo-card-badge-featured">★</span>
           </div>
@@ -120,7 +145,7 @@ export default function Photos({ t, lang }: Props) {
             {p.photo7_text && <p className="featured-quote">{p.photo7_text}</p>}
             {p.photo7_sub && <p className="featured-sub">{p.photo7_sub}</p>}
           </div>
-        </article>
+        </RevealArticle>
       </div>
 
       <div className="album-divider">
@@ -131,7 +156,7 @@ export default function Photos({ t, lang }: Props) {
 
       <div className="photo-grid album-grid">
         {albumPhotos.map((ph, i) => (
-          <article key={`a-${i}`} className="photo-card glass">
+          <RevealArticle key={`a-${i}`} className="photo-card glass" index={i}>
             <div
               className="photo-card-media"
               onClick={() => setLightbox(ph.src)}
@@ -144,7 +169,7 @@ export default function Photos({ t, lang }: Props) {
                 }
               }}
             >
-              <img src={ph.src} alt={ph.title ?? ""} className="photo-img" loading="lazy" decoding="async" />
+              <LuxImage src={ph.src} alt={ph.title ?? ""} className="photo-img" />
               <span className="photo-card-badge">{pad2(i + 1)}</span>
               {ph.title && (
                 <div className="photo-card-overlay">
@@ -157,7 +182,7 @@ export default function Photos({ t, lang }: Props) {
                 <p className="album-caption-text">{ph.text}</p>
               </div>
             )}
-          </article>
+          </RevealArticle>
         ))}
       </div>
 

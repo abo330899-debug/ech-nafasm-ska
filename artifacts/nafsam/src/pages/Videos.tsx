@@ -1,6 +1,38 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
+import useReveal from "@/hooks/useReveal";
+
+function RevealVideoCard({
+  className = "",
+  index,
+  children,
+  ...rest
+}: {
+  className?: string;
+  index?: number;
+  children: ReactNode;
+  onClick?: () => void;
+  role?: string;
+  tabIndex?: number;
+  "aria-label"?: string;
+  onKeyDown?: (e: React.KeyboardEvent) => void;
+}) {
+  const { ref, inView } = useReveal<HTMLElement>();
+  const style: CSSProperties = {
+    ["--i" as never]: typeof index === "number" ? Math.min(index, 8) : 0,
+  } as CSSProperties;
+  return (
+    <article
+      ref={ref as React.RefObject<HTMLElement>}
+      className={`${className} reveal ${inView ? "in-view" : ""}`}
+      style={style}
+      {...rest}
+    >
+      {children}
+    </article>
+  );
+}
 
 interface Props {
   t: Translations;
@@ -218,9 +250,10 @@ export default function Videos({ t, lang }: Props) {
           const kind = detectKind(item.file);
           const dur = durations[item.file];
           return (
-            <article
+            <RevealVideoCard
               key={item.file}
               className="v-card"
+              index={index}
               onClick={() => openModal(index)}
               role="button"
               tabIndex={0}
@@ -252,7 +285,7 @@ export default function Videos({ t, lang }: Props) {
                 <div className="v-title">{item.caption}</div>
                 {item.quote && <div className="v-quote">{item.quote}</div>}
               </div>
-            </article>
+            </RevealVideoCard>
           );
         })}
       </div>

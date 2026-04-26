@@ -16,7 +16,11 @@
   --shadow:0 30px 80px rgba(0,0,0,.55);
   --serif:'Amiri', 'Playfair Display', serif;
   --sans:'Cairo','Inter',sans-serif;
+  --ease:cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+
+html{scroll-behavior:smooth}
 
 html,body{
   font-family:var(--sans);
@@ -1484,22 +1488,25 @@ audio,video{filter:saturate(.95)}
     0 18px 40px -22px rgba(0,0,0,.7),
     0 0 0 1px rgba(255,255,255,.02) inset;
   transition:
-    transform .5s cubic-bezier(.2,.8,.2,1),
-    box-shadow .5s cubic-bezier(.2,.8,.2,1),
-    border-color .4s ease;
-  animation:luxRise .7s cubic-bezier(.2,.8,.2,1) both;
+    opacity .7s var(--ease),
+    transform .7s var(--ease),
+    box-shadow .5s var(--ease),
+    border-color .4s var(--ease);
+  opacity:0;
+  transform:translateY(18px);
+  will-change:opacity,transform;
 }
-.photos-luxe .photo-grid .photo-card:nth-child(2){animation-delay:.05s}
-.photos-luxe .photo-grid .photo-card:nth-child(3){animation-delay:.10s}
-.photos-luxe .photo-grid .photo-card:nth-child(4){animation-delay:.15s}
-.photos-luxe .photo-grid .photo-card:nth-child(5){animation-delay:.20s}
-.photos-luxe .photo-grid .photo-card:nth-child(6){animation-delay:.25s}
-.photos-luxe .photo-grid .photo-card:nth-child(7){animation-delay:.30s}
-.photos-luxe .photo-grid .photo-card:nth-child(8){animation-delay:.35s}
-@keyframes luxRise{
-  from{opacity:0;transform:translateY(18px)}
-  to{opacity:1;transform:translateY(0)}
+.photos-luxe .photo-card.in-view{
+  opacity:1;
+  transform:translateY(0);
 }
+.photos-luxe .photo-grid .photo-card:nth-child(2){transition-delay:.05s,.05s,0s,0s}
+.photos-luxe .photo-grid .photo-card:nth-child(3){transition-delay:.10s,.10s,0s,0s}
+.photos-luxe .photo-grid .photo-card:nth-child(4){transition-delay:.15s,.15s,0s,0s}
+.photos-luxe .photo-grid .photo-card:nth-child(5){transition-delay:.20s,.20s,0s,0s}
+.photos-luxe .photo-grid .photo-card:nth-child(6){transition-delay:.25s,.25s,0s,0s}
+.photos-luxe .photo-grid .photo-card:nth-child(7){transition-delay:.30s,.30s,0s,0s}
+.photos-luxe .photo-grid .photo-card:nth-child(8){transition-delay:.35s,.35s,0s,0s}
 .photos-luxe .photo-card:hover{
   transform:translateY(-4px) scale(1.01);
   border-color:rgba(216,165,124,.55);
@@ -3259,4 +3266,133 @@ footer,.footer{padding:var(--s-4) var(--s-3)}
   .videos-luxe .v-card-footer{padding:var(--s-2)}
   .hero-buttons{gap:var(--s-2)}
   footer,.footer{padding:var(--s-3) var(--s-2)}
+}
+
+/* ============================================================
+   PROGRESSIVE IMAGE LOADING (LuxImage)
+   Blur-up shimmer placeholder → smooth fade to crisp image.
+   ============================================================ */
+.lux-img-wrap{
+  position:relative;
+  display:block;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  isolation:isolate;
+}
+.lux-img-placeholder{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  background:
+    linear-gradient(135deg,
+      rgba(20,16,12,1) 0%,
+      rgba(34,26,20,1) 50%,
+      rgba(20,16,12,1) 100%);
+  opacity:1;
+  transition:opacity .55s var(--ease);
+  pointer-events:none;
+}
+.lux-img-placeholder::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    110deg,
+    transparent 25%,
+    rgba(200,168,119,.10) 50%,
+    transparent 75%);
+  background-size:220% 100%;
+  animation:luxShimmer 1.8s linear infinite;
+}
+.lux-img-wrap.is-loaded .lux-img-placeholder{
+  opacity:0;
+}
+.lux-img-wrap.is-loaded .lux-img-placeholder::after{
+  animation:none;
+}
+.lux-img{
+  position:relative;
+  z-index:2;
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:0;
+  filter:blur(14px) saturate(.85);
+  transform:scale(1.04);
+  transition:
+    opacity .6s var(--ease),
+    filter .8s var(--ease),
+    transform .8s var(--ease);
+  will-change:opacity,filter,transform;
+}
+.lux-img.is-loaded{
+  opacity:1;
+  filter:blur(0) saturate(1);
+  transform:scale(1);
+}
+@keyframes luxShimmer{
+  from{background-position:200% 0}
+  to{background-position:-200% 0}
+}
+
+/* When LuxImage is used inside .photos-luxe .photo-card-media,
+   ensure the wrap fills the slot and badges/overlays still sit on top. */
+.photos-luxe .photo-card-media .lux-img-wrap{
+  position:absolute;
+  inset:0;
+}
+.photos-luxe .photo-card-media .photo-card-badge,
+.photos-luxe .photo-card-media .photo-card-overlay{
+  z-index:3;
+}
+/* Hover scale on photo-img — mirrored on .lux-img to keep behavior */
+.photos-luxe .photo-card:hover .lux-img.is-loaded{
+  transform:scale(1.05);
+  filter:saturate(1.06) brightness(1.02);
+}
+
+/* Timeline images use LuxImage too — wrap takes the visible box */
+.timeline-card .lux-img-wrap{
+  display:block;
+  width:100%;
+  margin:12px 0;
+  border-radius:12px;
+  overflow:hidden;
+  height:220px;
+  max-height:220px;
+}
+.timeline-card .lux-img-wrap .lux-img,
+.timeline-card .lux-img-wrap .timeline-img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:0;
+  margin:0;
+}
+
+/* ============================================================
+   REVEAL ON SCROLL (generic utility)
+   Used by Songs/Videos/Moments cards via useReveal hook.
+   ============================================================ */
+.reveal{
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .7s var(--ease), transform .7s var(--ease);
+  will-change:opacity,transform;
+}
+.reveal.in-view{
+  opacity:1;
+  transform:translateY(0);
+}
+/* Stagger via inline --i index */
+.reveal{ transition-delay:calc(var(--i, 0) * 60ms); }
+
+/* Reduced motion: disable progressive blur and reveal lift */
+@media (prefers-reduced-motion: reduce){
+  .lux-img{filter:none;transform:none;opacity:1;transition:none}
+  .lux-img-placeholder{display:none}
+  .reveal{opacity:1;transform:none;transition:none}
+  .photos-luxe .photo-card{opacity:1;transform:none;transition:none}
 }
