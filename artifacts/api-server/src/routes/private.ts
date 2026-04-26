@@ -73,6 +73,7 @@ function loadContent(): unknown {
 }
 
 router.get("/private/content", requireAuth, (_req, res) => {
+  res.setHeader("Cache-Control", "no-store");
   res.json(loadContent());
 });
 

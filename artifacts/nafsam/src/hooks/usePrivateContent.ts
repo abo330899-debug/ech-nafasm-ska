@@ -78,7 +78,7 @@ async function loadPrivateContent(): Promise<PrivateContent | null> {
   if (cache) return cache;
   if (inflight) return inflight;
   const myGen = generation;
-  inflight = fetch("/api/private/content", { credentials: "same-origin" })
+  inflight = fetch("/api/private/content", { credentials: "same-origin", cache: "no-store" })
     .then((r) => (r.ok ? (r.json() as Promise<PrivateContent>) : null))
     .then((data) => {
       if (myGen !== generation) return null;
