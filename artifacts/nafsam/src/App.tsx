@@ -5,6 +5,7 @@ import Rain from "@/components/Rain";
 import FloatingHearts from "@/components/FloatingHearts";
 import DustParticles from "@/components/DustParticles";
 import { useMagneticButtons } from "@/hooks/useMagneticButtons";
+import { useIdleVignette } from "@/hooks/useIdleVignette";
 import Navbar from "@/components/Navbar";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Login from "@/pages/Login";
@@ -31,6 +32,7 @@ function AppContent() {
   const [authState, setAuthState] = useState<AuthState>("checking");
   const [location] = useLocation();
   useMagneticButtons();
+  useIdleVignette();
 
   const refresh = async () => {
     const s = await fetchSession();

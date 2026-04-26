@@ -3855,3 +3855,82 @@ input, textarea, select{ color-scheme:dark; }
 @media (prefers-reduced-motion: reduce){
   .reveal{ filter:none; transition:none; }
 }
+
+/* ============================================================
+   IDLE VIGNETTE — تكثيف الإضاءة الجانبية عند سكون المستخدم
+   ============================================================ */
+html::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:3;
+  background:radial-gradient(
+    ellipse at center,
+    transparent 35%,
+    rgba(0, 0, 0, .25) 75%,
+    rgba(0, 0, 0, .55) 100%
+  );
+  opacity:.55;
+  transition:opacity 2.4s cubic-bezier(.4, 0, .2, 1);
+  will-change:opacity;
+  mix-blend-mode:multiply;
+}
+html.is-idle::after{
+  opacity:1;
+  background:radial-gradient(
+    ellipse at center,
+    transparent 22%,
+    rgba(0, 0, 0, .35) 60%,
+    rgba(5, 8, 20, .82) 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce){
+  html::after{ transition:none; }
+  html.is-idle::after{ opacity:.6; }
+}
+
+/* ============================================================
+   BREATHING — توسيع التنفّس ليشمل كروت اللحظات (Moments)
+   ============================================================ */
+.timeline-card .lux-img.is-loaded{
+  animation:breathe-slow 8s ease-in-out infinite;
+  animation-delay:calc(var(--i, 0) * 0.6s);
+  will-change:transform;
+}
+.timeline-card:hover .lux-img.is-loaded{
+  animation-play-state:paused;
+}
+@media (prefers-reduced-motion: reduce){
+  .timeline-card .lux-img.is-loaded{ animation:none; }
+}
+
+/* ============================================================
+   PAGE HEADERS — دخول بضباب جاوسي ناعم عند تحميل الصفحة
+   ============================================================ */
+@keyframes header-blur-in{
+  0%{
+    opacity:0;
+    filter:blur(14px);
+    transform:translateY(12px);
+  }
+  100%{
+    opacity:1;
+    filter:blur(0);
+    transform:translateY(0);
+  }
+}
+.page-header h1{
+  animation:header-blur-in 1.4s cubic-bezier(.22, 1, .36, 1) both;
+  will-change:opacity, filter, transform;
+}
+.page-header p{
+  animation:header-blur-in 1.5s cubic-bezier(.22, 1, .36, 1) .25s both;
+}
+@media (prefers-reduced-motion: reduce){
+  .page-header h1,
+  .page-header p{
+    animation:none;
+  }
+}
