@@ -3463,3 +3463,107 @@ footer,.footer{padding:var(--s-4) var(--s-3)}
     transform:none;
   }
 }
+
+/* ============================================================
+   MOBILE LUXURY PARITY + PWA POLISH
+   - Hover effects only on hover-capable devices (no sticky tap state)
+   - :active tap states for touch
+   - iOS safe-area insets for standalone PWA
+   - Disable iOS double-tap zoom highlight
+   - Standalone display refinements
+   ============================================================ */
+
+/* Disable hover-only effects on touch devices */
+@media (hover: none) {
+  .card-luxury:hover,
+  .videos-luxe .v-card:hover,
+  .song-card:hover,
+  .timeline-card:hover,
+  .cards-grid > .card:hover,
+  .photos-luxe .photo-card:hover{
+    transform:none;
+    border-color:rgba(216, 165, 124, 0.2);
+    box-shadow:
+      0 18px 40px -22px rgba(0,0,0,.7),
+      0 0 0 1px rgba(255,255,255,.02) inset;
+  }
+  .photos-luxe .photo-card:hover .lux-img.is-loaded{
+    transform:none;
+    filter:none;
+  }
+}
+
+/* Touch tap feedback — quick scale-down on press */
+@media (hover: none) {
+  .card-luxury:active,
+  .videos-luxe .v-card:active,
+  .song-card:active,
+  .timeline-card:active,
+  .cards-grid > .card:active,
+  .photos-luxe .photo-card:active{
+    transform:scale(.98);
+    border-color:var(--rose-gold);
+    box-shadow:
+      0 14px 30px rgba(0,0,0,.55),
+      0 0 18px rgba(216,165,124,.18);
+    transition:transform .15s var(--ease), border-color .25s var(--ease), box-shadow .25s var(--ease);
+  }
+}
+
+/* Remove iOS tap-highlight; use our own */
+*{ -webkit-tap-highlight-color:transparent; }
+button, a, [role="button"]{ -webkit-tap-highlight-color:transparent; }
+
+/* Smoother scrolling on iOS */
+html, body{ -webkit-overflow-scrolling:touch; }
+
+/* Safe-area insets — for standalone PWA on notched devices */
+.app-shell{
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+}
+
+/* When running as installed PWA — subtle indicator and adjusted hero */
+@media (display-mode: standalone) {
+  body{
+    overscroll-behavior-y:none;
+  }
+  .navbar, nav{
+    padding-top:max(env(safe-area-inset-top), 12px);
+  }
+  .hero{
+    padding-top:max(env(safe-area-inset-top), 0px);
+  }
+}
+
+/* Mobile glassmorphism perf — backdrop-filter is expensive on lower-end
+   Android. Soften to a slightly cheaper blur on small screens. */
+@media (max-width:520px){
+  .card-luxury,
+  .photos-luxe .photo-card,
+  .videos-luxe .v-card,
+  .song-card,
+  .timeline-card,
+  .cards-grid > .card,
+  .glass{
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+  }
+  /* Keep rose-gold border crisp at 1px on mobile (sub-px is invisible) */
+  .card-luxury,
+  .photos-luxe .photo-card,
+  .videos-luxe .v-card,
+  .song-card,
+  .timeline-card,
+  .cards-grid > .card{
+    border-width:1px;
+  }
+}
+
+/* Text selection respects luxury palette */
+::selection{ background:rgba(216,165,124,.30); color:#fff; }
+
+/* Form controls inherit dark theme on mobile */
+input, textarea, select{ color-scheme:dark; }
