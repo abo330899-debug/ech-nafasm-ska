@@ -30,8 +30,8 @@ Production assumptions for future scans:
 ## Scan Anchors
 
 - **Production entry points**: `artifacts/api-server/src/index.ts`, `artifacts/api-server/src/app.ts`, `artifacts/api-server/src/routes/auth.ts`, `artifacts/api-server/src/routes/private.ts`, `artifacts/nafsam/src/App.tsx`
-- **Highest-risk code areas**: `artifacts/api-server/src/lib/session.ts`, `artifacts/api-server/src/routes/auth.ts`, `artifacts/api-server/src/routes/private.ts`, `artifacts/nafsam/src/hooks/usePrivateContent.ts`, `artifacts/nafsam/src/lib/auth.ts`, `artifacts/nafsam/src/pages/Login.tsx`
-- **Public surfaces**: the frontend bundle and static assets under `artifacts/nafsam/dist/public`, `/api/healthz`, and `/api/auth/*`
+- **Highest-risk code areas**: `artifacts/api-server/src/lib/session.ts`, `artifacts/api-server/src/routes/auth.ts`, `artifacts/api-server/src/routes/private.ts`, `artifacts/nafsam/src/i18n/translations.ts`, `artifacts/nafsam/src/hooks/usePrivateContent.ts`, `artifacts/nafsam/src/lib/auth.ts`, `artifacts/nafsam/src/pages/Login.tsx`, `artifacts/nafsam/src/pages/Songs.tsx`
+- **Public surfaces**: the frontend bundle and static assets under `artifacts/nafsam/dist/public`, including generated JS chunks that any visitor can download, plus `/api/healthz` and `/api/auth/*`
 - **Intended authenticated surfaces**: `/api/private/*` and frontend routes such as `/home`, `/moments`, `/photos`, `/songs`, `/videos`, and `/writings`
 - **Dev-only areas to usually ignore**: `artifacts/mockup-sandbox/`, `scripts/`, `lib/api-spec/`
 
@@ -47,7 +47,7 @@ The browser is untrusted and can alter route state, requests, and asset URLs. Au
 
 ### Information Disclosure
 
-Protected memories must not be exposed through public frontend bundles, logs, error responses, or cache policy. Sensitive text, media inventories, and intimate captions should only be delivered after successful authorization, and every protected response, including `/api/private/content`, must use cache directives that prevent later recovery from browser caches on shared devices. Because the SPA keeps protected data in in-memory client state, protected views and module-scoped caches must also be cleared promptly when authorization is lost rather than remaining visible until an asynchronous route check finishes.
+Protected memories must not be exposed through public frontend bundles, logs, error responses, or cache policy. Sensitive text, media inventories, intimate captions, and protected object identifiers must only be delivered after successful authorization. In this codebase, shared frontend assets such as `src/i18n/translations.ts` and protected page modules are especially sensitive because anything embedded there is compiled into publicly downloadable JavaScript. Every protected response, including `/api/private/content`, must use cache directives that prevent later recovery from browser caches on shared devices. Because the SPA keeps protected data in in-memory client state, protected views and module-scoped caches must also be cleared promptly when authorization is lost rather than remaining visible until an asynchronous route check finishes.
 
 ### Denial of Service
 
