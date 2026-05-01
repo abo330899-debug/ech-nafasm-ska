@@ -39,7 +39,7 @@ Production assumptions for future scans:
 
 ### Spoofing
 
-The server must fail closed if production authentication configuration is incomplete. Accepted login answers must come from deployment configuration rather than hardcoded fallbacks, and the application must not expose exact accepted answers to unauthenticated visitors. Session cookies must remain signed with a production-only secret and validated on every protected request. Changing the archive answer or performing an access-revocation action must also provide a way to invalidate already-issued sessions rather than leaving old cookies valid for their full TTL.
+The server must fail closed if production authentication configuration is incomplete. Accepted login answers must come from deployment configuration rather than hardcoded fallbacks, and the application must not expose exact accepted answers or answer identifiers to unauthenticated visitors, including in public bootstrap endpoints such as `/api/auth/session`. Session cookies must remain signed with a production-only secret and validated on every protected request. Changing the archive answer or performing an access-revocation action must also provide a way to invalidate already-issued sessions rather than leaving old cookies valid for their full TTL.
 
 ### Tampering
 
