@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { type Translations } from "@/i18n/translations";
+import { type Translations, type Lang } from "@/i18n/translations";
 import usePageAudio from "@/hooks/usePageAudio";
-import { fetchSession, login } from "@/lib/auth";
+import { fetchSession, login, type SessionCard } from "@/lib/auth";
 
 interface CountdownTime {
   days: number;
@@ -23,24 +23,18 @@ function getCountdown(target: number, now: Date): CountdownTime | null {
   };
 }
 
-const USER_CARDS = [
-  { id: "Ashkim" },
-  { id: "nafasim" },
-  { id: "kaar" },
-  { id: "asgoori" },
-  { id: "lucifer" },
-  { id: "ECHSKA" },
-];
-
 interface Props {
   t: Translations;
+  lang: Lang;
   onAuth?: () => void;
 }
 
-export default function Login({ t, onAuth }: Props) {
+export default function Login({ t, lang, onAuth }: Props) {
   usePageAudio("login_song.mp3");
   const [openAt, setOpenAt] = useState<number | null>(null);
   const [countdown, setCountdown] = useState<CountdownTime | null>(null);
+  const [cards, setCards] = useState<SessionCard[]>([]);
+  const [cardCount, setCardCount] = useState<number>(0);
   const [answer, setAnswer] = useState("");
   const [msg, setMsg] = useState("");
   const [msgType, setMsgType] = useState<"" | "error" | "success">("");
@@ -57,6 +51,12 @@ export default function Login({ t, onAuth }: Props) {
       }
       setOpenAt(s.openAt);
       setCountdown(getCountdown(s.openAt, new Date()));
+      if (s.cards) {
+        setCards(s.cards);
+        setCardCount(s.cards.length);
+      } else if (s.cardCount) {
+        setCardCount(s.cardCount);
+      }
     });
     return () => {
       cancelled = true;
@@ -65,22 +65,21 @@ export default function Login({ t, onAuth }: Props) {
 
   useEffect(() => {
     if (openAt === null) return;
+    let justOpened = false;
     const iv = setInterval(() => {
-      setCountdown(getCountdown(openAt, new Date()));
+      const next = getCountdown(openAt, new Date());
+      setCountdown(next);
+      if (next === null && !justOpened) {
+        justOpened = true;
+        fetchSession().then((s) => {
+          if (s.cards) setCards(s.cards);
+        });
+      }
     }, 1000);
     return () => clearInterval(iv);
   }, [openAt]);
 
   const isOpen = countdown === null && openAt !== null;
-
-  const riddleKeys: Record<string, keyof Translations> = {
-    Ashkim: "riddle_ashkim",
-    nafasim: "riddle_nafasim",
-    kaar: "riddle_kaar",
-    asgoori: "riddle_asgoori",
-    lucifer: "riddle_lucifer",
-    ECHSKA: "riddle_echska",
-  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -115,24 +114,28 @@ export default function Login({ t, onAuth }: Props) {
         <p className="login-text">{t.login_text}</p>
 
         <div className="user-cards-grid">
-          {USER_CARDS.map((u) => (
-            <div key={u.id} className="user-card glass">
-              {countdown ? (
-                <div className="countdown-mini">
-                  <span>
-                    {countdown.days}{t.countdown_day} {countdown.hrs}
-                    {t.countdown_hour} {countdown.mins}{t.countdown_minute}{" "}
-                    {countdown.secs}{t.countdown_second}
-                  </span>
+          {cards.length > 0
+            ? cards.map((card) => (
+                <div key={card.id} className="user-card glass">
+                  <div className="riddle-hint">
+                    <span className="riddle-icon">🔓</span>
+                    <p>{card.hints[lang] ?? card.hints.en}</p>
+                  </div>
                 </div>
-              ) : (
-                <div className="riddle-hint">
-                  <span className="riddle-icon">🔓</span>
-                  <p>{String(t[riddleKeys[u.id] as keyof Translations])}</p>
-                </div>
-              )}
-            </div>
-          ))}
+              ))
+            : countdown !== null && cardCount > 0
+              ? Array.from({ length: cardCount }, (_, i) => (
+                  <div key={i} className="user-card glass">
+                    <div className="countdown-mini">
+                      <span>
+                        {countdown.days}{t.countdown_day} {countdown.hrs}
+                        {t.countdown_hour} {countdown.mins}{t.countdown_minute}{" "}
+                        {countdown.secs}{t.countdown_second}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              : null}
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>

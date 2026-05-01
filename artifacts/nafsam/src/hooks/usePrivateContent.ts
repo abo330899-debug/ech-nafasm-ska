@@ -27,6 +27,16 @@ export interface MomentEntry {
   memory: string;
 }
 
+export interface SongItem {
+  title: string;
+  src: string;
+}
+
+export interface SpecialPhotoItem {
+  file: string;
+  featured?: boolean;
+}
+
 export interface PrivatePages {
   hero_text?: string;
   quote_1?: string; quote_2?: string; quote_3?: string; quote_4?: string;
@@ -59,6 +69,16 @@ export interface PrivatePages {
   moment7_time?: string; moment7_title?: string; moment7_text?: string; moment7_memory?: string;
   moment8_time?: string; moment8_title?: string; moment8_text?: string; moment8_memory?: string;
   moment9_time?: string; moment9_title?: string; moment9_text?: string; moment9_memory?: string;
+  farewell_title?: string;
+  farewell_p1?: string;
+  farewell_p2?: string;
+  farewell_p3?: string;
+  farewell_p4?: string;
+  farewell_silver_anchor?: string;
+  farewell_memory_pattern?: string;
+  oblivion_name?: string;
+  oblivion_hint?: string;
+  oblivion_revealed?: string;
 }
 
 export interface PrivateContent {
@@ -67,6 +87,9 @@ export interface PrivateContent {
   pages?: Partial<Record<Lang, PrivatePages>>;
   videos?: VideoItem[];
   photos?: string[];
+  songs?: SongItem[];
+  specialPhotos?: SpecialPhotoItem[];
+  momentImages?: string[];
 }
 
 let cache: PrivateContent | null = null;

@@ -1,7 +1,21 @@
+export interface CardHints {
+  tr: string;
+  fa: string;
+  ar: string;
+  en: string;
+}
+
+export interface SessionCard {
+  id: string;
+  hints: CardHints;
+}
+
 export interface SessionStatus {
   authed: boolean;
   openAt: number;
   isOpen: boolean;
+  cards?: SessionCard[];
+  cardCount?: number;
 }
 
 export async function fetchSession(): Promise<SessionStatus> {

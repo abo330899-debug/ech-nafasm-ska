@@ -42,6 +42,16 @@ function pad2(n: number) {
   return n < 10 ? `0${n}` : String(n);
 }
 
+const SPECIAL_PHOTO_TEXT_KEYS = [
+  "photo1_text",
+  "photo2_text",
+  "photo3_text",
+  "photo4_text",
+  "photo5_text",
+  "photo6_text",
+  "photo7_text",
+] as const;
+
 export default function Photos({ t, lang }: Props) {
   usePageAudio("song2.mp3");
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -69,25 +79,25 @@ export default function Photos({ t, lang }: Props) {
   }, [lightbox]);
 
   useEffect(() => {
-    const data2 = data;
-    if (!data2) return;
-    const all = (data2.photos ?? [])
+    if (!data) return;
+    const all = (data.photos ?? [])
       .slice(0, 6)
       .map((n) => privateImage(`all_photos/${n}`));
     prefetchImages(all);
   }, [data]);
+
   const langKey: "ar" | "tr" = lang === "ar" ? "ar" : "tr";
   const captions = data?.captions?.[langKey] ?? [];
   const allPhotos = data?.photos ?? [];
 
-  const specialPhotos = [
-    { src: privateImage("photo1.webp"), text: p.photo1_text },
-    { src: privateImage("photo2.webp"), text: p.photo2_text },
-    { src: privateImage("photo3.webp"), text: p.photo3_text },
-    { src: privateImage("photo4.webp"), text: p.photo4_text },
-    { src: privateImage("photo5.webp"), text: p.photo5_text },
-    { src: privateImage("photo6.webp"), text: p.photo6_text },
-  ];
+  const rawSpecialPhotos = data?.specialPhotos ?? [];
+  const nonFeaturedPhotos = rawSpecialPhotos.filter((ph) => !ph.featured);
+  const featuredPhoto = rawSpecialPhotos.find((ph) => ph.featured);
+
+  const specialPhotos = nonFeaturedPhotos.map((ph, i) => ({
+    src: privateImage(ph.file),
+    text: p[SPECIAL_PHOTO_TEXT_KEYS[i]] ?? undefined,
+  }));
 
   const albumPhotos = allPhotos.map((name, i) => {
     const story = i < captions.length ? captions[i] : null;
@@ -137,32 +147,37 @@ export default function Photos({ t, lang }: Props) {
           </RevealArticle>
         ))}
 
-        <RevealArticle className="photo-card glass photo-card-featured" index={6}>
-          <div
-            className="photo-card-media"
-            onClick={() => setLightbox(privateImage("photo7.webp"))}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setLightbox(privateImage("photo7.webp"));
-              }
-            }}
-          >
-            <LuxImage
-              src={privateImage("photo7.webp")}
-              alt={p.photo7_text ?? ""}
-              className="photo-img"
-              nextSrc={albumPhotos.slice(0, 2).map((x) => x.src)}
-            />
-            <span className="photo-card-badge photo-card-badge-featured">★</span>
-          </div>
-          <div className="photo-caption-featured">
-            {p.photo7_text && <p className="featured-quote">{p.photo7_text}</p>}
-            {p.photo7_sub && <p className="featured-sub">{p.photo7_sub}</p>}
-          </div>
-        </RevealArticle>
+        {featuredPhoto && (() => {
+          const featuredSrc = privateImage(featuredPhoto.file);
+          return (
+            <RevealArticle className="photo-card glass photo-card-featured" index={nonFeaturedPhotos.length}>
+              <div
+                className="photo-card-media"
+                onClick={() => setLightbox(featuredSrc)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setLightbox(featuredSrc);
+                  }
+                }}
+              >
+                <LuxImage
+                  src={featuredSrc}
+                  alt={p.photo7_text ?? ""}
+                  className="photo-img"
+                  nextSrc={albumPhotos.slice(0, 2).map((x) => x.src)}
+                />
+                <span className="photo-card-badge photo-card-badge-featured">★</span>
+              </div>
+              <div className="photo-caption-featured">
+                {p.photo7_text && <p className="featured-quote">{p.photo7_text}</p>}
+                {p.photo7_sub && <p className="featured-sub">{p.photo7_sub}</p>}
+              </div>
+            </RevealArticle>
+          );
+        })()}
       </div>
 
       <div className="album-divider">

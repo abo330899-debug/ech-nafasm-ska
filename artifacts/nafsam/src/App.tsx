@@ -77,7 +77,7 @@ function AppContent() {
       <main>
         <Switch>
           <Route path="/">
-            <Login t={t} onAuth={() => setAuthState("authed")} />
+            <Login t={t} lang={lang} onAuth={() => setAuthState("authed")} />
           </Route>
           <Route path="/home">
             <ProtectedRoute state={authState}><Home t={t} lang={lang} /></ProtectedRoute>

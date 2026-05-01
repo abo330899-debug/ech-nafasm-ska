@@ -41,29 +41,15 @@ export default function Moments({ t, lang }: Props) {
   const data = usePrivateContent();
   const p = pickLangPages(data, lang);
 
+  const momentImages = data?.momentImages ?? [];
+
   const moments = [
-    {
-      time: p.moment1_time,
-      title: p.moment1_title,
-      text: p.moment1_text,
-      memory: p.moment1_memory,
-      image: `/api/private/images/photo1.webp`,
-    },
-    {
-      time: p.moment2_time,
-      title: p.moment2_title,
-      text: p.moment2_text,
-      memory: p.moment2_memory,
-      image: `/api/private/images/photo2.webp`,
-    },
-    {
-      time: p.moment3_time,
-      title: p.moment3_title,
-      text: p.moment3_text,
-      memory: p.moment3_memory,
-      image: `/api/private/images/photo3.webp`,
-    },
-  ].filter((m) => m.title || m.text);
+    { time: p.moment1_time, title: p.moment1_title, text: p.moment1_text, memory: p.moment1_memory },
+    { time: p.moment2_time, title: p.moment2_title, text: p.moment2_text, memory: p.moment2_memory },
+    { time: p.moment3_time, title: p.moment3_title, text: p.moment3_text, memory: p.moment3_memory },
+  ]
+    .map((m, i) => ({ ...m, image: momentImages[i] ? `/api/private/images/${momentImages[i]}` : "" }))
+    .filter((m) => m.title || m.text);
 
   return (
     <div className="page-content">

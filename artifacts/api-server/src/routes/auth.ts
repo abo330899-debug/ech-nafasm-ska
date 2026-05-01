@@ -37,13 +37,97 @@ function rateLimited(ip: string): boolean {
   return rec.count > MAX_ATTEMPTS;
 }
 
+interface CardHints {
+  tr: string;
+  fa: string;
+  ar: string;
+  en: string;
+}
+
+interface SessionCard {
+  id: string;
+  hints: CardHints;
+}
+
+function getCards(): SessionCard[] {
+  return [
+    {
+      id: "Ashkim",
+      hints: {
+        tr: "Sana hep seslendiği şey",
+        fa: "چیزی که همیشه با آن صدایم می‌زدی",
+        ar: "الشيء يلي دايما كنت تندهني بيه",
+        en: "The thing she always used to call you",
+      },
+    },
+    {
+      id: "nafasim",
+      hints: {
+        tr: "Bu kelimeyi söyleyişini hep çok güzel bulurdum",
+        fa: "همیشه می‌گفتم چقدر گفتن این کلمه از زبانت زیباست",
+        ar: "دايما اقول شكد حلو تحكين هل كلمة",
+        en: "I always said this word sounded so beautiful from you",
+      },
+    },
+    {
+      id: "kaar",
+      hints: {
+        tr: "Ne yazık ki bu kelime sana yakışıyordu",
+        fa: "متأسفانه این کلمه برازنده‌ات بود",
+        ar: "صدق هاد الكلمة تستاهليها مع الاسف",
+        en: "Sadly, this word suited you",
+      },
+    },
+    {
+      id: "asgoori",
+      hints: {
+        tr: "İçimden gelen ve senin sadece söz sandığın kelime",
+        fa: "کلمه‌ای که از اعماقم بیرون می‌آمد و تو فکر می‌کردی فقط حرف است",
+        ar: "الكلمة يلي دايما يطلع من اعماقي ويلي ماكنتي تصدقينها فكرك مجرد كلام",
+        en: "The word that came from my deepest self and you thought was just talk",
+      },
+    },
+    {
+      id: "lucifer",
+      hints: {
+        tr: "Kolay çözüm bulunca şaşırıp bana dediğin kelime",
+        fa: "وقتی راه‌حل را راحت پیدا می‌کردم، با تعجب این را می‌گفتی",
+        ar: "عندما لاقي حلول بسهولة تنصدمين و تقولي هل كلمة",
+        en: "When I found solutions easily, you would be shocked and say this word",
+      },
+    },
+    {
+      id: "ECHSKA",
+      hints: {
+        tr: "Ömür boyu kalmaları gereken şey",
+        fa: "چیزی که قرار بود تا آخر عمر بماند",
+        ar: "يلي كان مفروض يظلون طول العمر",
+        en: "What was supposed to remain forever",
+      },
+    },
+  ];
+}
+
 router.get("/auth/session", (req, res) => {
   const openAt = getOpenAt();
-  res.json({
+  const isOpen = Date.now() >= openAt;
+  const response: {
+    authed: boolean;
+    openAt: number;
+    isOpen: boolean;
+    cards?: ReturnType<typeof getCards>;
+    cardCount?: number;
+  } = {
     authed: isAuthed(req),
     openAt,
-    isOpen: Date.now() >= openAt,
-  });
+    isOpen,
+  };
+  if (isOpen) {
+    response.cards = getCards();
+  } else {
+    response.cardCount = getCards().length;
+  }
+  res.json(response);
 });
 
 router.post("/auth/login", (req, res) => {

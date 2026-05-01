@@ -65,14 +65,16 @@ export default function Home({ t, lang }: Props) {
           <span className="eyebrow">{t.hero_eyebrow}</span>
           <TypewriterTitle text={t.hero_title} />
 
-          <FarewellPassage
-            title={t.farewell_title}
-            paragraphs={[t.farewell_p1, t.farewell_p2, t.farewell_p3, t.farewell_p4]}
-            silverAnchor={t.farewell_silver_anchor}
-            memoryPattern={t.farewell_memory_pattern}
-            dir={t.dir}
-            lang={lang}
-          />
+          {p.farewell_title && (
+            <FarewellPassage
+              title={p.farewell_title}
+              paragraphs={[p.farewell_p1 ?? "", p.farewell_p2 ?? "", p.farewell_p3 ?? "", p.farewell_p4 ?? ""].filter(Boolean)}
+              silverAnchor={p.farewell_silver_anchor ?? ""}
+              memoryPattern={p.farewell_memory_pattern ?? ""}
+              dir={t.dir}
+              lang={lang}
+            />
+          )}
           <div className="elapsed-counter">
             <span>{el.days} {t.countdown_day}</span>
             <span>{el.hrs} {t.countdown_hour}</span>
@@ -90,13 +92,15 @@ export default function Home({ t, lang }: Props) {
         </div>
       </section>
 
-      <OblivionScript
-        name={t.oblivion_name}
-        hint={t.oblivion_hint}
-        revealed={t.oblivion_revealed}
-        dir={t.dir}
-        lang={lang}
-      />
+      {p.oblivion_name && (
+        <OblivionScript
+          name={p.oblivion_name}
+          hint={p.oblivion_hint ?? ""}
+          revealed={p.oblivion_revealed ?? ""}
+          dir={t.dir}
+          lang={lang}
+        />
+      )}
 
       <section className="cards-section">
         <div className="cards-grid">
