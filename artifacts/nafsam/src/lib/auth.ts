@@ -6,7 +6,6 @@ export interface CardHints {
 }
 
 export interface SessionCard {
-  id: string;
   hints: CardHints;
 }
 

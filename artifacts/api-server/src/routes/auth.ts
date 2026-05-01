@@ -49,6 +49,14 @@ interface SessionCard {
   hints: CardHints;
 }
 
+interface PublicSessionCard {
+  hints: CardHints;
+}
+
+function toPublicCards(cards: SessionCard[]): PublicSessionCard[] {
+  return cards.map(({ hints }) => ({ hints }));
+}
+
 function getCards(): SessionCard[] {
   return [
     {
@@ -115,7 +123,7 @@ router.get("/auth/session", (req, res) => {
     authed: boolean;
     openAt: number;
     isOpen: boolean;
-    cards?: ReturnType<typeof getCards>;
+    cards?: PublicSessionCard[];
     cardCount?: number;
   } = {
     authed: isAuthed(req),
@@ -123,7 +131,7 @@ router.get("/auth/session", (req, res) => {
     isOpen,
   };
   if (isOpen) {
-    response.cards = getCards();
+    response.cards = toPublicCards(getCards());
   } else {
     response.cardCount = getCards().length;
   }

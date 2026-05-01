@@ -115,8 +115,8 @@ export default function Login({ t, lang, onAuth }: Props) {
 
         <div className="user-cards-grid">
           {cards.length > 0
-            ? cards.map((card) => (
-                <div key={card.id} className="user-card glass">
+            ? cards.map((card, i) => (
+                <div key={`card-${i}`} className="user-card glass">
                   <div className="riddle-hint">
                     <span className="riddle-icon">🔓</span>
                     <p>{card.hints[lang] ?? card.hints.en}</p>
