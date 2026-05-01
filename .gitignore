@@ -6,4 +6,21 @@ dist/
 build/
 .DS_Store
 project-backup.zip
-artifacts/
+
+# Artifact build outputs and dependency caches
+artifacts/*/dist/
+artifacts/*/build/
+artifacts/*/node_modules/
+artifacts/*/.next/
+artifacts/*/.turbo/
+
+# Private personal content (Nafsam memorial archive — private images, audio, video, text)
+artifacts/api-server/private/
+artifacts/api-server/data/
+artifacts/api-server/media/
+artifacts/nafsam/public/media/
+attached_assets/
+
+# Log files
+*.log
+.local/state/replit/workflow-logs/
