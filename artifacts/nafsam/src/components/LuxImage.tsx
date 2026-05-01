@@ -51,7 +51,7 @@ export default function LuxImage({
         alt={alt}
         loading={isPriority ? "eager" : "lazy"}
         decoding="async"
-        {...(isPriority ? { fetchpriority: "high" as never } : {})}
+        {...(isPriority ? { fetchPriority: "high" as const } : {})}
         className={`lux-img ${loaded ? "is-loaded" : ""} ${className}`}
         onLoad={(e) => {
           setLoaded(true);
