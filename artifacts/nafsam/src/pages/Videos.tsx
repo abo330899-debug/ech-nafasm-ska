@@ -133,6 +133,36 @@ function ChevronRightIcon() {
   );
 }
 
+function ExpandIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path
+        d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+function CompressIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path
+        d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
 function Thumb({
   file,
   kind,
@@ -155,14 +185,26 @@ function Thumb({
   return (
     <div className="v-thumb">
       {poster && !imgFailed ? (
-        <img
-          src={poster}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          draggable={false}
-          onError={() => setImgFailed(true)}
-        />
+        <>
+          <img
+            className="v-thumb-bg"
+            src={poster}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+          />
+          <img
+            className="v-thumb-fg"
+            src={poster}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+            onError={() => setImgFailed(true)}
+          />
+        </>
       ) : (
         <div className="v-thumb-fallback" aria-hidden="true" />
       )}
@@ -175,7 +217,9 @@ function Thumb({
 
 export default function Videos({ t, lang }: Props) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [theaterMode, setTheaterMode] = useState(false);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const videoElRef = useRef<HTMLVideoElement>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
   const data = usePrivateContent();
   const p = pickLangPages(data, lang);
@@ -186,7 +230,40 @@ export default function Videos({ t, lang }: Props) {
     setActiveIndex(index);
   }, []);
 
-  const closeModal = useCallback(() => setActiveIndex(null), []);
+  const closeModal = useCallback(() => {
+    setActiveIndex(null);
+    setTheaterMode(false);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    const el = videoElRef.current;
+    if (!el) return;
+    type Vendor = HTMLVideoElement & {
+      webkitEnterFullscreen?: () => void;
+      webkitRequestFullscreen?: () => Promise<void> | void;
+    };
+    type DocVendor = Document & {
+      webkitExitFullscreen?: () => Promise<void> | void;
+      webkitFullscreenElement?: Element | null;
+    };
+    const v = el as Vendor;
+    const d = document as DocVendor;
+    const inFs = !!(document.fullscreenElement || d.webkitFullscreenElement);
+    if (inFs) {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else d.webkitExitFullscreen?.();
+    } else if (v.requestFullscreen) {
+      v.requestFullscreen();
+    } else if (v.webkitEnterFullscreen) {
+      v.webkitEnterFullscreen();
+    } else if (v.webkitRequestFullscreen) {
+      v.webkitRequestFullscreen();
+    }
+  }, []);
+
+  const toggleTheater = useCallback(() => {
+    setTheaterMode((v) => !v);
+  }, []);
 
   const prevVideo = useCallback(() => {
     setActiveIndex((i) => {
@@ -284,7 +361,7 @@ export default function Videos({ t, lang }: Props) {
 
       {active && (
         <div
-          className="v-modal active"
+          className={`v-modal active${theaterMode ? " v-modal-theater" : ""}`}
           role="dialog"
           aria-modal="true"
           aria-label={active.caption}
@@ -292,6 +369,27 @@ export default function Videos({ t, lang }: Props) {
             if (e.target === e.currentTarget) closeModal();
           }}
         >
+          {videosData.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="v-side-nav v-side-nav-prev"
+                onClick={prevVideo}
+                aria-label={isRTL ? "السابق" : "Previous"}
+              >
+                {isRTL ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+              </button>
+              <button
+                type="button"
+                className="v-side-nav v-side-nav-next"
+                onClick={nextVideo}
+                aria-label={isRTL ? "التالي" : "Next"}
+              >
+                {isRTL ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+              </button>
+            </>
+          )}
+
           <div className="v-modal-box">
             <button
               ref={closeBtnRef}
@@ -306,9 +404,11 @@ export default function Videos({ t, lang }: Props) {
             <div className={`v-modal-media v-modal-media-${activeKind}`}>
               {activeKind === "mp4" && (
                 <video
+                  ref={videoElRef}
                   key={active.file}
                   className="v-modal-video"
                   src={buildSrc(active.file)}
+                  poster={buildPoster(active.file)}
                   controls
                   autoPlay
                   playsInline
@@ -353,22 +453,35 @@ export default function Videos({ t, lang }: Props) {
               <h3 className="v-modal-title">{active.caption}</h3>
               {active.quote && <p className="v-modal-quote">{active.quote}</p>}
               <div className="v-modal-actions">
-                <button
-                  type="button"
-                  className="v-btn v-btn-icon"
-                  onClick={prevVideo}
-                  aria-label={isRTL ? "السابق" : "Previous"}
-                >
-                  {isRTL ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-                </button>
-                <button
-                  type="button"
-                  className="v-btn v-btn-icon"
-                  onClick={nextVideo}
-                  aria-label={isRTL ? "التالي" : "Next"}
-                >
-                  {isRTL ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                </button>
+                {activeKind === "mp4" && (
+                  <>
+                    <button
+                      type="button"
+                      className="v-btn v-btn-icon"
+                      onClick={toggleTheater}
+                      aria-label={
+                        theaterMode
+                          ? isRTL
+                            ? "وضع مدمج"
+                            : "Compact mode"
+                          : isRTL
+                            ? "وضع موسّع"
+                            : "Theater mode"
+                      }
+                      aria-pressed={theaterMode}
+                    >
+                      {theaterMode ? <CompressIcon /> : <ExpandIcon />}
+                    </button>
+                    <button
+                      type="button"
+                      className="v-btn v-btn-icon"
+                      onClick={toggleFullscreen}
+                      aria-label={isRTL ? "ملء الشاشة" : "Fullscreen"}
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </>
+                )}
                 <button
                   type="button"
                   className="v-btn v-btn-ghost"
