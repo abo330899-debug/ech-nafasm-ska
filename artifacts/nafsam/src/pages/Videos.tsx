@@ -52,6 +52,12 @@ function buildSrc(file: string) {
   return `/api/private/media/${encodeURIComponent(file)}`;
 }
 
+function buildPoster(file: string): string {
+  if (/^https?:\/\//i.test(file)) return "";
+  const base = file.replace(/\.[^.]+$/, "");
+  return `/api/private/posters/${encodeURIComponent(base)}.jpg`;
+}
+
 function getYouTubeId(url: string): string {
   const patterns: RegExp[] = [
     /[?&]v=([A-Za-z0-9_-]{6,})/,
@@ -73,13 +79,6 @@ function getYouTubeEmbed(url: string): string {
   return id
     ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`
     : url;
-}
-
-function formatDuration(s: number): string {
-  if (!Number.isFinite(s) || s <= 0) return "";
-  const mm = Math.floor(s / 60);
-  const ss = Math.floor(s % 60);
-  return `${mm}:${ss < 10 ? "0" + ss : ss}`;
 }
 
 function PlayIcon() {
@@ -137,12 +136,11 @@ function ChevronRightIcon() {
 function Thumb({
   file,
   kind,
-  onDuration,
 }: {
   file: string;
   kind: VideoKind;
-  onDuration: (file: string, seconds: number) => void;
 }) {
+  const [imgFailed, setImgFailed] = useState(false);
   if (kind !== "mp4") {
     return (
       <div className="v-thumb v-thumb-static">
@@ -153,17 +151,21 @@ function Thumb({
       </div>
     );
   }
+  const poster = buildPoster(file);
   return (
     <div className="v-thumb">
-      <video
-        src={`${buildSrc(file)}#t=0.1`}
-        preload="metadata"
-        muted
-        playsInline
-        disablePictureInPicture
-        draggable={false}
-        onLoadedMetadata={(e) => onDuration(file, e.currentTarget.duration)}
-      />
+      {poster && !imgFailed ? (
+        <img
+          src={poster}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          onError={() => setImgFailed(true)}
+        />
+      ) : (
+        <div className="v-thumb-fallback" aria-hidden="true" />
+      )}
       <div className="v-play" aria-hidden="true">
         <PlayIcon />
       </div>
@@ -173,19 +175,12 @@ function Thumb({
 
 export default function Videos({ t, lang }: Props) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [durations, setDurations] = useState<Record<string, number>>({});
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
   const data = usePrivateContent();
   const p = pickLangPages(data, lang);
   const videosData = data?.videos ?? [];
   const isRTL = lang === "ar" || lang === "fa";
-
-  const setDuration = useCallback((file: string, seconds: number) => {
-    setDurations((prev) =>
-      prev[file] === seconds ? prev : { ...prev, [file]: seconds },
-    );
-  }, []);
 
   const openModal = useCallback((index: number) => {
     setActiveIndex(index);
@@ -248,7 +243,6 @@ export default function Videos({ t, lang }: Props) {
       <div className="v-gallery">
         {videosData.map((item, index) => {
           const kind = detectKind(item.file);
-          const dur = durations[item.file];
           return (
             <RevealVideoCard
               key={item.file}
@@ -266,16 +260,12 @@ export default function Videos({ t, lang }: Props) {
               }}
             >
               <div className="v-card-media">
-                <Thumb file={item.file} kind={kind} onDuration={setDuration} />
+                <Thumb file={item.file} kind={kind} />
                 <div className="v-card-overlay" />
-                {dur ? (
-                  <span className="v-duration-badge">{formatDuration(dur)}</span>
-                ) : (
-                  kind !== "mp4" && (
-                    <span className="v-duration-badge v-duration-badge-kind">
-                      {kind === "youtube" ? "YouTube" : "MEGA"}
-                    </span>
-                  )
+                {kind !== "mp4" && (
+                  <span className="v-duration-badge v-duration-badge-kind">
+                    {kind === "youtube" ? "YouTube" : "MEGA"}
+                  </span>
                 )}
               </div>
               <div className="v-card-body">
