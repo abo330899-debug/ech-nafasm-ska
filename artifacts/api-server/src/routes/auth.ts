@@ -44,23 +44,18 @@ interface CardHints {
   en: string;
 }
 
-interface SessionCard {
-  id: string;
-  hints: CardHints;
-}
-
 interface PublicSessionCard {
   hints: CardHints;
 }
 
-function toPublicCards(cards: SessionCard[]): PublicSessionCard[] {
-  return cards.map(({ hints }) => ({ hints }));
-}
-
-function getCards(): SessionCard[] {
+/**
+ * Public riddle hint cards. Only display copy is stored here.
+ * The actual accepted answer tokens live exclusively in the
+ * NAFSAM_PASSWORDS env var so they can never be served to a client.
+ */
+function getPublicCards(): PublicSessionCard[] {
   return [
     {
-      id: "Ashkim",
       hints: {
         tr: "Sana hep seslendiği şey",
         fa: "چیزی که همیشه با آن صدایم می‌زدی",
@@ -69,7 +64,6 @@ function getCards(): SessionCard[] {
       },
     },
     {
-      id: "nafasim",
       hints: {
         tr: "Bu kelimeyi söyleyişini hep çok güzel bulurdum",
         fa: "همیشه می‌گفتم چقدر گفتن این کلمه از زبانت زیباست",
@@ -78,7 +72,6 @@ function getCards(): SessionCard[] {
       },
     },
     {
-      id: "kaar",
       hints: {
         tr: "Ne yazık ki bu kelime sana yakışıyordu",
         fa: "متأسفانه این کلمه برازنده‌ات بود",
@@ -87,7 +80,6 @@ function getCards(): SessionCard[] {
       },
     },
     {
-      id: "asgoori",
       hints: {
         tr: "İçimden gelen ve senin sadece söz sandığın kelime",
         fa: "کلمه‌ای که از اعماقم بیرون می‌آمد و تو فکر می‌کردی فقط حرف است",
@@ -96,7 +88,6 @@ function getCards(): SessionCard[] {
       },
     },
     {
-      id: "lucifer",
       hints: {
         tr: "Kolay çözüm bulunca şaşırıp bana dediğin kelime",
         fa: "وقتی راه‌حل را راحت پیدا می‌کردم، با تعجب این را می‌گفتی",
@@ -105,7 +96,6 @@ function getCards(): SessionCard[] {
       },
     },
     {
-      id: "ECHSKA",
       hints: {
         tr: "Ömür boyu kalmaları gereken şey",
         fa: "چیزی که قرار بود تا آخر عمر بماند",
@@ -119,6 +109,7 @@ function getCards(): SessionCard[] {
 router.get("/auth/session", (req, res) => {
   const openAt = getOpenAt();
   const isOpen = Date.now() >= openAt;
+  const cards = getPublicCards();
   const response: {
     authed: boolean;
     openAt: number;
@@ -131,9 +122,9 @@ router.get("/auth/session", (req, res) => {
     isOpen,
   };
   if (isOpen) {
-    response.cards = toPublicCards(getCards());
+    response.cards = cards;
   } else {
-    response.cardCount = getCards().length;
+    response.cardCount = cards.length;
   }
   res.json(response);
 });
