@@ -2443,38 +2443,29 @@ audio,video{filter:saturate(.95)}
   }
   .brand{font-size:1.1rem;letter-spacing:.06em}
 
-  /* Centered pill row that scrolls if it overflows, with soft edge fade */
+  /* Centered pill grid that wraps onto multiple rows — no horizontal scroll */
   .links{
     position:relative;
     display:flex;
-    flex-wrap:nowrap;
-    overflow-x:auto;
-    overflow-y:hidden;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
+    flex-wrap:wrap;
     justify-content:center;
     align-items:center;
-    gap:6px;
-    padding:4px 18px;
+    gap:6px 5px;
+    padding:4px 10px 2px;
     width:100%;
     max-width:100%;
     box-sizing:border-box;
-    /* fade at left/right edges so scroll feels intentional */
-    -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
-            mask-image:linear-gradient(90deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+    overflow:visible;
   }
-  .links::-webkit-scrollbar{display:none}
-  /* When content overflows, justify-content:center is ignored automatically;
-     keep items packed at the start of the scroll area */
   .links > *{flex:0 0 auto}
   .links a{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    height:34px;
-    padding:0 14px;
+    height:30px;
+    padding:0 11px;
     border-radius:999px;
-    font-size:.8rem;
+    font-size:.74rem;
     font-weight:500;
     line-height:1;
     white-space:nowrap;
