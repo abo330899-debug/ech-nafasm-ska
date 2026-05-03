@@ -1,0 +1,13 @@
+diff --git a/package.json b/package.json
+index 42304c04079d77493a4ee5c129ac099176503b53..9b8c86fc984fc7b8ad3236253446276219e166c1 100644
+--- a/package.json
++++ b/package.json
+@@ -27,7 +27,7 @@
+     }
+   },
+   "dependencies": {
+-    "esbuild": "~0.18.20",
++    "esbuild": "^0.27.3",
+     "source-map-support": "^0.5.21"
+   }
+ }

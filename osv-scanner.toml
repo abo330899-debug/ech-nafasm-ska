@@ -1,0 +1,893 @@
+# osv-scanner configuration for this workspace.
+#
+# CONTEXT: The vercel/ directory is tracked as a git submodule (gitlink ref 160000).
+# Files inside it cannot be committed or updated from this parent repository.
+# The test fixtures under vercel/packages/*/test/fixtures/ and
+# vercel/packages/remix/test/fixtures-legacy/ contain intentionally frozen
+# dependency snapshots that represent historical customer project configurations
+# used to validate Vercel's build tooling. They are never installed in production.
+#
+# The [[IgnoredVulns]] entries below fall into two categories:
+#
+# Category A — Root pnpm workspace
+#   Documented here where pnpm overrides force a safe version at runtime but
+#   the legacy package metadata entry remains in the lockfile.
+#
+# Category B — vercel/ git submodule test fixtures (not production dependencies)
+#   These appear in one or more of:
+#     - vercel/packages/build-utils/test/fixtures/07-zero-config-jekyll/Gemfile.lock
+#     - vercel/packages/build-utils/test/fixtures/08-zero-config-middleman/Gemfile.lock
+#     - vercel/packages/ruby/test/fixtures/06-rails/app/Gemfile.lock
+#     - vercel/packages/remix/test/fixtures-legacy/04-with-npm9-linked/package-lock.json
+#     - vercel/packages/remix/test/fixtures-legacy/05-root-only/package-lock.json
+#     - vercel/packages/remix/test/fixtures-legacy/06-v2-routing/package-lock.json
+#     - vercel/packages/remix/test/fixtures-legacy/00-pnpm/pnpm-lock.yaml
+#     - vercel/packages/remix/test/fixtures-legacy/03-with-pnpm/pnpm-lock.yaml
+#     - vercel/packages/remix/test/fixtures-legacy/09-no-entry-pnpm/pnpm-lock.yaml
+#     - vercel/packages/remix/test/fixtures-legacy/10-hydrogen-2/pnpm-lock.yaml
+#     - vercel/packages/remix/test/fixtures-legacy/11-hydrogen-2-js/pnpm-lock.yaml
+#     - vercel/packages/remix/test/fixtures-legacy/12-remix-v2/pnpm-lock.yaml
+#     - vercel/packages/remix/test/fixtures-legacy/14-node-linker-hoisted/pnpm-lock.yaml
+#     - vercel/examples/hydrogen-2/pnpm-lock.yaml
+#   None of these paths represent code that runs in this project.
+
+# ---------------------------------------------------------------------------
+# Category A — Root workspace (esbuild metadata false positive)
+# ---------------------------------------------------------------------------
+
+[[IgnoredVulns]]
+id = "GHSA-67mh-4wv8-2f99"
+reason = "esbuild@0.18.20 appears only in lockfile packages-section metadata for @esbuild-kit/core-utils@3.3.2 (deprecated package). A pnpm patch and lockfile fix ensure esbuild@0.27.3 is what actually installs at runtime. The 0.18.20 entry is unreachable package metadata, not an installed dependency."
+
+# ---------------------------------------------------------------------------
+# Category B — vercel/ git submodule test fixtures (frozen historical snapshots,
+# not production dependencies, cannot be updated from parent repo)
+# ---------------------------------------------------------------------------
+
+[[IgnoredVulns]]
+id = "GHSA-228g-948r-83gx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-22f2-v57c-j9cx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-23c2-gwp5-pxw9"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-23c5-xmqv-rm74"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-25h7-pfq9-p65f"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-2g4f-4pwh-qvx6"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-2j26-frm8-cmj9"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-2mjp-6q6p-2qxm"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-2p57-rm9w-gvfp"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-2p68-f74v-9wc6"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-2qc6-mcvw-92cw"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-2rr5-8q37-2w7h"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-2w69-qvjg-hvjx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-34x7-hfp2-rc4v"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-353f-x4gh-cqq8"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-356w-63v5-8wf4"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-3787-6prv-h9w3"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-37ch-88jc-xwx2"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-3h57-hmj3-gj3p"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-3h5v-q93c-6h6q"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-3hhc-qp5v-9p2j"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-3ppc-4f35-3m26"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-3v7f-55p6-f55p"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-3x8r-x6xp-q4vm"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-3xgq-45jj-v275"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-486f-hjj9-9vhh"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-48c2-rrv3-qjmp"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-4992-7rv2-5pvq"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-4g8v-vg43-wpgf"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-4r4m-qw57-chr8"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-4rc3-7j7w-m548"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-4w7w-66w2-5vf9"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-52f5-9888-hmc6"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-52p9-v744-mwjj"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-54rr-7fvw-6x8f"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-56p5-8mhr-2fph"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-579w-22j4-4749"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-59gp-qqm7-cw4j"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-5cm2-9h8c-rvfx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-5f9h-9pjv-v6j7"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-5j98-mcp5-4vw2"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-5w6v-399v-w3cc"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-5x79-w82f-gw8w"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-625h-95r8-8xpm"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-64vr-g452-qvp3"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-65f5-mfpf-vfhj"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-67hx-6x53-jw92"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-6q5m-63h6-5x4v"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-6rw7-vpxm-498p"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-6xw4-3v39-52mm"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-73f9-jhhh-hr5m"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-73rr-hh4g-fpgx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-76c9-3jph-rj3q"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-76r7-hhxj-r776"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-78xj-cgh5-2h22"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-7fh5-64p2-3v2j"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-7g2v-jj9q-g3rg"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-7jxr-cg7f-gpgv"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-7mqq-6cf9-v2qp"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-7r86-cg39-jmmj"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-7wqh-767x-r66v"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-83g3-92jg-28cx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-859w-5945-r5v3"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-89vf-4333-qx8v"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-8cgq-6mh2-7j6v"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-8cj5-5rvv-wf4v"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-8h22-8cf7-hq6g"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-8jhw-289h-jh2g"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-8qq5-rm4j-mr97"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-8v8x-cx79-35w7"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-8vqr-qjwx-82mw"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-8xww-x3g3-6jcv"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-92r3-m2mg-pj97"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-93m4-6634-74q7"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-93pm-5p5f-3ghx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-952p-6rrq-rcjv"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-9583-h5hc-x8cw"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-968p-4wvh-cqc8"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-99p7-6v5w-7xg8"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-9cwx-2883-4wfx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-9h9g-93gc-623h"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-9jcx-v3wj-wh4m"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-9ppj-qmqm-q256"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-9pv7-vfvm-6vr7"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-9qxr-qj54-h672"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-9r5m-9576-7f6x"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-9wv6-86v2-598j"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-9xrj-h377-fr87"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-c24v-8rfc-w8vw"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-c2c7-rcm5-vvqj"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-c2qf-rxjj-qqgw"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-c6qg-cjj8-47qp"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-c76h-2ccp-4975"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-cchq-frgv-rjh5"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-cg4j-q9v8-6v38"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-cgx6-hpwq-fhv5"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-ch3h-j2vf-95pv"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-ch3r-j5x3-6q2m"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-cm22-4g7w-348p"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-cr5q-6q9f-rq6q"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-crjr-9rc5-ghw8"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-cxrh-j4jr-qwg3"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-f23m-r3pf-42rh"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-f5x3-32g6-xq36"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-f6v4-cf5j-vf3w"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-f7f6-9jq7-3rqj"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-f886-m6hf-6m8v"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-f9xv-q969-pqx4"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-fjxv-7rqg-78g4"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-fq42-c5rg-92c2"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-g4jq-h2w9-997c"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-g644-9gfx-q4q4"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-g9mf-h72j-4rw9"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-gcx4-mw62-g8wm"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-ghr5-ch3p-vcr6"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-gjh7-p2fx-99vx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-grv7-fg5c-xmjg"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-gx8x-g87m-h5q6"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-h27x-rffw-24p4"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-h2jq-g4cq-5ppq"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-h47h-mwp9-c6q6"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-h5cw-625j-3rxh"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-hhhv-q57g-882q"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-hrqr-hxpp-chr3"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-hxqx-xwvh-44m2"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-j6gc-792m-qgm2"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-j6w9-fv6q-3q52"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-j8xg-fqg3-53r7"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-jc36-42cf-vqwj"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-jcxm-m3jx-f287"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-jqfw-vq24-v9c3"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-jxhc-q857-3j6g"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-m4v8-wqvr-p9f7"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-m6fv-jmcg-4jfg"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-m95q-7qp3-xv42"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-mcvf-2q2m-x72m"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-mh29-5h37-fv8m"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-mm33-5vfq-3mm3"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-mmg9-6m6j-jqqx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-mqm2-cgpr-p4m6"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-mrxw-mxhj-p664"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-mw96-cpmx-2vgc"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-mwcw-c2x4-8c55"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-mxw3-3hh2-x2mh"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-p543-xpfm-54cp"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-p5gc-c584-jj6v"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-p84v-45xj-wwqj"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-p9fm-f462-ggrg"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-pg8v-g4xq-hww9"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-pj73-v5mw-pm9j"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-pq67-2wwv-3xjx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-pxg6-pf52-xh8x"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-pxvg-2qj5-37jq"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-q2ww-5357-x388"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-q4qf-9j86-f5mh"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-qcfx-2mfw-w4cg"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-qffp-2rhf-9h96"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-qv7j-4883-hwh7"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-qw6h-vgh9-j6wx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-qwcr-r2fm-qrc7"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-qx2v-qp2m-jg93"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-r275-fr43-pm7q"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-r46p-8f7g-vvvg"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-r4mg-4433-c7g3"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-r5fr-rjxr-66jc"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-r657-rxjc-j557"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-r6q2-hw4h-h46w"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-r95h-9x8f-r3f7"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-rf6f-7fwh-wjgh"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-rhx6-c78j-4q9w"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-rqv2-275x-2jq5"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-rrfc-7g8p-99q8"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-rv5g-f82m-qrvv"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-rv95-896h-c2vc"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-v273-448j-v4qj"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-v55j-83pf-r9cq"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-v569-hp3g-36wr"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-v6gp-9mmm-c6p5"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-v6h2-p8h4-qcjw"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-v9p9-hfj2-hcw8"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-vfg9-r3fq-jvx4"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-vfm5-rmrh-j26v"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-vg6x-rcgg-rjx6"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-vgpv-f759-9wx3"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-vj76-c3g6-qr5v"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-vpfw-47h7-xj4g"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-vpq2-c234-7xj6"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-vrm6-8vpv-qv8q"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-vvfq-8hwr-qm4m"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-w749-p3v6-hccq"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-w7fw-mjwx-w883"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-w9pc-fmgc-vxvw"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-wf6x-7x77-mvgw"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-wh98-p28r-vrc9"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-whpj-8f3w-67p5"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-whrj-4476-wvmp"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-wmfp-5q7x-987x"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-wpv5-97wm-hp9c"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-wq4h-7r42-5hrr"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-wqq4-5wpv-mx2g"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-wx95-c6cv-8532"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-x574-m823-4x7w"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-x76w-6vjr-8xgj"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-x8cg-fq8g-mxfx"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-xc9x-jj77-9p9j"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-xcj6-pq6g-qj4x"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-xh29-r2w5-wx8m"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-xj5v-6v4g-jfw6"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-xj72-wvfv-8985"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-xp5h-f8jf-rc8q"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-xxjr-mmjv-4gpg"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
+
+[[IgnoredVulns]]
+id = "GHSA-xxx9-3xcr-gjj3"
+reason = "Present in frozen test fixture lockfiles within the vercel/ git submodule. Not a production dependency; cannot be updated from parent repository."
