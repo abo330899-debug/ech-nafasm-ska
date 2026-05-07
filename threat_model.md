@@ -9,6 +9,7 @@ Production assumptions for future scans:
 - Platform TLS is managed by the deployment platform.
 - Requests reach the Node process through a platform proxy/load balancer, so proxy-aware controls matter for production behavior.
 - `artifacts/mockup-sandbox` is development-only and should be ignored unless production reachability is demonstrated.
+- Production deployments rebuild `artifacts/nafsam/dist/public` from current source, so checked-in `dist/public` files can be useful evidence of past leaks but do not by themselves prove a current production exposure unless the source/build path still reproduces them.
 
 ## Assets
 
