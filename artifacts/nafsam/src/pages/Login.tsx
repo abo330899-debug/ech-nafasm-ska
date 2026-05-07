@@ -148,7 +148,7 @@ export default function Login({ t, lang, onAuth }: Props) {
             disabled={submitting || !isOpen}
           >
             <option value="" disabled>{t.login_input}</option>
-            {["nafas", "Nafasm", "Ech", "Ska", "ech", "ska", "kaar", "Kaar"].map((name) => (
+            {["Nafas", "Nafasm", "Ech", "Ska", "Kaar"].map((name) => (
               <option key={name} value={name}>{name}</option>
             ))}
           </select>
