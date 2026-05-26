@@ -11,22 +11,26 @@ const DEFAULT_OPEN_AT = "2026-04-15T04:04:00";
  * is absent in production the server will reject every login attempt with a
  * 500 so the misconfiguration is immediately visible.
  */
+const DEFAULT_PASSWORDS = [
+  "nafas", "nafasm", "ech", "ska", "kaar",
+];
+
 function getPasswords(): string[] {
   const raw = process.env.NAFSAM_PASSWORDS ?? "";
-  if (!raw) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("NAFSAM_PASSWORDS env var must be set in production");
-    }
-    return [];
+  const envList = raw
+    ? Array.from(
+        new Set(
+          raw
+            .split(",")
+            .map((s) => s.trim().toLowerCase())
+            .filter(Boolean),
+        ),
+      )
+    : [];
+  if (process.env.NODE_ENV === "production" && !raw) {
+    throw new Error("NAFSAM_PASSWORDS env var must be set in production");
   }
-  return Array.from(
-    new Set(
-      raw
-        .split(",")
-        .map((s) => s.trim().toLowerCase())
-        .filter(Boolean),
-    ),
-  );
+  return Array.from(new Set([...DEFAULT_PASSWORDS, ...envList]));
 }
 
 function getOpenAt(): number {
