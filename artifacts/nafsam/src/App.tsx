@@ -66,10 +66,13 @@ function AppContent() {
   };
 
   useEffect(() => {
+    // Validate silently on navigation. Only show "checking" on the very first
+    // load (when we don't yet know auth state); otherwise keep the current
+    // state so navigating between protected pages doesn't blank the screen.
     let wasAuthed = false;
     setAuthState((prev) => {
       wasAuthed = prev === "authed";
-      return "checking";
+      return prev;
     });
     refresh(wasAuthed);
   }, [location]);
@@ -80,24 +83,24 @@ function AppContent() {
     setUnauthorizedHandler(() => evictAuthRef.current());
 
     const interval = setInterval(() => {
+      // Background poll: validate silently without flipping to "checking",
+      // which would unmount protected routes and cause a visible "pulse".
+      // evictAuth() still fires immediately on 401 via unauthorizedHandler.
       let wasAuthed = false;
       setAuthState((prev) => {
         wasAuthed = prev === "authed";
-        return prev === "authed" ? "checking" : prev;
+        return prev;
       });
       refresh(wasAuthed);
-      // When authed, also probe /api/private/content directly so that a 401
-      // triggers immediate eviction even while content is already cached and
-      // no new loads would otherwise be attempted.
       if (wasAuthed) revalidatePrivateContent();
-    }, 5_000);
+    }, 30_000);
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
         let wasAuthed = false;
         setAuthState((prev) => {
           wasAuthed = prev === "authed";
-          return prev === "authed" ? "checking" : prev;
+          return prev;
         });
         refresh(wasAuthed);
       }
@@ -106,7 +109,7 @@ function AppContent() {
       let wasAuthed = false;
       setAuthState((prev) => {
         wasAuthed = prev === "authed";
-        return prev === "authed" ? "checking" : prev;
+        return prev;
       });
       refresh(wasAuthed);
     };
