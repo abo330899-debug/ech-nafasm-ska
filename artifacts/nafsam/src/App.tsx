@@ -40,11 +40,11 @@ function AppContent() {
     setAuthState("anon");
   };
 
-  const refresh = async () => {
+  const refresh = async (evictIfAnon = false) => {
     const s = await fetchSession();
     const next: AuthState = s.authed ? "authed" : "anon";
     setAuthState((prev) => {
-      if (prev === "authed" && next !== "authed") {
+      if (next !== "authed" && (prev === "authed" || evictIfAnon)) {
         clearPrivateContentCache();
         broadcastLogout();
       }
@@ -53,22 +53,41 @@ function AppContent() {
   };
 
   useEffect(() => {
-    setAuthState("checking");
-    refresh();
+    let wasAuthed = false;
+    setAuthState((prev) => {
+      wasAuthed = prev === "authed";
+      return "checking";
+    });
+    refresh(wasAuthed);
   }, [location]);
 
   useEffect(() => {
-    const interval = setInterval(refresh, 5_000);
+    const interval = setInterval(() => {
+      let wasAuthed = false;
+      setAuthState((prev) => {
+        wasAuthed = prev === "authed";
+        return prev === "authed" ? "checking" : prev;
+      });
+      refresh(wasAuthed);
+    }, 5_000);
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
-        setAuthState((prev) => (prev === "authed" ? "checking" : prev));
-        refresh();
+        let wasAuthed = false;
+        setAuthState((prev) => {
+          wasAuthed = prev === "authed";
+          return prev === "authed" ? "checking" : prev;
+        });
+        refresh(wasAuthed);
       }
     };
     const onFocus = () => {
-      setAuthState((prev) => (prev === "authed" ? "checking" : prev));
-      refresh();
+      let wasAuthed = false;
+      setAuthState((prev) => {
+        wasAuthed = prev === "authed";
+        return prev === "authed" ? "checking" : prev;
+      });
+      refresh(wasAuthed);
     };
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("focus", onFocus);
