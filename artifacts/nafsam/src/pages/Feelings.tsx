@@ -1,26 +1,27 @@
 import { useEffect, useRef } from "react";
 import EmberParticles from "@/components/EmberParticles";
 import SmokeVeil from "@/components/SmokeVeil";
-import { type Translations } from "@/i18n/translations";
-import { usePrivateContent } from "@/hooks/usePrivateContent";
+import { type Translations, type Lang } from "@/i18n/translations";
+import { usePrivateContent, pickLangFeelings } from "@/hooks/usePrivateContent";
 
 interface Props {
   t: Translations;
+  lang: Lang;
 }
 
-export default function Feelings({ t }: Props) {
+export default function Feelings({ t, lang }: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const data = usePrivateContent();
-  const feelings = data?.feelings;
-  const memoryFragments = feelings?.memoryFragments ?? [];
-  const collapseLines = feelings?.collapseLines ?? [];
-  const heroSub = feelings?.heroSub ?? "";
-  const storyTitle = feelings?.storyTitle ?? "";
-  const storyParagraphs = feelings?.storyParagraphs ?? [];
-  const memoriesTitle = feelings?.memoriesTitle ?? "";
-  const memoriesSub = feelings?.memoriesSub ?? "";
-  const collapseTitle = feelings?.collapseTitle ?? "";
-  const endingLine = feelings?.endingLine ?? "";
+  const feelings = pickLangFeelings(data, lang);
+  const memoryFragments = feelings.memoryFragments ?? [];
+  const collapseLines = feelings.collapseLines ?? [];
+  const heroSub = feelings.heroSub ?? "";
+  const storyTitle = feelings.storyTitle ?? "";
+  const storyParagraphs = feelings.storyParagraphs ?? [];
+  const memoriesTitle = feelings.memoriesTitle ?? "";
+  const memoriesSub = feelings.memoriesSub ?? "";
+  const collapseTitle = feelings.collapseTitle ?? "";
+  const endingLine = feelings.endingLine ?? "";
 
   useEffect(() => {
     const root = rootRef.current;

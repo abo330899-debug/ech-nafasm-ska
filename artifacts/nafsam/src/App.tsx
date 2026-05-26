@@ -171,7 +171,7 @@ function AppContent() {
             <ProtectedRoute state={authState}><Writings t={t} lang={lang} /></ProtectedRoute>
           </Route>
           <Route path="/feelings">
-            <ProtectedRoute state={authState}><Feelings t={t} /></ProtectedRoute>
+            <ProtectedRoute state={authState}><Feelings t={t} lang={lang} /></ProtectedRoute>
           </Route>
           <Route>
             <Redirect to="/" />

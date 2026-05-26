@@ -119,9 +119,17 @@ export interface PrivateContent {
   songs?: SongItem[];
   specialPhotos?: SpecialPhotoItem[];
   momentImages?: string[];
-  feelings?: FeelingsContent;
+  feelings?: Partial<Record<Lang, FeelingsContent>>;
   pageAudio?: PageAudioMap;
   mediaConfig?: MediaConfig;
+}
+
+export function pickLangFeelings(
+  data: PrivateContent | null,
+  lang: Lang,
+): FeelingsContent {
+  if (!data?.feelings) return {};
+  return data.feelings[lang] ?? data.feelings.tr ?? {};
 }
 
 let cache: PrivateContent | null = null;
