@@ -9,7 +9,7 @@ import { useMagneticButtons } from "@/hooks/useMagneticButtons";
 import { useIdleVignette } from "@/hooks/useIdleVignette";
 import Navbar from "@/components/Navbar";
 import Login from "@/pages/Login";
-import { fetchSession, broadcastLogout, AUTH_BROADCAST_CHANNEL, STORAGE_LOGOUT_KEY } from "@/lib/auth";
+import { fetchSession, broadcastLogout, logout, AUTH_BROADCAST_CHANNEL, STORAGE_LOGOUT_KEY } from "@/lib/auth";
 import { clearPrivateContentCache } from "@/hooks/usePrivateContent";
 
 const Home = lazy(() => import("@/pages/Home"));
@@ -38,6 +38,14 @@ function AppContent() {
   const evictAuth = () => {
     clearPrivateContentCache();
     setAuthState("anon");
+  };
+
+  const handleLogout = () => {
+    logout()
+      .catch(() => {})
+      .finally(() => {
+        evictAuth();
+      });
   };
 
   const refresh = async (evictIfAnon = false) => {
@@ -122,7 +130,7 @@ function AppContent() {
       <FloatingHearts />
       <DustParticles />
       <LanguageSwitcher lang={lang} setLang={setLang} />
-      {authState === "authed" && <Navbar t={t} />}
+      {authState === "authed" && <Navbar t={t} onLogout={handleLogout} />}
       <main>
         <Switch>
           <Route path="/">

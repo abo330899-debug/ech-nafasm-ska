@@ -176,6 +176,22 @@ main{flex:1}
   border-color:var(--pink-dim);
   background:rgba(249,168,212,.06);
 }
+.nav-logout{
+  font-size:.82rem;
+  padding:5px 14px;
+  border-radius:999px;
+  color:var(--text-dim);
+  transition:all .25s;
+  border:1px solid transparent;
+  background:none;
+  cursor:pointer;
+  font-family:inherit;
+}
+.nav-logout:hover{
+  color:var(--pink);
+  border-color:var(--pink-dim);
+  background:rgba(249,168,212,.06);
+}
 
 .lang-switcher{
   position:fixed;

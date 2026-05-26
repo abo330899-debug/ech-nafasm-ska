@@ -3,13 +3,13 @@ import { type Translations } from "@/i18n/translations";
 
 interface Props {
   t: Translations;
+  onLogout: () => void;
 }
 
-export default function Navbar({ t }: Props) {
+export default function Navbar({ t, onLogout }: Props) {
   const [location] = useLocation();
 
   const links = [
-    { href: "/", label: t.nav_login },
     { href: "/home", label: t.nav_home },
     { href: "/moments", label: t.nav_moments },
     { href: "/photos", label: t.nav_photos },
@@ -34,6 +34,9 @@ export default function Navbar({ t }: Props) {
             {l.label}
           </Link>
         ))}
+        <button className="nav-logout" onClick={onLogout}>
+          {t.nav_logout}
+        </button>
       </div>
     </nav>
   );

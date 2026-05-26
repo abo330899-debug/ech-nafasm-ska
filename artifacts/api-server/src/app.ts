@@ -34,7 +34,31 @@ app.use(
     },
   }),
 );
-app.use(cors({ credentials: true }));
+app.use(
+  cors({
+    credentials: true,
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      const allowed = new Set<string>();
+      const domains = process.env.REPLIT_DOMAINS ?? "";
+      for (const d of domains.split(",")) {
+        const t = d.trim();
+        if (t) allowed.add(`https://${t}`);
+      }
+      const devDomain = process.env.REPLIT_DEV_DOMAIN ?? "";
+      if (devDomain) allowed.add(`https://${devDomain}`);
+      if (allowed.has(origin)) return callback(null, true);
+      if (
+        process.env.NODE_ENV !== "production" &&
+        (origin.startsWith("http://localhost") ||
+          origin.startsWith("http://127.0.0.1"))
+      ) {
+        return callback(null, true);
+      }
+      callback(null, false);
+    },
+  }),
+);
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
