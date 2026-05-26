@@ -134,8 +134,13 @@ export const translations: Record<Lang, Translations> = {
     feelings_hero_eyebrow: "SESSİZLİĞİN BAŞLANGICI",
     feelings_hero_word_1: "Hisler",
     feelings_hero_word_2: "Öldüğünde",
+    feelings_hero_sub: "Bir kalp ölmez, sadece konuşmayı bırakır.\nBu sayfa o sessizliği taşıyor.",
     feelings_scroll_hint: "aşağı in",
     feelings_doc_title: "Hisler Öldüğünde",
+    feelings_story_title: "Boğulma sessiz başlar",
+    feelings_memories_title: "Kırık hatıralar",
+    feelings_memories_sub: "Her biri bir cam kırığı. Sessizce kanatıyor.",
+    feelings_collapse_title: "Çöküş",
   },
 
   en: {
@@ -200,8 +205,13 @@ export const translations: Record<Lang, Translations> = {
     feelings_hero_eyebrow: "THE BEGINNING OF SILENCE",
     feelings_hero_word_1: "When Feelings",
     feelings_hero_word_2: "Die",
+    feelings_hero_sub: "A heart doesn't die — it just stops speaking.\nThis page carries that silence.",
     feelings_scroll_hint: "scroll down",
     feelings_doc_title: "When Feelings Die",
+    feelings_story_title: "It starts quietly",
+    feelings_memories_title: "Broken memories",
+    feelings_memories_sub: "Each one a shard of glass. Bleeding silently.",
+    feelings_collapse_title: "The collapse",
   },
 
   ar: {
@@ -266,8 +276,13 @@ export const translations: Record<Lang, Translations> = {
     feelings_hero_eyebrow: "بداية الصمت",
     feelings_hero_word_1: "حين تموت",
     feelings_hero_word_2: "المشاعر",
+    feelings_hero_sub: "القلب لا يموت، يكتفي بالصمت.\nهذه الصفحة تحمل ذلك الصمت.",
     feelings_scroll_hint: "انزل للأسفل",
     feelings_doc_title: "حين تموت المشاعر",
+    feelings_story_title: "يبدأ الانهيار بهدوء",
+    feelings_memories_title: "ذكريات مكسورة",
+    feelings_memories_sub: "كل واحدة شظية زجاج. تنزف بصمت.",
+    feelings_collapse_title: "الانهيار",
   },
 
   fa: {
@@ -332,7 +347,12 @@ export const translations: Record<Lang, Translations> = {
     feelings_hero_eyebrow: "آغاز سکوت",
     feelings_hero_word_1: "وقتی احساس‌ها",
     feelings_hero_word_2: "می‌میرند",
+    feelings_hero_sub: "قلب نمی‌میرد، فقط سکوت می‌کند.\nاین صفحه آن سکوت را حمل می‌کند.",
     feelings_scroll_hint: "به پایین برو",
     feelings_doc_title: "وقتی احساس‌ها می‌میرند",
+    feelings_story_title: "آرام آغاز می‌شود",
+    feelings_memories_title: "خاطرات شکسته",
+    feelings_memories_sub: "هر کدام یک تکه شیشه. در سکوت خونریزی می‌کند.",
+    feelings_collapse_title: "فروپاشی",
   },
 };
