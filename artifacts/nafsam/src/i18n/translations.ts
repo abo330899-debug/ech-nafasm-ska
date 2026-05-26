@@ -62,8 +62,13 @@ export interface Translations {
   feelings_hero_eyebrow: string;
   feelings_hero_word_1: string;
   feelings_hero_word_2: string;
+  feelings_hero_sub: string;
   feelings_scroll_hint: string;
   feelings_doc_title: string;
+  feelings_story_title: string;
+  feelings_memories_title: string;
+  feelings_memories_sub: string;
+  feelings_collapse_title: string;
 }
 
 export const translations: Record<Lang, Translations> = {
