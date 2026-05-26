@@ -22,12 +22,19 @@ export default function Feelings({ t, lang }: Props) {
   const memoriesSub = feelings.memoriesSub ?? "";
   const collapseTitle = feelings.collapseTitle ?? "";
   const endingLine = feelings.endingLine ?? "";
+  const hasContent =
+    storyParagraphs.length > 0 ||
+    memoryFragments.length > 0 ||
+    collapseLines.length > 0 ||
+    !!endingLine;
 
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     const targets = root.querySelectorAll<HTMLElement>("[data-reveal]");
-    const revealAll = () => targets.forEach((el) => el.classList.add("is-revealed"));
+    const revealEl = (el: HTMLElement) => el.classList.add("is-revealed");
+    const revealAll = () => targets.forEach(revealEl);
+
     if (typeof IntersectionObserver === "undefined") {
       revealAll();
       return;
@@ -37,14 +44,22 @@ export default function Feelings({ t, lang }: Props) {
         (entries) => {
           for (const e of entries) {
             if (e.isIntersecting) {
-              e.target.classList.add("is-revealed");
+              revealEl(e.target as HTMLElement);
               io.unobserve(e.target);
             }
           }
         },
-        { threshold: 0.18, rootMargin: "0px 0px -8% 0px" },
+        { threshold: 0.05 },
       );
-      targets.forEach((el) => io.observe(el));
+      targets.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        // Already in viewport — reveal immediately without waiting for scroll
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          revealEl(el);
+        } else {
+          io.observe(el);
+        }
+      });
       return () => io.disconnect();
     } catch {
       revealAll();
@@ -86,10 +101,12 @@ export default function Feelings({ t, lang }: Props) {
               ))}
             </p>
           )}
-          <div className="fl-hero-scroll" data-reveal aria-hidden="true">
-            <span>{t.feelings_scroll_hint}</span>
-            <span className="fl-hero-scroll-line" />
-          </div>
+          {hasContent && (
+            <div className="fl-hero-scroll" data-reveal aria-hidden="true">
+              <span>{t.feelings_scroll_hint}</span>
+              <span className="fl-hero-scroll-line" />
+            </div>
+          )}
         </div>
       </section>
 
