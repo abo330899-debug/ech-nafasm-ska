@@ -7,7 +7,7 @@ This project is a pnpm-workspace TypeScript monorepo for a personal memory archi
 Current production architecture details that matter for future scans:
 - Authentication is implemented as a custom answer-based login flow in `artifacts/api-server/src/routes/auth.ts` and a public login UI in `artifacts/nafsam/src/pages/Login.tsx`.
 - Successful login issues an HMAC-signed `httpOnly` session cookie from `artifacts/api-server/src/lib/session.ts`.
-- Session revocation is currently process-local in memory, so restart and multi-instance behavior remain security-relevant.
+- Session revocation is backed by PostgreSQL through `revoked_sessions`, but revocation-sensitive guarantees still depend on durable database writes succeeding during logout and verification.
 
 Production assumptions for future scans:
 - `NODE_ENV` is `production` in deployed environments.
@@ -32,7 +32,7 @@ Production assumptions for future scans:
 - **Browser local state/cache boundary** -- once a browser has fetched protected content, the app and the browser cache may retain it locally. Sensitive responses must be delivered with cache directives consistent with the archive's privacy goals, and client-side memory caches must be invalidated promptly when auth is lost.
 - **Platform proxy to Node boundary** -- the deployed app sits behind a platform-managed proxy/load balancer. Controls that rely on client network identity, such as IP-based throttling, must use trusted forwarded addresses rather than the immediate peer socket.
 - **API to private filesystem boundary** -- `artifacts/api-server/private/` stores protected media and `content.json`. File-serving code on this boundary must prevent path traversal, cache leakage, and unauthenticated access.
-- **Session store durability boundary** -- logout and revocation behavior currently cross from durable client cookies into process-local server memory. Revocation-sensitive guarantees must account for restarts, redeploys, and any future scale-out.
+- **Session store durability boundary** -- logout and revocation behavior cross from durable client cookies into a PostgreSQL-backed revocation store. Revocation-sensitive guarantees must still account for database outages, failed revocation writes, restarts, redeploys, and any future scale-out.
 - **Production to dev-only boundary** -- `artifacts/mockup-sandbox`, `scripts/`, and codegen/spec tooling are not production surfaces unless explicitly wired into deployment.
 
 ## Scan Anchors
@@ -48,7 +48,7 @@ Production assumptions for future scans:
 
 ### Spoofing
 
-The server must fail closed if production authentication configuration is incomplete. Accepted login answers must come from deployment secret storage rather than hardcoded fallbacks or tracked configuration files, and the application must not expose exact accepted answers or answer identifiers to unauthenticated visitors, including in public UI elements such as login dropdowns or bootstrap endpoints such as `/api/auth/session`. Session cookies must remain signed with a production-only secret and validated on every protected request. Changing the archive answer or performing an access-revocation action must also provide a way to invalidate already-issued sessions, and that invalidation must survive routine restarts and redeploys.
+The server must fail closed if production authentication configuration is incomplete. Accepted login answers must come from deployment secret storage rather than hardcoded fallbacks or tracked configuration files, and the application must not expose exact accepted answers or answer identifiers to unauthenticated visitors, including in public UI elements such as login dropdowns or bootstrap endpoints such as `/api/auth/session`. Session cookies must remain signed with a production-only secret and validated on every protected request. Changing the archive answer or performing an access-revocation action must also provide a way to invalidate already-issued sessions, and that invalidation must survive routine restarts and redeploys. Logout and other revocation actions must not silently report success when the durable revocation write fails.
 
 ### Tampering
 
