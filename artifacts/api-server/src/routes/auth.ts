@@ -6,20 +6,27 @@ const router: IRouter = Router();
 const DEFAULT_OPEN_AT = "2026-04-15T04:04:00";
 
 /**
- * Accepted login identities. These match the names shown in the public
- * dropdown on the login form, so they are NOT secret — they are an identity
- * selector chosen by the product owner. The env var override remains for
- * flexibility (rotation/restriction without a deploy) but is no longer
- * required at runtime.
+ * Accepted login answers come exclusively from the NAFSAM_PASSWORDS env var
+ * (comma-separated). There are no built-in fallback answers — if the env var
+ * is absent in production the server will reject every login attempt with a
+ * 500 so the misconfiguration is immediately visible.
  */
-const DEFAULT_PASSWORDS = ["nafas", "nafasm", "ech", "ska", "kaar"];
-
 function getPasswords(): string[] {
-  const fromEnv = (process.env.NAFSAM_PASSWORDS ?? "")
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-  return Array.from(new Set([...DEFAULT_PASSWORDS, ...fromEnv]));
+  const raw = process.env.NAFSAM_PASSWORDS ?? "";
+  if (!raw) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("NAFSAM_PASSWORDS env var must be set in production");
+    }
+    return [];
+  }
+  return Array.from(
+    new Set(
+      raw
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  );
 }
 
 function getOpenAt(): number {
@@ -112,7 +119,7 @@ function getPublicCards(): PublicSessionCard[] {
   ];
 }
 
-router.get("/auth/session", (req, res) => {
+router.get("/auth/session", async (req, res) => {
   const openAt = getOpenAt();
   const isOpen = Date.now() >= openAt;
   const cards = getPublicCards();
@@ -123,7 +130,7 @@ router.get("/auth/session", (req, res) => {
     cards?: PublicSessionCard[];
     cardCount?: number;
   } = {
-    authed: isAuthed(req),
+    authed: await isAuthed(req),
     openAt,
     isOpen,
   };
@@ -151,8 +158,14 @@ router.post("/auth/login", (req, res) => {
     res.status(400).json({ error: "answer_required" });
     return;
   }
-  const allowed = getPasswords();
-  if (!allowed.includes(answer)) {
+  let allowed: string[];
+  try {
+    allowed = getPasswords();
+  } catch {
+    res.status(500).json({ error: "server_misconfigured" });
+    return;
+  }
+  if (allowed.length === 0 || !allowed.includes(answer)) {
     res.status(401).json({ error: "wrong_answer" });
     return;
   }
@@ -160,8 +173,8 @@ router.post("/auth/login", (req, res) => {
   res.json({ ok: true });
 });
 
-router.post("/auth/logout", (req, res) => {
-  clearSession(req, res);
+router.post("/auth/logout", async (req, res) => {
+  await clearSession(req, res);
   res.json({ ok: true });
 });
 

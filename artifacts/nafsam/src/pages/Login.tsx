@@ -140,18 +140,17 @@ export default function Login({ t, lang, onAuth }: Props) {
 
         <form className="login-form" onSubmit={handleSubmit}>
           <label className="sr-only" htmlFor="login-answer">{t.login_input}</label>
-          <select
+          <input
             id="login-answer"
+            type="text"
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
+            placeholder={t.login_input}
             className="login-input"
             disabled={submitting || !isOpen}
-          >
-            <option value="" disabled>{t.login_input}</option>
-            {["Nafas", "Nafasm", "Ech", "Ska", "Kaar"].map((name) => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select>
+            autoComplete="off"
+            spellCheck={false}
+          />
           <button type="submit" className="btn btn-primary login-btn" disabled={submitting || !answer}>
             {t.login_button}
           </button>

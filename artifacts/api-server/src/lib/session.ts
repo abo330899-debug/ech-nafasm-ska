@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import type { Request, Response, NextFunction, RequestHandler } from "express";
+import { pool } from "@workspace/db";
 
 const COOKIE_NAME = "nafsam_session";
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -24,44 +25,50 @@ function sign(payload: string): string {
 }
 
 /**
- * Server-side revocation store: maps jti → expiresAt (ms).
+ * Durable revocation store backed by PostgreSQL.
  *
- * Design assumption: this archive runs as a single-process, single-instance
- * deployment (Replit Autoscale at minimum-1 / maximum-1 instance). Under
- * that topology this in-memory store is sufficient — all requests are served
- * by the same process so every logout is immediately visible to every
- * subsequent auth check.
+ * Each logout inserts the token's jti + expiry into `revoked_sessions`.
+ * Every verify() call checks the table so revocations survive restarts,
+ * redeploys, and multi-instance scale-out.
  *
- * If the deployment is ever scaled to multiple concurrent instances, or if
- * process restarts within the 30-day session TTL must still honour revocation,
- * this store must be replaced with a shared durable backend (e.g. a
- * "revoked_sessions" table in PostgreSQL keyed by jti with a TTL index, or
- * a Redis SET with EXPIREAT). Until then, a process restart clears the
- * denylist and any revoked tokens issued before the restart become replayable
- * again for their remaining TTL.
- *
- * Entries are purged lazily (during verify()) and on a periodic hourly sweep
- * so the map does not grow without bound over the 30-day session lifetime.
+ * The table is created on first use (CREATE TABLE IF NOT EXISTS) so no
+ * separate migration step is required after deploy.
  */
-const revokedSessions = new Map<string, number>();
+let tableReady: Promise<void> | null = null;
 
-function purgeExpiredRevocations(): void {
-  const now = Date.now();
-  for (const [jti, expiresAt] of revokedSessions) {
-    if (expiresAt <= now) {
-      revokedSessions.delete(jti);
-    }
+function ensureTable(): Promise<void> {
+  if (!tableReady) {
+    tableReady = pool
+      .query(
+        `CREATE TABLE IF NOT EXISTS revoked_sessions (
+          jti        TEXT    PRIMARY KEY,
+          expires_at BIGINT  NOT NULL
+        )`,
+      )
+      .then(() => undefined)
+      .catch((err: unknown) => {
+        tableReady = null;
+        throw err;
+      });
   }
+  return tableReady;
 }
 
-setInterval(purgeExpiredRevocations, 60 * 60 * 1000).unref();
+setInterval(async () => {
+  try {
+    await ensureTable();
+    await pool.query("DELETE FROM revoked_sessions WHERE expires_at <= $1", [Date.now()]);
+  } catch {
+    /* ignore periodic cleanup errors */
+  }
+}, 60 * 60 * 1000).unref();
 
 interface ParsedToken {
   jti: string;
   expiresAt: number;
 }
 
-function verify(token: string | undefined): { valid: boolean } & Partial<ParsedToken> {
+async function verify(token: string | undefined): Promise<{ valid: boolean } & Partial<ParsedToken>> {
   if (!token) return { valid: false };
   const dotIndex = token.lastIndexOf(".");
   if (dotIndex === -1) return { valid: false };
@@ -83,13 +90,17 @@ function verify(token: string | undefined): { valid: boolean } & Partial<ParsedT
   if (!Number.isFinite(expiresAt) || expiresAt < Date.now()) {
     return { valid: false };
   }
-  const revokedExpiry = revokedSessions.get(jti);
-  if (revokedExpiry !== undefined) {
-    if (revokedExpiry <= Date.now()) {
-      revokedSessions.delete(jti);
-    } else {
+  try {
+    await ensureTable();
+    const result = await pool.query<{ jti: string }>(
+      "SELECT jti FROM revoked_sessions WHERE jti = $1 AND expires_at > $2",
+      [jti, Date.now()],
+    );
+    if (result.rows.length > 0) {
       return { valid: false };
     }
+  } catch {
+    return { valid: false };
   }
   return { valid: true, jti, expiresAt };
 }
@@ -108,26 +119,38 @@ export function issueSession(res: Response): void {
   });
 }
 
-export function clearSession(req: Request, res: Response): void {
+export async function clearSession(req: Request, res: Response): Promise<void> {
   const cookies = (req as Request & { cookies?: Record<string, string> }).cookies ?? {};
   const token = cookies[COOKIE_NAME];
   if (token) {
-    const result = verify(token);
+    const result = await verify(token);
     if (result.valid && result.jti && result.expiresAt) {
-      revokedSessions.set(result.jti, result.expiresAt);
+      try {
+        await ensureTable();
+        await pool.query(
+          "INSERT INTO revoked_sessions (jti, expires_at) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+          [result.jti, result.expiresAt],
+        );
+      } catch {
+        /* DB write failed — cookie is still cleared below */
+      }
     }
   }
   res.clearCookie(COOKIE_NAME, { path: "/" });
 }
 
-export function isAuthed(req: Request): boolean {
+export async function isAuthed(req: Request): Promise<boolean> {
   const cookies = (req as Request & { cookies?: Record<string, string> }).cookies ?? {};
   const token = cookies[COOKIE_NAME];
-  return verify(token).valid;
+  return (await verify(token)).valid;
 }
 
-export const requireAuth: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
-  if (!isAuthed(req)) {
+export const requireAuth: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!(await isAuthed(req))) {
     res.status(401).json({ error: "unauthorized" });
     return;
   }
