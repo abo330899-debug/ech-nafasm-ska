@@ -13,7 +13,7 @@ paths = ["/api"]
 run = "pnpm --filter @workspace/api-server run dev"
 
 [services.production]
-build = ["sh", "-c", "npm install -g pnpm@9.15.9 && pnpm install && pnpm --filter @workspace/api-server run build && find /home/runner/workspace -maxdepth 5 -name 'node_modules' -type d -prune -exec rm -rf '{}' + 2>/dev/null; true"]
+build = ["sh", "-c", "pnpm --filter @workspace/api-server run build"]
 run = ["node", "--enable-source-maps", "/home/runner/workspace/artifacts/api-server/dist/index.mjs"]
 
 [services.env]

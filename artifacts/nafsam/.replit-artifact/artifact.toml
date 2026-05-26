@@ -18,7 +18,7 @@ localPort = 19579
 run = "pnpm --filter @workspace/nafsam run dev"
 
 [services.production]
-build = ["sh", "-c", "npm install -g pnpm@9.15.9 && pnpm install && pnpm --filter @workspace/nafsam run build && find /home/runner/workspace -maxdepth 5 -name 'node_modules' -type d -prune -exec rm -rf '{}' + 2>/dev/null; true"]
+build = ["sh", "-c", "pnpm --filter @workspace/nafsam run build"]
 publicDir = "artifacts/nafsam/dist/public"
 serve = "static"
 
