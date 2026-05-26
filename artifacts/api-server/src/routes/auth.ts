@@ -174,8 +174,12 @@ router.post("/auth/login", (req, res) => {
 });
 
 router.post("/auth/logout", async (req, res) => {
-  await clearSession(req, res);
-  res.json({ ok: true });
+  try {
+    await clearSession(req, res);
+    res.json({ ok: true });
+  } catch {
+    res.status(503).json({ error: "logout_failed" });
+  }
 });
 
 export default router;

@@ -68,28 +68,37 @@ interface ParsedToken {
   expiresAt: number;
 }
 
-async function verify(token: string | undefined): Promise<{ valid: boolean } & Partial<ParsedToken>> {
-  if (!token) return { valid: false };
+/**
+ * Verify the HMAC signature, expiry, and password version of a token
+ * without touching the database. Returns the parsed fields on success
+ * or null if the token is structurally invalid or expired.
+ *
+ * This is intentionally DB-free so logout can always obtain the JTI
+ * needed for revocation even during database outages.
+ */
+function parseToken(token: string | undefined): ParsedToken | null {
+  if (!token) return null;
   const dotIndex = token.lastIndexOf(".");
-  if (dotIndex === -1) return { valid: false };
+  if (dotIndex === -1) return null;
   const payload = token.slice(0, dotIndex);
   const sig = token.slice(dotIndex + 1);
   const expected = crypto.createHmac("sha256", getSecret()).update(payload).digest("base64url");
   const a = Buffer.from(sig);
   const b = Buffer.from(expected);
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
-    return { valid: false };
-  }
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
   const parts = payload.split(":");
-  if (parts.length !== 3) return { valid: false };
+  if (parts.length !== 3) return null;
   const [expiresAtStr, embeddedVersion, jti] = parts;
-  if (embeddedVersion !== getPasswordVersion()) {
-    return { valid: false };
-  }
+  if (embeddedVersion !== getPasswordVersion()) return null;
   const expiresAt = Number(expiresAtStr);
-  if (!Number.isFinite(expiresAt) || expiresAt < Date.now()) {
-    return { valid: false };
-  }
+  if (!Number.isFinite(expiresAt) || expiresAt < Date.now()) return null;
+  return { jti, expiresAt };
+}
+
+async function verify(token: string | undefined): Promise<{ valid: boolean } & Partial<ParsedToken>> {
+  const parsed = parseToken(token);
+  if (!parsed) return { valid: false };
+  const { jti, expiresAt } = parsed;
   try {
     await ensureTable();
     const result = await pool.query<{ jti: string }>(
@@ -123,17 +132,13 @@ export async function clearSession(req: Request, res: Response): Promise<void> {
   const cookies = (req as Request & { cookies?: Record<string, string> }).cookies ?? {};
   const token = cookies[COOKIE_NAME];
   if (token) {
-    const result = await verify(token);
-    if (result.valid && result.jti && result.expiresAt) {
-      try {
-        await ensureTable();
-        await pool.query(
-          "INSERT INTO revoked_sessions (jti, expires_at) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-          [result.jti, result.expiresAt],
-        );
-      } catch {
-        /* DB write failed — cookie is still cleared below */
-      }
+    const parsed = parseToken(token);
+    if (parsed) {
+      await ensureTable();
+      await pool.query(
+        "INSERT INTO revoked_sessions (jti, expires_at) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        [parsed.jti, parsed.expiresAt],
+      );
     }
   }
   res.clearCookie(COOKIE_NAME, { path: "/" });

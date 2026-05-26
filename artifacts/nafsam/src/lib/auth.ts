@@ -70,13 +70,12 @@ export function broadcastLogout(): void {
 }
 
 export async function logout(): Promise<void> {
-  broadcastLogout();
-  try {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "same-origin",
-    });
-  } catch {
-    /* ignore */
+  const res = await fetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "same-origin",
+  });
+  if (!res.ok) {
+    throw new Error("logout_failed");
   }
+  broadcastLogout();
 }
