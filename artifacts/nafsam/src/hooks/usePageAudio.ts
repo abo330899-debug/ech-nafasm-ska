@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { mediaUrl, STATIC_MODE } from "@/lib/r2";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -19,7 +20,9 @@ export default function usePageAudio(songFile: string) {
     const isLogin = songFile === "login_song.mp3";
     const src = isLogin
       ? `${BASE}media/${songFile}`
-      : `/api/private/media/${encodeURIComponent(songFile)}`;
+      : STATIC_MODE
+        ? mediaUrl(songFile)
+        : `/api/private/media/${encodeURIComponent(songFile)}`;
 
     const audio = new Audio(src);
     audio.loop = true;
