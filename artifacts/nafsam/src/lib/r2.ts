@@ -14,7 +14,8 @@ export function posterUrl(file: string): string {
   return `/api/private/posters/${encodeURIComponent(base)}.jpg`;
 }
 
-export function imageUrl(file: string): string {
-  if (STATIC_MODE) return `${R2_BASE}/images/${encodeURIComponent(file)}`;
-  return `/api/private/images/${encodeURIComponent(file)}`;
+export function imageUrl(rel: string): string {
+  const encoded = rel.split("/").map(encodeURIComponent).join("/");
+  if (STATIC_MODE) return `${R2_BASE}/images/${encoded}`;
+  return `/api/private/images/${encoded}`;
 }
