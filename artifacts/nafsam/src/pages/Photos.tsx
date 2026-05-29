@@ -49,7 +49,18 @@ const SPECIAL_PHOTO_TEXT_KEYS = [
   "photo4_text",
   "photo5_text",
   "photo6_text",
-  "photo7_text",
+  "photo8_text",
+  "photo9_text",
+  "photo10_text",
+  "photo11_text",
+  "photo12_text",
+  "photo13_text",
+  "photo14_text",
+  "photo15_text",
+  "photo16_text",
+  "photo17_text",
+  "photo18_text",
+  "photo19_text",
 ] as const;
 
 export default function Photos({ t, lang }: Props) {
