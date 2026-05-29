@@ -2,7 +2,21 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import fs from "fs";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
+if (process.env.CF_PAGES === "1") {
+  const cfEnvFile = path.resolve(import.meta.dirname, ".env.cloudflare-pages");
+  if (fs.existsSync(cfEnvFile)) {
+    const lines = fs.readFileSync(cfEnvFile, "utf-8").split("\n");
+    for (const line of lines) {
+      const m = line.match(/^([A-Za-z0-9_]+)=(.*)$/);
+      if (m && !process.env[m[1]]) {
+        process.env[m[1]] = m[2].trim();
+      }
+    }
+  }
+}
 
 const isBuild = process.env.NODE_ENV === "production" || process.argv.includes("build");
 
