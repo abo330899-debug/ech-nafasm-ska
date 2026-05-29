@@ -48,6 +48,7 @@ export interface Translations {
   countdown_hour: string;
   countdown_minute: string;
   countdown_second: string;
+  elapsed_label: string;
   riddle_prompt: string;
   photos_fallback_caption: string;
   common_close: string;
@@ -120,6 +121,7 @@ export const translations: Record<Lang, Translations> = {
     countdown_hour: "saat",
     countdown_minute: "dakika",
     countdown_second: "saniye",
+    elapsed_label: "Başladığından beri",
     riddle_prompt: "Soruyu çöz",
     photos_fallback_caption: "Sessiz bir anı… ama unutulmaz.",
     common_close: "Kapat",
@@ -191,6 +193,7 @@ export const translations: Record<Lang, Translations> = {
     countdown_hour: "hours",
     countdown_minute: "minutes",
     countdown_second: "seconds",
+    elapsed_label: "Since it began",
     riddle_prompt: "Solve the riddle",
     photos_fallback_caption: "A silent moment… but unforgettable.",
     common_close: "Close",
@@ -262,6 +265,7 @@ export const translations: Record<Lang, Translations> = {
     countdown_hour: "ساعة",
     countdown_minute: "دقيقة",
     countdown_second: "ثانية",
+    elapsed_label: "مرّ على البداية",
     riddle_prompt: "حلّ اللغز",
     photos_fallback_caption: "لحظة صامتة… لكنها لا تُنسى.",
     common_close: "إغلاق",
@@ -333,6 +337,7 @@ export const translations: Record<Lang, Translations> = {
     countdown_hour: "ساعت",
     countdown_minute: "دقیقه",
     countdown_second: "ثانیه",
+    elapsed_label: "از آغاز تا حالا",
     riddle_prompt: "معما را حل کن",
     photos_fallback_caption: "لحظه‌ای ساکت… اما فراموش‌نشدنی.",
     common_close: "بستن",

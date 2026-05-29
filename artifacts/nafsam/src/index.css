@@ -926,6 +926,53 @@ main{flex:1}
   font-size:.7rem;
   color:var(--text-dim);
 }
+.elapsed-block{
+  margin-bottom:28px;
+  padding:20px 16px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,182,193,0.15);
+}
+.elapsed-label{
+  font-size:.8rem;
+  color:var(--text-dim);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  margin-bottom:14px;
+}
+.elapsed-digits{
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  gap:4px;
+  flex-wrap:wrap;
+}
+.elapsed-unit{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-width:48px;
+}
+.elapsed-unit strong{
+  font-size:2rem;
+  font-weight:700;
+  color:var(--pink);
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.elapsed-unit small{
+  font-size:.65rem;
+  color:var(--text-dim);
+  margin-top:4px;
+  letter-spacing:.05em;
+}
+.elapsed-sep{
+  font-size:1.6rem;
+  color:var(--pink);
+  opacity:.5;
+  padding-bottom:6px;
+  font-weight:300;
+}
 .riddle-hint{
   font-size:.78rem;
   color:var(--text-dim);

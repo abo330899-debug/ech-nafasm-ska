@@ -3,7 +3,7 @@ import { issueSession, clearSession, isAuthed } from "../lib/session";
 
 const router: IRouter = Router();
 
-const DEFAULT_OPEN_AT = "2026-04-15T04:04:00";
+const DEFAULT_OPEN_AT = "2026-05-29T17:00:00";
 
 /**
  * Accepted login answers come exclusively from the NAFSAM_PASSWORDS env var
