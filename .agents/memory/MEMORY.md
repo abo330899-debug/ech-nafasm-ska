@@ -1,0 +1,1 @@
+- [Nafsam static (R2) mode](nafsam-static-mode.md) — static serving needs branches in r2.ts+auth.ts+usePrivateContent.ts; VITE_AUTH_TOKENS = sha256 of NAFSAM_PASSWORDS, regenerate on change.
