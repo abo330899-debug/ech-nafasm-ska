@@ -48,6 +48,6 @@ Personal memory archive site with dark glassmorphism aesthetics. Frontend-only R
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
-- `NAFSAM_PASSWORDS="pass1,pass2" pnpm --filter @workspace/scripts run gen-auth-tokens` — regenerate the `VITE_AUTH_TOKENS` value (SHA-256 hashes for static/Cloudflare login) after any password change. Copy the printed value into the production env var and `artifacts/nafsam/.env.cloudflare-pages`. Normalization (trim + lowercase + de-dupe) mirrors `artifacts/nafsam/src/lib/auth.ts`. If `NAFSAM_PASSWORDS` is set in the shell, you can omit the inline assignment.
+- `NAFSAM_PASSWORDS="pass1,pass2" pnpm --filter @workspace/scripts run gen-auth-tokens` — regenerate the `VITE_AUTH_TOKENS` value (SHA-256 hashes for static/Cloudflare login) after any password change. Add `--write` to rewrite the `VITE_AUTH_TOKENS=` line in `artifacts/nafsam/.env.cloudflare-pages` in place (no manual copy); the value is still printed so you can paste it into the production env var. Normalization (trim + lowercase + de-dupe) mirrors `artifacts/nafsam/src/lib/auth.ts`. If `NAFSAM_PASSWORDS` is set in the shell, you can omit the inline assignment.
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
