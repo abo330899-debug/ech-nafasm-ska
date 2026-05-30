@@ -1,4 +1,5 @@
-const STATIC_MODE = import.meta.env.VITE_STATIC_MODE === "true";
+لم يرفع الى كلاود فلير بعد لا فيديو و لا صور
+  const STATIC_MODE = import.meta.env.VITE_STATIC_MODE === "true";
 const AUTH_TOKENS_ENV = import.meta.env.VITE_AUTH_TOKENS ?? "";
 const STATIC_TOKEN_KEY = "nafsam_token";
 const STATIC_TOKEN_VALUE = "authenticated";
