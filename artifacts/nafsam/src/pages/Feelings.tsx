@@ -11,53 +11,20 @@ interface Props {
 
 interface MemoryFragment { label: string; body: string; }
 
-const DEFAULT_MEMORY_FRAGMENTS: MemoryFragment[] = [
-  { label: "I",   body: "Bir gülüşün vardı… şimdi onu hatırladığımda içimde bir şey kapanıyor, bir kapı gibi, sessizce." },
-  { label: "II",  body: "Sesini hâlâ duyabiliyorum, ama artık beni çağırmıyor. Sadece içimde bir oda boşaltıyor." },
-  { label: "III", body: "Bazı geceler nefes almak ağırlaşıyor, sanki yokluğun ciğerlerime yerleşmiş." },
-  { label: "IV",  body: "Adını yazmaya çalıştım, kalem kırıldı. Hatıralar dilimde değil, parmaklarımda kanıyor." },
-  { label: "V",   body: "Sevmek bittiğinde, geriye sevdiğin kişinin gölgesi değil; o gölgeye alışmış bir kalp kalıyor." },
-  { label: "VI",  body: "Bir gün uyandım ve hiçbir şey acıtmadı. İşte o gün, içimde gerçekten bir şey öldüğünü anladım." },
-];
-
-const DEFAULT_COLLAPSE_LINES = [
-  "Önce sesin sustu.",
-  "Sonra ismin uzaklaştı.",
-  "Sonra yüzün belirsizleşti.",
-  "Sonra hatıran ağırlaştı.",
-  "Sonra hatıran hafifledi.",
-  "Sonra… hiçbir şey kalmadı.",
-];
-
-const DEFAULT_STORY_PARAGRAPHS = [
-  "Hisler bir gecede ölmez. Önce yorulur. Önce sustukları, söylediklerinden çoğalır. Önce baktıkları yerlere bakmaktan vazgeçerler. Sonra bir sabah uyanırsın ve içinde sadece eski bir oda kalmıştır; perdeleri çekili, ışıkları kapalı.",
-  "Seni en çok yoran şeyin onun gidişi olduğunu sanırsın. Oysa yoran şey, hâlâ dönmesini bekleyen o ufak, inatçı, çocuk kalbindir. Ona susmasını söylemek istersin ama sesin çıkmaz; çünkü ona ait olan tek şey, artık o sestir.",
-  "Bir insanı kaybetmek ölüm değildir. Kaybetmek, hâlâ o insanla yaşamayı sürdürmektir; ama onsuz. Her sabah aynı şehirde uyanırsın, aynı kapıdan çıkarsın, aynı sokaktan geçersin — sadece yanında biri eksiktir.",
-];
-
-const DEFAULT_ENDING = "Bazı isimler ölmez,\nsadece içinde gizlice fısıldamaya başlar.";
-
 export default function Feelings({ t, lang }: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const data = usePrivateContent();
   const feelings = pickLangFeelings(data, lang);
 
-  // Use content.json data if available, otherwise fall back to defaults
-  const heroSub       = feelings.heroSub ?? "";
-  const storyTitle    = feelings.storyTitle ?? t.feelings_story_title;
-  const storyParagraphs = feelings.storyParagraphs && feelings.storyParagraphs.length > 0
-    ? feelings.storyParagraphs
-    : DEFAULT_STORY_PARAGRAPHS;
-  const memoriesTitle = feelings.memoriesTitle ?? t.feelings_memories_title;
-  const memoriesSub   = feelings.memoriesSub ?? t.feelings_memories_sub;
-  const memoryFragments: MemoryFragment[] = feelings.memoryFragments && feelings.memoryFragments.length > 0
-    ? feelings.memoryFragments
-    : DEFAULT_MEMORY_FRAGMENTS;
-  const collapseTitle = feelings.collapseTitle ?? t.feelings_collapse_title;
-  const collapseLines = feelings.collapseLines && feelings.collapseLines.length > 0
-    ? feelings.collapseLines
-    : DEFAULT_COLLAPSE_LINES;
-  const endingLine    = feelings.endingLine ?? DEFAULT_ENDING;
+  const heroSub         = feelings.heroSub ?? "";
+  const storyTitle      = feelings.storyTitle ?? t.feelings_story_title;
+  const storyParagraphs = feelings.storyParagraphs ?? [];
+  const memoriesTitle   = feelings.memoriesTitle ?? t.feelings_memories_title;
+  const memoriesSub     = feelings.memoriesSub ?? t.feelings_memories_sub;
+  const memoryFragments: MemoryFragment[] = feelings.memoryFragments ?? [];
+  const collapseTitle   = feelings.collapseTitle ?? t.feelings_collapse_title;
+  const collapseLines   = feelings.collapseLines ?? [];
+  const endingLine      = feelings.endingLine ?? "";
 
   useEffect(() => {
     const root = rootRef.current;
