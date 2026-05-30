@@ -9,6 +9,7 @@ Current production architecture details that matter for future scans:
 - Successful login issues an HMAC-signed `httpOnly` session cookie from `artifacts/api-server/src/lib/session.ts`.
 - Session revocation is backed by PostgreSQL through `revoked_sessions`, but revocation-sensitive guarantees still depend on durable database writes succeeding during logout and verification.
 - The currently deployed app is `private`, so Replit's deployment perimeter reduces public internet reachability; scans should still treat shared-device privacy and authorized-viewer session handling as production-relevant.
+- Checked-in deployment config can materially change the trust model: `.replit` and `artifacts/nafsam/.replit-artifact/artifact.toml` currently describe a static frontend build path that targets a public `r2.dev` bucket and injects client-side auth material into the bundle. Future scans should treat those files as first-class production evidence, not just documentation.
 
 Production assumptions for future scans:
 - `NODE_ENV` is `production` in deployed environments.
@@ -31,9 +32,12 @@ Production assumptions for future scans:
 - **Browser to frontend bundle boundary** -- every visitor can download and inspect the public web bundle. Any sensitive text, media inventory, or gatekeeping material shipped in client assets should be treated as public.
 - **Browser to API boundary** -- `/api/auth/*` and `/api/private/*` requests cross from an untrusted client into trusted backend code. All authentication and authorization decisions must be enforced server-side.
 - **Browser local state/cache boundary** -- once a browser has fetched protected content, the app and the browser cache may retain it locally. Sensitive responses must be delivered with cache directives consistent with the archive's privacy goals, and client-side memory caches must be invalidated promptly when auth is lost.
+- **Build-time config to frontend bundle boundary** -- any value injected through Vite `VITE_*` env vars becomes readable by every visitor in the shipped frontend bundle. Authentication material, private bucket URLs, and other archive secrets must never cross this boundary.
 - **Platform proxy to Node boundary** -- the deployed app sits behind a platform-managed proxy/load balancer. Controls that rely on client network identity, such as IP-based throttling, must use trusted forwarded addresses rather than the immediate peer socket.
 - **API to private filesystem boundary** -- `artifacts/api-server/private/` stores protected media and `content.json`. File-serving code on this boundary must prevent path traversal, cache leakage, and unauthenticated access.
+- **Frontend to object-storage boundary** -- when the frontend is configured to fetch `content.json`, images, or media from object storage, that bucket becomes part of the production confidentiality boundary. Public bucket URLs bypass the private deployment perimeter entirely.
 - **Session store durability boundary** -- logout and revocation behavior cross from durable client cookies into a PostgreSQL-backed revocation store. Revocation-sensitive guarantees must still account for database outages, failed revocation writes, restarts, redeploys, and any future scale-out.
+- **Viewer to owner/admin boundary** -- the archive is primarily read-only for viewers. Any route that mutates archive state, such as content ordering or editing tools, requires a distinct authorization boundary rather than the same generic viewer session used for reading memories.
 - **Production to dev-only boundary** -- `artifacts/mockup-sandbox`, `scripts/`, and codegen/spec tooling are not production surfaces unless explicitly wired into deployment.
 
 ## Scan Anchors
@@ -41,6 +45,7 @@ Production assumptions for future scans:
 - **Production entry points**: `artifacts/api-server/src/index.ts`, `artifacts/api-server/src/app.ts`, `artifacts/api-server/src/routes/auth.ts`, `artifacts/api-server/src/routes/private.ts`, `artifacts/nafsam/src/App.tsx`
 - **Highest-risk code areas**: `artifacts/api-server/src/lib/session.ts`, `artifacts/api-server/src/routes/auth.ts`, `artifacts/api-server/src/routes/private.ts`, `artifacts/nafsam/src/hooks/usePrivateContent.ts`, `artifacts/nafsam/src/lib/auth.ts`, `artifacts/nafsam/src/pages/Login.tsx`, `artifacts/nafsam/public/sw.js`, `artifacts/nafsam/dist/public/assets/`
 - **Sensitive configuration anchors**: `.replit`, `artifacts/*/.replit-artifact/artifact.toml`, and deployment environment-variable configuration should be treated as production-relevant when they set authentication or startup behavior.
+- **Mutation/admin surfaces**: `/api/reorder` is production-mounted and must be treated as a sensitive state-changing surface, not a harmless maintenance helper.
 - **Public surfaces**: the frontend bundle and static assets under `artifacts/nafsam/dist/public`, including generated JS chunks that any visitor can download, plus `/api/healthz` and `/api/auth/*`
 - **Intended authenticated surfaces**: `/api/private/*` and frontend routes such as `/home`, `/moments`, `/photos`, `/songs`, `/videos`, and `/writings`
 - **Dev-only areas to usually ignore**: `artifacts/mockup-sandbox/`, `scripts/`, `lib/api-spec/`
@@ -49,7 +54,7 @@ Production assumptions for future scans:
 
 ### Spoofing
 
-The server must fail closed if production authentication configuration is incomplete. Accepted login answers must come from deployment secret storage rather than hardcoded fallbacks or tracked configuration files, and the application must not expose exact accepted answers or answer identifiers to unauthenticated visitors, including in public UI elements such as login dropdowns or bootstrap endpoints such as `/api/auth/session`. Session cookies must remain signed with a production-only secret and validated on every protected request. Changing the archive answer or performing an access-revocation action must also provide a way to invalidate already-issued sessions, and that invalidation must survive routine restarts and redeploys. Logout and other revocation actions must not silently report success when the durable revocation write fails. The frontend must also expose a usable way for legitimate viewers to terminate their own session so shared-device privacy does not depend on manual cookie clearing outside the app.
+The server must fail closed if production authentication configuration is incomplete. Accepted login answers must come from deployment secret storage rather than hardcoded fallbacks or tracked configuration files, and the application must not expose exact accepted answers or answer identifiers to unauthenticated visitors, including in public UI elements such as login dropdowns or bootstrap endpoints such as `/api/auth/session`. Session cookies must remain signed with a production-only secret and validated on every protected request. Changing the archive answer or performing an access-revocation action must also provide a way to invalidate already-issued sessions, and that invalidation must survive routine restarts and redeploys. Logout and other revocation actions must not silently report success when the durable revocation write fails. The frontend must also expose a usable way for legitimate viewers to terminate their own session so shared-device privacy does not depend on manual cookie clearing outside the app. Build-time `VITE_*` variables and client-side localStorage flags must never become the source of truth for production authentication.
 
 ### Tampering
 
@@ -57,7 +62,7 @@ The browser is untrusted and can alter route state, requests, and asset URLs. Au
 
 ### Information Disclosure
 
-Protected memories must not be exposed through public frontend bundles, logs, error responses, or cache policy. Sensitive text, media inventories, intimate captions, and protected object identifiers must only be delivered after successful authorization. In this codebase, shared frontend assets such as protected page modules and generated chunks under `dist/public/assets/` are especially sensitive because anything embedded there is compiled into publicly downloadable JavaScript. Every protected response, including `/api/private/content`, must use cache directives that prevent later recovery from browser caches on shared devices. Because the SPA keeps protected data in in-memory client state, protected views and module-scoped caches must also be cleared promptly when authorization is lost rather than remaining visible until an asynchronous route check finishes.
+Protected memories must not be exposed through public frontend bundles, public object-storage origins, logs, error responses, or cache policy. Sensitive text, media inventories, intimate captions, protected object identifiers, and bucket URLs that directly locate them must only be delivered after successful authorization. In this codebase, shared frontend assets such as protected page modules and generated chunks under `dist/public/assets/` are especially sensitive because anything embedded there is compiled into publicly downloadable JavaScript, and `VITE_*` environment variables are effectively public at runtime. Every protected response, including `/api/private/content`, must use cache directives that prevent later recovery from browser caches on shared devices. Because the SPA keeps protected data in in-memory client state, protected views and module-scoped caches must also be cleared promptly when authorization is lost rather than remaining visible until an asynchronous route check finishes.
 
 ### Denial of Service
 
@@ -65,4 +70,4 @@ The archive has a small public authentication surface, so unauthenticated abuse 
 
 ### Elevation of Privilege
 
-A visitor must not be able to promote themselves from unauthenticated to authenticated by exploiting insecure defaults, publicly exposed accepted answers, client-side route guards, or predictable asset URLs. Any backend endpoint that exposes archive data must enforce authorization server-side and must not rely on the frontend to pre-filter access.
+A visitor must not be able to promote themselves from unauthenticated to authenticated by exploiting insecure defaults, publicly exposed accepted answers, client-side route guards, or predictable asset URLs. Any backend endpoint that exposes archive data must enforce authorization server-side and must not rely on the frontend to pre-filter access. Likewise, a generic viewer session must not implicitly grant owner-level mutation powers on maintenance routes such as archive reordering or editing tools.
