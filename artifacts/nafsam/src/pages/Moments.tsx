@@ -3,6 +3,7 @@ import { type Translations, type Lang } from "@/i18n/translations";
 import Footer from "@/components/Footer";
 import usePageAudio from "@/hooks/usePageAudio";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
+import { imageUrl } from "@/lib/r2";
 import LuxImage from "@/components/LuxImage";
 import useReveal from "@/hooks/useReveal";
 
@@ -48,7 +49,7 @@ export default function Moments({ t, lang }: Props) {
     { time: p.moment2_time, title: p.moment2_title, text: p.moment2_text, memory: p.moment2_memory },
     { time: p.moment3_time, title: p.moment3_title, text: p.moment3_text, memory: p.moment3_memory },
   ]
-    .map((m, i) => ({ ...m, image: momentImages[i] ? `/api/private/images/${momentImages[i]}` : "" }))
+    .map((m, i) => ({ ...m, image: momentImages[i] ? imageUrl(momentImages[i]) : "" }))
     .filter((m) => m.title || m.text);
 
   return (

@@ -46,7 +46,7 @@ async function uploadToR2(localPath: string, key: string): Promise<UploadResult>
       body,
     });
 
-    const data = await res.json();
+    const data = (await res.json()) as { success?: boolean; errors?: Array<{ message: string }> };
 
     if (res.ok && data.success) {
       return {

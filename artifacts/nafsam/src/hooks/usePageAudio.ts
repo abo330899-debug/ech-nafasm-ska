@@ -20,9 +20,7 @@ export default function usePageAudio(songFile: string) {
     const isLogin = songFile === "login_song.mp3";
     const src = isLogin
       ? `${BASE}media/${songFile}`
-      : STATIC_MODE
-        ? mediaUrl(songFile)
-        : `/api/private/media/${encodeURIComponent(songFile)}`;
+      : mediaUrl(songFile);
 
     const audio = new Audio(src);
     audio.loop = true;
