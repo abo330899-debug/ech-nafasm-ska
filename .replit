@@ -3,9 +3,8 @@ run = ["pnpm", "start"]
 
 [deployment]
   router = "application"
-deploymentTarget = "static"
+deploymentTarget = "gce"
   run = ["pnpm", "start"]
-publicDir = "dist"
 
 [deployment.env]
   PORT = "8080"
