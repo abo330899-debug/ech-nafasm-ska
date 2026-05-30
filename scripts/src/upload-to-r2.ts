@@ -1,44 +1,26 @@
-import { createHash, createHmac } from "crypto";
 import { readFileSync, readdirSync, statSync } from "fs";
-import { join, relative } from "path";
+import { join } from "path";
 
 /**
- * Upload local media files to Cloudflare R2 using S3-compatible API.
+ * Upload local media files to Cloudflare R2 using Cloudflare API Token.
  *
- * Required env vars:
- *   R2_ACCESS_KEY_ID     - S3 API access key from Cloudflare R2 dashboard
- *   R2_SECRET_ACCESS_KEY - S3 API secret key from Cloudflare R2 dashboard
+ * Required env var:
+ *   CLOUDFLARE_API_TOKEN  - Cloudflare API token (from Replit secrets)
  *
  * Usage:
- *   R2_ACCESS_KEY_ID=xxx R2_SECRET_ACCESS_KEY=yyy npx tsx scripts/src/upload-to-r2.ts
+ *   pnpm --filter @workspace/scripts run upload-to-r2
  */
 
 const ACCOUNT_ID = "d2680f7c5ff39f8d9177a51dbf7fec75";
 const BUCKET = "media";
-const ENDPOINT = `https://${ACCOUNT_ID}.r2.cloudflarestorage.com`;
 const R2_PUBLIC_BASE = "https://pub-79afa43f557e4c6291aeea28eb12043e.r2.dev";
 
-const PRIVATE_ROOT = "artifacts/api-server/private";
+const PROJECT_ROOT = process.cwd().includes("scripts") ? join(process.cwd(), "..") : join(process.cwd());
+const PRIVATE_ROOT = join(PROJECT_ROOT, "artifacts", "api-server", "private");
 const MEDIA_DIR = join(PRIVATE_ROOT, "media");
 const IMAGES_DIR = join(PRIVATE_ROOT, "images", "all_photos");
 
-const accessKey = process.env.R2_ACCESS_KEY_ID || "";
-const secretKey = process.env.R2_SECRET_ACCESS_KEY || "";
-
-function sha256(data: string | Buffer): string {
-  return createHash("sha256").update(data).digest("hex");
-}
-
-function hmacSha256(key: string | Buffer, data: string | Buffer): Buffer {
-  return createHmac("sha256", key).update(data).digest();
-}
-
-function getSignatureKey(secret: string, date: string, region: string, service: string): Buffer {
-  const kDate = hmacSha256("AWS4" + secret, date);
-  const kRegion = hmacSha256(kDate, region);
-  const kService = hmacSha256(kRegion, service);
-  return hmacSha256(kService, "aws4_request");
-}
+const CF_TOKEN = process.env.CLOUDFLARE_API_TOKEN || "";
 
 interface UploadResult {
   key: string;
@@ -51,58 +33,22 @@ interface UploadResult {
 async function uploadToR2(localPath: string, key: string): Promise<UploadResult> {
   const body = readFileSync(localPath);
   const size = body.length;
-  const now = new Date();
-  const dateStamp = now.toISOString().slice(0, 10).replace(/-/g, "");
-  const timeStamp = now.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
-  const region = "auto";
-  const service = "s3";
 
-  const hashedPayload = sha256(body);
-
-  const headers: Record<string, string> = {
-    "host": `${ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    "x-amz-content-sha256": hashedPayload,
-    "x-amz-date": timeStamp,
-    "content-type": "application/octet-stream",
-  };
-
-  const signedHeaders = Object.keys(headers).sort().join(";");
-
-  const canonicalRequest = [
-    "PUT",
-    `/${BUCKET}/${encodeURIComponent(key).replace(/%2F/g, "/")}`,
-    "",
-    Object.entries(headers)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([k, v]) => `${k}:${v.trim()}`)
-      .join("\n") + "\n",
-    signedHeaders,
-    hashedPayload,
-  ].join("\n");
-
-  const credential = `${accessKey}/${dateStamp}/${region}/${service}/aws4_request`;
-  const stringToSign = [
-    "AWS4-HMAC-SHA256",
-    timeStamp,
-    `${dateStamp}/${region}/${service}/aws4_request`,
-    sha256(canonicalRequest),
-  ].join("\n");
-
-  const signingKey = getSignatureKey(secretKey, dateStamp, region, service);
-  const signature = hmacSha256(signingKey, stringToSign).toString("hex");
-
-  const authHeader = `AWS4-HMAC-SHA256 Credential=${credential},SignedHeaders=${signedHeaders},Signature=${signature}`;
-
-  const url = `${ENDPOINT}/${BUCKET}/${encodeURIComponent(key).replace(/%2F/g, "/")}`;
+  const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/r2/buckets/${BUCKET}/objects/${encodeURIComponent(key)}`;
 
   try {
     const res = await fetch(url, {
       method: "PUT",
-      headers: { ...headers, authorization: authHeader },
+      headers: {
+        "Authorization": `Bearer ${CF_TOKEN}`,
+        "Content-Type": "application/octet-stream",
+      },
       body,
     });
 
-    if (res.ok) {
+    const data = await res.json();
+
+    if (res.ok && data.success) {
       return {
         key,
         url: `${R2_PUBLIC_BASE}/${key}`,
@@ -110,8 +56,8 @@ async function uploadToR2(localPath: string, key: string): Promise<UploadResult>
         success: true,
       };
     }
-    const text = await res.text();
-    return { key, url: "", size, success: false, error: `HTTP ${res.status}: ${text.slice(0, 200)}` };
+    const error = data.errors?.[0]?.message || `HTTP ${res.status}`;
+    return { key, url: "", size, success: false, error };
   } catch (err) {
     return { key, url: "", size, success: false, error: String(err) };
   }
@@ -151,7 +97,7 @@ async function uploadDirectory(localDir: string, prefix: string) {
     if (result.success) {
       uploaded++;
       totalBytes += result.size;
-      console.log(`OK ${result.url}`);
+      console.log(`OK`);
     } else {
       failed++;
       console.log(`FAIL ${result.error}`);
@@ -163,9 +109,9 @@ async function uploadDirectory(localDir: string, prefix: string) {
 }
 
 async function main() {
-  if (!accessKey || !secretKey) {
-    console.error("Error: R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY env vars are required.");
-    console.error("Create them in Cloudflare Dashboard -> R2 -> Manage R2 API Tokens -> Create S3 API Token.");
+  if (!CF_TOKEN) {
+    console.error("Error: CLOUDFLARE_API_TOKEN env var is required.");
+    console.error("It should be available as a Replit secret.");
     process.exit(1);
   }
 
@@ -182,7 +128,7 @@ async function main() {
   console.log("\n=== Summary ===");
   console.log(`Media: ${mediaResult.uploaded} uploaded, ${mediaResult.failed} failed`);
   console.log(`Images: ${imagesResult.uploaded} uploaded, ${imagesResult.failed} failed`);
-  console.log(`\nPublic URLs will be: ${R2_PUBLIC_BASE}/media/<file> and ${R2_PUBLIC_BASE}/images/all_photos/<file>`);
+  console.log(`\nPublic URLs: ${R2_PUBLIC_BASE}/media/<file> and ${R2_PUBLIC_BASE}/images/all_photos/<file>`);
 }
 
 main().catch((err) => {
