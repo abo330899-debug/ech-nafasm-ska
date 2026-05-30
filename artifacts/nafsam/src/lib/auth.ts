@@ -1,15 +1,3 @@
-const STATIC_MODE = import.meta.env.VITE_STATIC_MODE === "true";
-const AUTH_TOKENS_ENV = import.meta.env.VITE_AUTH_TOKENS ?? "";
-const STATIC_TOKEN_KEY = "nafsam_token";
-const STATIC_TOKEN_VALUE = "authenticated";
-
-async function sha256(text: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
 export interface CardHints {
   tr: string;
   fa: string;
@@ -30,14 +18,6 @@ export interface SessionStatus {
 }
 
 export async function fetchSession(): Promise<SessionStatus> {
-  if (STATIC_MODE) {
-    try {
-      const token = localStorage.getItem(STATIC_TOKEN_KEY);
-      return { authed: token === STATIC_TOKEN_VALUE, openAt: 0, isOpen: true };
-    } catch {
-      return { authed: false, openAt: 0, isOpen: true };
-    }
-  }
   try {
     const res = await fetch("/api/auth/session", {
       credentials: "same-origin",
@@ -55,19 +35,6 @@ export type LoginResult =
   | { ok: false; reason: "wrong" | "closed" | "rate_limited" | "network" };
 
 export async function login(answer: string): Promise<LoginResult> {
-  if (STATIC_MODE) {
-    try {
-      const hashes = AUTH_TOKENS_ENV.split(",").map((s: string) => s.trim()).filter(Boolean);
-      const hash = await sha256(answer.trim().toLowerCase());
-      if (hashes.includes(hash)) {
-        localStorage.setItem(STATIC_TOKEN_KEY, STATIC_TOKEN_VALUE);
-        return { ok: true };
-      }
-      return { ok: false, reason: "wrong" };
-    } catch {
-      return { ok: false, reason: "network" };
-    }
-  }
   try {
     const res = await fetch("/api/auth/login", {
       method: "POST",
@@ -103,11 +70,6 @@ export function broadcastLogout(): void {
 }
 
 export async function logout(): Promise<void> {
-  if (STATIC_MODE) {
-    try { localStorage.removeItem(STATIC_TOKEN_KEY); } catch { /* ignore */ }
-    broadcastLogout();
-    return;
-  }
   const res = await fetch("/api/auth/logout", {
     method: "POST",
     credentials: "same-origin",

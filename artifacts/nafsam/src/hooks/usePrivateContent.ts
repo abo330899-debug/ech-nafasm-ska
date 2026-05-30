@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import type { Lang } from "@/i18n/translations";
-import { STATIC_MODE, R2_BASE } from "@/lib/r2";
 
 export interface VideoItem {
   title: string;
@@ -162,24 +161,6 @@ async function loadPrivateContent(): Promise<PrivateContent | null> {
   if (inflight) return inflight;
   const myGen = generation;
 
-  if (STATIC_MODE) {
-    inflight = fetch(`${R2_BASE}/content.json`, { cache: "no-store" })
-      .then((r) => (r.ok ? (r.json() as Promise<PrivateContent>) : null))
-      .then((data) => {
-        if (myGen !== generation) return null;
-        if (data) {
-          cache = data;
-          subscribers.forEach((cb) => cb(cache));
-        }
-        return data;
-      })
-      .catch(() => null)
-      .finally(() => {
-        inflight = null;
-      });
-    return inflight;
-  }
-
   inflight = fetch("/api/private/content", { credentials: "same-origin", cache: "no-store" })
     .then((r) => {
       if (r.status === 401) {
@@ -228,7 +209,6 @@ export function clearPrivateContentCache(): void {
  * cache is cleared.  Network errors are silently ignored.
  */
 export async function revalidatePrivateContent(): Promise<void> {
-  if (STATIC_MODE) return;
   try {
     const r = await fetch("/api/private/content", {
       credentials: "same-origin",
