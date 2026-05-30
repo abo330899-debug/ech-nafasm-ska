@@ -168,3 +168,32 @@ export const requireAuth: RequestHandler = async (
   }
   next();
 };
+
+function getAdminToken(): string | undefined {
+  return process.env.NAFSAM_ADMIN_TOKEN;
+}
+
+export const requireAdmin: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!(await isAuthed(req))) {
+    res.status(401).json({ error: "unauthorized" });
+    return;
+  }
+  const adminToken = getAdminToken();
+  if (!adminToken) {
+    res.status(403).json({ error: "admin_not_configured" });
+    return;
+  }
+  const provided = (req.headers["x-admin-token"] as string | undefined) ?? "";
+  const expected = adminToken;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    res.status(403).json({ error: "forbidden" });
+    return;
+  }
+  next();
+};

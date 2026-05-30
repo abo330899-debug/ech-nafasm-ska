@@ -1,7 +1,7 @@
 import express, { Router, type IRouter } from "express";
 import fs from "fs";
 import path from "path";
-import { requireAuth } from "../lib/session";
+import { requireAdmin } from "../lib/session";
 import { loadContent } from "./private";
 
 const router: IRouter = Router();
@@ -15,7 +15,7 @@ const R2_BASE = (() => {
   return "https://pub-79afa43f557e4c6291aeea28eb12043e.r2.dev";
 })();
 
-router.get("/reorder", requireAuth, (_req, res) => {
+router.get("/reorder", requireAdmin, (_req, res) => {
   const content = loadContent() as Record<string, unknown>;
   const photos = (content.photos as string[] | undefined) ?? [];
   const captions = (
@@ -194,7 +194,7 @@ render();
   res.send(html);
 });
 
-router.post("/reorder", requireAuth, express.json(), async (req, res) => {
+router.post("/reorder", requireAdmin, express.json(), async (req, res) => {
   const { photos } = req.body as { photos?: unknown };
   if (!Array.isArray(photos) || photos.some((p) => typeof p !== "string")) {
     res.status(400).json({ error: "invalid_photos" });
