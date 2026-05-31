@@ -6,6 +6,7 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "upload-to-r2": "tsx ./src/upload-to-r2.ts",
+    "upload-frontend-to-r2": "tsx ./src/upload-frontend-to-r2.ts",
     "gen-auth-tokens": "tsx ./src/gen-auth-tokens.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
