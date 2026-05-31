@@ -81,11 +81,56 @@ const recentAttempts = new Map<string, { count: number; firstAt: number }>();
 const ATTEMPT_WINDOW_MS = 60_000;
 const MAX_ATTEMPTS = 8;
 
+/**
+ * Returns true when the given IP string falls within a private or loopback
+ * range and therefore represents a trusted internal proxy hop rather than a
+ * real end-user address.
+ */
+function isPrivateIP(ip: string): boolean {
+  // Strip IPv6-mapped IPv4 prefix (::ffff:1.2.3.4 → 1.2.3.4)
+  const addr = ip.replace(/^::ffff:/i, "").trim();
+  if (addr === "::1" || addr === "localhost") return true;
+  // IPv6 ULA (fc00::/7)
+  if (/^f[cd]/i.test(addr) && addr.includes(":")) return true;
+  // IPv4 private / loopback ranges
+  if (/^127\./.test(addr)) return true;
+  if (/^10\./.test(addr)) return true;
+  if (/^192\.168\./.test(addr)) return true;
+  if (/^172\.(1[6-9]|2\d|3[01])\./.test(addr)) return true;
+  return false;
+}
+
+/**
+ * Extracts the best available client IP from the request.
+ *
+ * In the Replit production topology, requests traverse a variable number of
+ * platform-managed proxy hops before reaching Node, so "trust proxy: 1" is
+ * unsafe — it resolves req.ip to an internal intermediary and collapses many
+ * unrelated viewers into one rate-limit bucket.
+ *
+ * We instead parse X-Forwarded-For ourselves and walk from right to left,
+ * skipping private/internal addresses (added by trusted platform proxies) and
+ * returning the first public address we encounter. That address is the actual
+ * end-user IP: a client can only inject entries at the leftmost position, so
+ * taking the rightmost public address is forgery-resistant regardless of how
+ * many hops are in the chain.
+ *
+ * Falls back to the raw socket address when no public address is found in the
+ * header (e.g. in development where there are no proxy hops).
+ */
 function getClientIP(req: Request): string {
-  // Express "trust proxy" is enabled in production, so req.ip is the
-  // leftmost trusted address after proxy hops. We trust that over raw
-  // x-forwarded-for to avoid header spoofing.
-  return (req.ip || req.socket.remoteAddress || "unknown").toString();
+  const xff = req.headers["x-forwarded-for"];
+  if (xff) {
+    const parts = (Array.isArray(xff) ? xff.join(",") : xff)
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    // Walk right-to-left; skip private hops (trusted infrastructure).
+    for (let i = parts.length - 1; i >= 0; i--) {
+      if (!isPrivateIP(parts[i])) return parts[i];
+    }
+  }
+  return (req.socket.remoteAddress || "unknown").toString();
 }
 
 function rateLimited(ip: string): boolean {

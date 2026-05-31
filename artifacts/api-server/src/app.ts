@@ -12,7 +12,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app: Express = express();
 
 if (process.env.NODE_ENV === "production") {
-  app.set("trust proxy", 1);
+  // The Replit deployment path routes requests through a variable number of
+  // platform-managed proxy/load-balancer hops before reaching Node. Trusting
+  // exactly 1 hop (the previous default) causes req.ip to resolve to the last
+  // internal intermediary instead of the real client address when there are
+  // multiple hops, collapsing many unrelated viewers into a single rate-limit
+  // bucket. We set "trust proxy" to true so Express parses the full
+  // X-Forwarded-For chain; getClientIP() in the auth route then applies the
+  // rightmost-public-IP algorithm to extract a trustworthy client identity
+  // instead of relying on req.ip directly.
+  app.set("trust proxy", true);
 }
 
 app.use(
