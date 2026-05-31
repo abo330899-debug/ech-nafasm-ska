@@ -9,7 +9,9 @@ Current production architecture details that matter for future scans:
 - Successful login issues an HMAC-signed `httpOnly` session cookie from `artifacts/api-server/src/lib/session.ts`.
 - Session revocation is backed by PostgreSQL through `revoked_sessions`, but revocation-sensitive guarantees still depend on durable database writes succeeding during logout and verification.
 - The currently deployed app is `private`, so Replit's deployment perimeter reduces public internet reachability; scans should still treat shared-device privacy and authorized-viewer session handling as production-relevant.
-- Checked-in deployment config can materially change the trust model: `.replit` and `artifacts/nafsam/.replit-artifact/artifact.toml` currently describe a static frontend build path that targets a public `r2.dev` bucket and injects client-side auth material into the bundle. Future scans should treat those files as first-class production evidence, not just documentation.
+- Current Replit production is the VM/API path defined by the root `.replit` and `package.json` (`pnpm start` runs `@workspace/api-server`). Future scans should treat this as the authoritative production path unless deployment wiring changes again.
+- Legacy static-hosting artifacts still exist in the repo (`artifacts/nafsam/.env.cloudflare-pages`, stale `dist/public`, and a duplicate workspace under `ECHandSKA-1/`), but they should not by themselves be treated as current production evidence unless a checked-in deployment path points back to them.
+- Public object-storage URLs embedded inside authenticated content are still production-relevant. Even when discovery is gated by `/api/private/content`, any field that points to a public `r2.dev` object bypasses the intended confidentiality boundary once revealed to a viewer.
 
 Production assumptions for future scans:
 - `NODE_ENV` is `production` in deployed environments.
@@ -44,11 +46,11 @@ Production assumptions for future scans:
 
 - **Production entry points**: `artifacts/api-server/src/index.ts`, `artifacts/api-server/src/app.ts`, `artifacts/api-server/src/routes/auth.ts`, `artifacts/api-server/src/routes/private.ts`, `artifacts/nafsam/src/App.tsx`
 - **Highest-risk code areas**: `artifacts/api-server/src/lib/session.ts`, `artifacts/api-server/src/routes/auth.ts`, `artifacts/api-server/src/routes/private.ts`, `artifacts/nafsam/src/hooks/usePrivateContent.ts`, `artifacts/nafsam/src/lib/auth.ts`, `artifacts/nafsam/src/pages/Login.tsx`, `artifacts/nafsam/public/sw.js`, `artifacts/nafsam/dist/public/assets/`
-- **Sensitive configuration anchors**: `.replit`, `artifacts/*/.replit-artifact/artifact.toml`, and deployment environment-variable configuration should be treated as production-relevant when they set authentication or startup behavior.
+- **Sensitive configuration anchors**: `.replit`, `artifacts/*/.replit-artifact/artifact.toml`, `artifacts/api-server/private/content.json`, and deployment environment-variable configuration should be treated as production-relevant when they set authentication, startup behavior, or direct object-storage URLs.
 - **Mutation/admin surfaces**: `/api/reorder` is production-mounted and must be treated as a sensitive state-changing surface, not a harmless maintenance helper.
 - **Public surfaces**: the frontend bundle and static assets under `artifacts/nafsam/dist/public`, including generated JS chunks that any visitor can download, plus `/api/healthz` and `/api/auth/*`
 - **Intended authenticated surfaces**: `/api/private/*` and frontend routes such as `/home`, `/moments`, `/photos`, `/songs`, `/videos`, and `/writings`
-- **Dev-only areas to usually ignore**: `artifacts/mockup-sandbox/`, `scripts/`, `lib/api-spec/`
+- **Dev-only areas to usually ignore**: `artifacts/mockup-sandbox/`, `scripts/`, `lib/api-spec/`, and the duplicate workspace `ECHandSKA-1/` unless production wiring is demonstrated
 
 ## Threat Categories
 
@@ -62,7 +64,7 @@ The browser is untrusted and can alter route state, requests, and asset URLs. Au
 
 ### Information Disclosure
 
-Protected memories must not be exposed through public frontend bundles, public object-storage origins, logs, error responses, or cache policy. Sensitive text, media inventories, intimate captions, protected object identifiers, and bucket URLs that directly locate them must only be delivered after successful authorization. In this codebase, shared frontend assets such as protected page modules and generated chunks under `dist/public/assets/` are especially sensitive because anything embedded there is compiled into publicly downloadable JavaScript, and `VITE_*` environment variables are effectively public at runtime. Every protected response, including `/api/private/content`, must use cache directives that prevent later recovery from browser caches on shared devices. Because the SPA keeps protected data in in-memory client state, protected views and module-scoped caches must also be cleared promptly when authorization is lost rather than remaining visible until an asynchronous route check finishes.
+Protected memories must not be exposed through public frontend bundles, public object-storage origins, logs, error responses, or cache policy. Sensitive text, media inventories, intimate captions, protected object identifiers, and bucket URLs that directly locate them must only be delivered after successful authorization, and even then must not resolve to publicly accessible object URLs that a viewer can replay without the app's auth checks. In this codebase, shared frontend assets such as protected page modules and generated chunks under `dist/public/assets/` are especially sensitive because anything embedded there is compiled into publicly downloadable JavaScript, and authenticated JSON manifests such as `/api/private/content` are equally sensitive because they can reveal direct media locations. Every protected response, including `/api/private/content`, must use cache directives that prevent later recovery from browser caches on shared devices. Because the SPA keeps protected data in in-memory client state, protected views and module-scoped caches must also be cleared promptly when authorization is lost rather than remaining visible until an asynchronous route check finishes.
 
 ### Denial of Service
 
