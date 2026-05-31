@@ -6,15 +6,6 @@ import { loadContent } from "./private";
 
 const router: IRouter = Router();
 
-const R2_BASE = (() => {
-  const env = process.env.NAFSAM_R2_BASE;
-  if (env) return env;
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("NAFSAM_R2_BASE env var is required in production");
-  }
-  return "https://pub-79afa43f557e4c6291aeea28eb12043e.r2.dev";
-})();
-
 router.get("/reorder", requireAdmin, (_req, res) => {
   const content = loadContent() as Record<string, unknown>;
   const photos = (content.photos as string[] | undefined) ?? [];
@@ -23,9 +14,12 @@ router.get("/reorder", requireAdmin, (_req, res) => {
       | { title: string; text: string }[]
       | undefined
   ) ?? [];
+  const mediaConfig = content.mediaConfig as Record<string, unknown> | undefined;
+  const photosDir = (mediaConfig?.photosDir as string | undefined) ?? "all_photos";
 
   const photosJson = JSON.stringify(photos);
   const captionsJson = JSON.stringify(captions);
+  const photosDirJson = JSON.stringify(photosDir);
 
   const html = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -93,7 +87,7 @@ button{padding:8px 18px;border:none;border-radius:8px;cursor:pointer;font-size:.
 <script>
 const PHOTOS = ${photosJson};
 const CAPTIONS = ${captionsJson};
-const R2 = "${R2_BASE}";
+const PHOTOS_DIR = ${photosDirJson};
 
 let order = [...PHOTOS];
 let dragSrc = null;
@@ -109,7 +103,7 @@ function render() {
     card.draggable = true;
     card.dataset.idx = String(i);
 
-    const imgUrl = R2 + '/images/all_photos/' + file;
+    const imgUrl = '/api/private/images/' + encodeURIComponent(PHOTOS_DIR) + '/' + encodeURIComponent(file);
     card.innerHTML =
       '<img src="' + imgUrl + '" loading="lazy" onerror="this.style.background=\'#2a1a1a\'">' +
       '<div class="card-info">' +

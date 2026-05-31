@@ -220,9 +220,50 @@ export function loadContent(): unknown {
   return contentCache;
 }
 
+/**
+ * Normalise mediaConfig.heroImageUrl so the client always receives an
+ * authenticated /api/private/images/ URL, never a public object-storage URL.
+ *
+ * Handles three forms that may appear in content.json:
+ *   - Already an API path  ("/api/private/images/…")  → pass through unchanged
+ *   - Relative filename    ("hero.webp")               → prefix with API path
+ *   - Public http(s) URL   ("https://…r2.dev/…")       → extract filename, prefix
+ */
+function sanitizeContentForClient(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const content = { ...(raw as Record<string, unknown>) };
+  const mediaConfig = content.mediaConfig;
+  if (mediaConfig && typeof mediaConfig === "object" && !Array.isArray(mediaConfig)) {
+    const mc = { ...(mediaConfig as Record<string, unknown>) };
+    const heroUrl = mc.heroImageUrl;
+    if (typeof heroUrl === "string" && heroUrl) {
+      if (heroUrl.startsWith("/api/private/")) {
+        // Already routed through the authenticated API — no change needed.
+      } else if (/^https?:\/\//i.test(heroUrl)) {
+        // Absolute public URL: extract the path after /images/ and re-route.
+        try {
+          const parsed = new URL(heroUrl);
+          const m = parsed.pathname.match(/^\/images\/(.+)$/);
+          const rel = m ? m[1] : parsed.pathname.replace(/^\/+/, "");
+          mc.heroImageUrl = `/api/private/images/${rel}`;
+        } catch {
+          // Malformed URL — omit rather than leak a public URL.
+          delete mc.heroImageUrl;
+        }
+      } else {
+        // Relative filename or path — route through the authenticated endpoint.
+        const rel = heroUrl.replace(/^\/+/, "");
+        mc.heroImageUrl = `/api/private/images/${rel}`;
+      }
+    }
+    content.mediaConfig = mc;
+  }
+  return content;
+}
+
 router.get("/private/content", requireAuth, (_req, res) => {
   res.setHeader("Cache-Control", "no-store");
-  res.json(loadContent());
+  res.json(sanitizeContentForClient(loadContent()));
 });
 
 export default router;
