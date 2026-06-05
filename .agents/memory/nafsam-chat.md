@@ -42,3 +42,19 @@ Supabase dashboard, easy to miss):**
 Supabase REST API with the anon key, INSERT as one, SELECT as the other, then
 DELETE to clean up. The message author is stamped server-side by a BEFORE
 INSERT trigger (`chat_set_sender`), so `sender_name` is forced from the account.
+
+**"Seen" read receipts ride on Realtime presence, NOT a DB column.**
+Each client adds `read: <newest-message-server-time-ms>` to its presence
+`track()` payload; the peer reads it on presence "sync" and shows a "seen" line
+under the last of *their own* messages whose `created_at <= otherLastRead`.
+Persisted per-identity in localStorage (`nafsam_chat_otherread_<id>`) so it
+survives reloads on the sender's device.
+**Why:** the hosted Supabase has no admin access from this repl (no
+SUPABASE_DB_URL), so a `read_at` column + RLS change can't be applied/deployed.
+Presence needs zero schema/RLS change → ships with the normal Cloudflare build.
+The read marker is anchored to the newest message's *server* `created_at`
+(never `Date.now()` when messages exist) so a fast device clock can't broadcast
+a future timestamp that falsely marks unread messages as seen.
+**Limitation:** presence is ephemeral — if the peer reads while you're offline
+and both go offline, you only see "seen" once their presence is observed live;
+the localStorage cache then keeps it across your own reloads.
