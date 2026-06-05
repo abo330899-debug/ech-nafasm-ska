@@ -69,15 +69,10 @@ RLS + a BEFORE INSERT/UPDATE trigger force `identity` from the account (mirrors
 `chat_set_sender`), so neither account can write the other's pointer.
 
 **Presence + typing are SYMMETRIC by design (both sides see each other's
-online / last-seen / typing).** An earlier build gated presence to one identity
-(`showPresence = identity==='star'`). The redesign removed that gate on purpose
-to match the requested Telegram/WhatsApp feel.
-**Why:** this is the explicitly requested behavior — do NOT "restore" the
-one-way gate thinking it's a privacy bug. It exposes nothing beyond what the
-realtime presence channel + `read_state` already carried for the two authorized
-identities.
-**How to apply:** message delivery state is rendered as ticks, not a text line —
-`tickFor()` in `Chat.tsx`: `seen` (✓✓ highlighted) when `created_at <=
-otherLastRead`; `delivered` (✓✓) when peer online or `created_at <=
-otherLastSeen`; else `sent` (✓). Only messages newer than the history-load
-timestamp animate in (`is-new` class) to keep large logs jank-free.
+online / last-seen / typing).** An earlier build gated presence to one identity.
+**Why:** symmetric presence is the explicitly requested Telegram/WhatsApp
+behavior — do NOT "restore" a one-way gate thinking it's a privacy bug. It
+exposes nothing beyond what the realtime presence channel + `read_state` already
+carried for the two authorized identities. Delivery state is shown as ticks
+(sent/delivered/seen) instead of a text line, where "seen" is still anchored to
+`otherLastRead` (so it depends on the durable read_state step above).
