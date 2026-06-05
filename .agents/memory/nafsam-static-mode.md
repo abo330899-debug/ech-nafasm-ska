@@ -35,6 +35,23 @@ user-accepted tradeoff.
 `VITE_STATIC_MODE` + `VITE_R2_BASE` in the production build command;
 `VITE_AUTH_TOKENS` is read from the production env var at build time (verified).
 
+**Cloudflare build = `.env.cloudflare-pages`, file now WINS over dashboard
+(footgun fixed 2026-06-05):** Cloudflare sets `CF_PAGES=1`, and `vite.config.ts`
+loads the committed `.env.cloudflare-pages` into `process.env`. It USED to apply
+each var only `if (!process.env[KEY])`, so a stale Cloudflare **dashboard** env
+var silently overrode the committed value — the live bundle shipped only 4
+`VITE_AUTH_TOKENS` while the committed file had 6, so newly-added login words
+never reached production. Changed to **always** apply the file (file wins).
+**Why:** everything in that file is public-by-design (hashes, anon key, R2 base),
+so the committed file is the right source of truth; dashboard overrides just
+cause silent drift. **How to apply:** to verify what's ACTUALLY live, fetch the
+deployed bundle and grep for token hashes, e.g.
+`curl -s https://echandska-1.pages.dev/ ` → find `assets/index-*.js` → grep for
+`sha256(word)`. Live site is `echandska-1.pages.dev`. The static login fn is
+unconditional in the minified bundle (STATIC_MODE folds to true → `/api` branch
+is dead code), confirming static mode. SW (`public/sw.js`) caches hashed assets
+cache-first; bump its `VERSION` to force all clients to drop stale caches.
+
 **Current activation (dev preview + builds):** `artifacts/nafsam/.env` (committed)
 sets the three VITE vars so Vite auto-loads them in BOTH `vite dev` and
 `vite build` — this is what makes the dev preview standalone, not just CF_PAGES.
