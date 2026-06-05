@@ -11,7 +11,12 @@ if (process.env.CF_PAGES === "1") {
     const lines = fs.readFileSync(cfEnvFile, "utf-8").split("\n");
     for (const line of lines) {
       const m = line.match(/^([A-Za-z0-9_]+)=(.*)$/);
-      if (m && !process.env[m[1]]) {
+      if (m) {
+        // The committed .env.cloudflare-pages is the SOURCE OF TRUTH for the
+        // static Cloudflare build. Always apply it (file wins) so a stale
+        // Cloudflare dashboard environment variable can't silently override the
+        // login word list (VITE_AUTH_TOKENS) or the static-mode flags baked
+        // into the deployed bundle. Everything here is public-by-design.
         process.env[m[1]] = m[2].trim();
       }
     }
