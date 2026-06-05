@@ -68,6 +68,33 @@ isolated from the message channel so a missing table can never break messaging.
 RLS + a BEFORE INSERT/UPDATE trigger force `identity` from the account (mirrors
 `chat_set_sender`), so neither account can write the other's pointer.
 
+**Reactions & voice are stored WITHOUT schema changes (no Supabase admin).**
+The `messages` table cannot be altered, so two features piggyback on existing
+columns:
+- **Reactions** (❤️🥺🌹🦋) are durable "control messages": a normal `messages`
+  row whose `body` carries a sentinel prefix (`\uE000R\uE000<targetId>\uE000<emoji>`).
+  Helpers live in `chat/chatMedia.ts`. The provider filters control rows out of
+  the visible `messages` list (`isControlBody`) and reduces them into a
+  `reactions` map keyed by target id then reactor; empty emoji = removal; latest
+  write per (reactor,target) wins. Realtime "just works" via the existing INSERT
+  subscription.
+- **Voice notes**: the audio blob is uploaded to the `chat-images` bucket and its
+  path stored in `image_path`; duration is encoded in the filename
+  `voice-<ts>-<ms>.<ext>` and detected by regex (`parseVoice`). No body.
+**Why this matters:** control rows share the `messages` table, so any snapshot
+`limit` is a *shared* budget between real messages and reactions.
+**How to apply:** the snapshot MUST fetch `order(created_at, ascending:false)`
++ limit (newest window), NOT ascending — ascending+limit returns the *oldest*
+rows and hides the live conversation once total rows exceed the limit. The merge
+re-sorts ascending afterward. If reaction volume ever grows large, split visible
+vs control into separate queries rather than raising the single limit.
+
+**Voice recorder lifecycle:** `MediaRecorder.stop()` is async — its `onstop`
+fires later. A `processingRef` guard blocks a new `startRecording()` until the
+previous recorder's `onstop` (teardown + optional upload) completes, otherwise
+the shared `chunksRef`/`startRef`/`cancelledRef` buffers of two sessions
+interleave and produce dropped/garbled uploads.
+
 **Presence + typing are SYMMETRIC by design (both sides see each other's
 online / last-seen / typing).** An earlier build gated presence to one identity.
 **Why:** symmetric presence is the explicitly requested Telegram/WhatsApp
