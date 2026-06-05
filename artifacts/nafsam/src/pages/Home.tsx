@@ -86,7 +86,7 @@ export default function Home({ t, lang }: Props) {
             <span>{el.secs} {t.countdown_second}</span>
           </div>
           <div className="hero-buttons">
-            <Link href="/moments" className="btn btn-primary">
+            <Link href="/journey" className="btn btn-primary">
               {t.open_story}
             </Link>
             <Link href="/writings" className="btn btn-outline">
@@ -108,7 +108,7 @@ export default function Home({ t, lang }: Props) {
 
       <section className="cards-section">
         <div className="cards-grid">
-          <Link href="/moments" className="card glass">
+          <Link href="/journey" className="card glass">
             <h3>{t.card_moments_title}</h3>
             {p.card_moments_text && <p>{p.card_moments_text}</p>}
           </Link>

@@ -13,7 +13,6 @@ import { fetchSession, broadcastLogout, logout, AUTH_BROADCAST_CHANNEL, STORAGE_
 import { clearPrivateContentCache, setUnauthorizedHandler, revalidatePrivateContent } from "@/hooks/usePrivateContent";
 
 const Home = lazy(() => import("@/pages/Home"));
-const Moments = lazy(() => import("@/pages/Moments"));
 const Photos = lazy(() => import("@/pages/Photos"));
 const Songs = lazy(() => import("@/pages/Songs"));
 const Videos = lazy(() => import("@/pages/Videos"));
@@ -155,9 +154,6 @@ function AppContent() {
           </Route>
           <Route path="/home">
             <ProtectedRoute state={authState}><Home t={t} lang={lang} /></ProtectedRoute>
-          </Route>
-          <Route path="/moments">
-            <ProtectedRoute state={authState}><Moments t={t} lang={lang} /></ProtectedRoute>
           </Route>
           <Route path="/photos">
             <ProtectedRoute state={authState}><Photos t={t} lang={lang} /></ProtectedRoute>
