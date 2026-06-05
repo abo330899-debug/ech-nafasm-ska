@@ -38,6 +38,12 @@ export interface SpecialPhotoItem {
   featured?: boolean;
 }
 
+export interface JourneyEntry {
+  file: string;
+  title: string;
+  quote: string;
+}
+
 export interface PrivatePages {
   hero_text?: string;
   quote_1?: string; quote_2?: string; quote_3?: string; quote_4?: string;
@@ -127,6 +133,7 @@ export interface PrivateContent {
   photos?: string[];
   songs?: SongItem[];
   specialPhotos?: SpecialPhotoItem[];
+  journey?: JourneyEntry[];
   momentImages?: string[];
   feelings?: Partial<Record<Lang, FeelingsContent>>;
   pageAudio?: PageAudioMap;

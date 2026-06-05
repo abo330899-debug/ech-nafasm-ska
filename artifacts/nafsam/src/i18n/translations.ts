@@ -52,6 +52,11 @@ export interface Translations {
   elapsed_label: string;
   riddle_prompt: string;
   photos_fallback_caption: string;
+  nav_journey: string;
+  journey_eyebrow: string;
+  journey_title: string;
+  journey_intro: string;
+  journey_outro: string;
   common_close: string;
   common_prev: string;
   common_next: string;
@@ -126,6 +131,11 @@ export const translations: Record<Lang, Translations> = {
     elapsed_label: "Başladığından beri",
     riddle_prompt: "Soruyu çöz",
     photos_fallback_caption: "Sessiz bir anı… ama unutulmaz.",
+    nav_journey: "Başlangıçtan İze",
+    journey_eyebrow: "Bir aşkın güzergâhı",
+    journey_title: "Başlangıçtan İze",
+    journey_intro: "Yaşadığımız sırayla yirmi beş an… ilk ışıktan son ize kadar.",
+    journey_outro: "Her fotoğraf kaldı… ve içindeki herkes gitti.",
     common_close: "Kapat",
     common_prev: "Önceki",
     common_next: "Sonraki",
@@ -199,6 +209,11 @@ export const translations: Record<Lang, Translations> = {
     elapsed_label: "Since it began",
     riddle_prompt: "Solve the riddle",
     photos_fallback_caption: "A silent moment… but unforgettable.",
+    nav_journey: "From the Beginning to the Trace",
+    journey_eyebrow: "The path of one love",
+    journey_title: "From the Beginning to the Trace",
+    journey_intro: "Twenty-five moments, in the order we lived them… from the first light to the last trace.",
+    journey_outro: "Every picture remained… and everyone in them left.",
     common_close: "Close",
     common_prev: "Previous",
     common_next: "Next",
@@ -272,6 +287,11 @@ export const translations: Record<Lang, Translations> = {
     elapsed_label: "مرّ على البداية",
     riddle_prompt: "حلّ اللغز",
     photos_fallback_caption: "لحظة صامتة… لكنها لا تُنسى.",
+    nav_journey: "من البداية إلى الأثر",
+    journey_eyebrow: "مسيرةُ حبٍّ واحد",
+    journey_title: "من البداية إلى الأثر",
+    journey_intro: "خمسٌ وعشرون لحظة، مرتّبةٌ كما عشناها… من أوّل ضوءٍ إلى آخر أثر.",
+    journey_outro: "كلّ صورةٍ بقيت… وكلّ من فيها رحل.",
     common_close: "إغلاق",
     common_prev: "السابق",
     common_next: "التالي",
@@ -345,6 +365,11 @@ export const translations: Record<Lang, Translations> = {
     elapsed_label: "از آغاز تا حالا",
     riddle_prompt: "معما را حل کن",
     photos_fallback_caption: "لحظه‌ای ساکت… اما فراموش‌نشدنی.",
+    nav_journey: "از آغاز تا اثر",
+    journey_eyebrow: "مسیرِ یک عشق",
+    journey_title: "از آغاز تا اثر",
+    journey_intro: "بیست و پنج لحظه، به ترتیبی که زیستیم… از نخستین نور تا آخرین اثر.",
+    journey_outro: "هر عکس ماند… و هر که در آن بود، رفت.",
     common_close: "بستن",
     common_prev: "قبلی",
     common_next: "بعدی",

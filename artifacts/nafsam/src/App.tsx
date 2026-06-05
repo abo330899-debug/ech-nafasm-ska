@@ -19,6 +19,7 @@ const Songs = lazy(() => import("@/pages/Songs"));
 const Videos = lazy(() => import("@/pages/Videos"));
 const Writings = lazy(() => import("@/pages/Writings"));
 const Feelings = lazy(() => import("@/pages/Feelings"));
+const Journey = lazy(() => import("@/pages/Journey"));
 const Chat = lazy(() => import("@/pages/Chat"));
 const ChatProvider = lazy(() =>
   import("@/chat/ChatProvider").then((m) => ({ default: m.ChatProvider })),
@@ -160,6 +161,9 @@ function AppContent() {
           </Route>
           <Route path="/photos">
             <ProtectedRoute state={authState}><Photos t={t} lang={lang} /></ProtectedRoute>
+          </Route>
+          <Route path="/journey">
+            <ProtectedRoute state={authState}><Journey t={t} lang={lang} /></ProtectedRoute>
           </Route>
           <Route path="/songs">
             <ProtectedRoute state={authState}><Songs t={t} lang={lang} /></ProtectedRoute>

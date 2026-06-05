@@ -16,6 +16,7 @@ export default function Navbar({ t, onLogout }: Props) {
     { href: "/home", label: t.nav_home },
     { href: "/moments", label: t.nav_moments },
     { href: "/photos", label: t.nav_photos },
+    { href: "/journey", label: t.nav_journey },
     { href: "/songs", label: t.nav_songs },
     { href: "/videos", label: t.nav_videos },
     { href: "/writings", label: t.nav_writings },
