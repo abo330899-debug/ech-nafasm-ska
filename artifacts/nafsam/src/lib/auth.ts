@@ -1,5 +1,30 @@
 const STATIC_MODE = import.meta.env.VITE_STATIC_MODE === "true";
-const AUTH_TOKENS_ENV = import.meta.env.VITE_AUTH_TOKENS ?? "";
+
+// Canonical login-word hashes, baked directly into the source so the deployed
+// build NEVER depends on a Cloudflare dashboard / env value being present or
+// up to date. Each entry is sha256(word.trim().toLowerCase()). These are safe
+// to ship publicly (they already live in the downloadable bundle). To add or
+// change words, regenerate with the gen-auth-tokens script (see replit.md) and
+// paste the new hashes here.
+const AUTH_TOKENS_BUILTIN = [
+  "89332e726a92700b68820e4371347aff05cfbe5fcef459a7e9916266fbbbb6ac",
+  "15d3a52f3a69b6da3b76b5575a48c1d16ad5087dbf1cc4e33d1428f59a0bb7a1",
+  "69f81f0d193d163268d961aae99c2e3adf6b5ebe81a97280cf0c235d2f5f3338",
+  "470c8021ba0912f4108bffbb4fe562367912d992f7a1388850b28d34a4a25170",
+  "3ac9f21c626cc89623ba69d7f48fb348d7dcbe3a9acf796c0868a66f4082f39b",
+  "0525705f408768f535ef15e1364fec9e1fa4d4100d0e7bab903f708c75bd5d3c",
+];
+
+// The env var (if set) only ADDS to the built-in list — it can never remove a
+// word — so a missing or stale VITE_AUTH_TOKENS can't lock anyone out.
+const AUTH_TOKENS = Array.from(
+  new Set(
+    [...AUTH_TOKENS_BUILTIN, ...(import.meta.env.VITE_AUTH_TOKENS ?? "").split(",")]
+      .map((s: string) => s.trim().toLowerCase())
+      .filter(Boolean),
+  ),
+);
+
 const STATIC_TOKEN_KEY = "nafsam_token";
 const STATIC_TOKEN_VALUE = "authenticated";
 const STATIC_DEFAULT_OPEN_AT = "2026-05-29T17:00:00";
@@ -95,9 +120,8 @@ function onLogoutCleanup(): void {
 export async function login(answer: string): Promise<LoginResult> {
   if (STATIC_MODE) {
     try {
-      const hashes = AUTH_TOKENS_ENV.split(",").map((s: string) => s.trim()).filter(Boolean);
       const hash = await sha256(answer.trim().toLowerCase());
-      if (hashes.includes(hash)) {
+      if (AUTH_TOKENS.includes(hash)) {
         localStorage.setItem(STATIC_TOKEN_KEY, STATIC_TOKEN_VALUE);
         onLoginSuccess(answer);
         return { ok: true };
