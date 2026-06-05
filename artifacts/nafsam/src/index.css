@@ -1277,6 +1277,7 @@ main{flex:1}
   margin:auto;
   padding:20px 0 60px;
   position:relative;
+  isolation:isolate;
 }
 .videos-page *{box-sizing:border-box}
 

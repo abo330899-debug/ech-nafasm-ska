@@ -5,6 +5,7 @@ import TypewriterTitle from "@/components/TypewriterTitle";
 import FarewellPassage from "@/components/FarewellPassage";
 import OblivionScript from "@/components/OblivionScript";
 import Footer from "@/components/Footer";
+import PhotoBackdrop from "@/components/PhotoBackdrop";
 import usePageAudio from "@/hooks/usePageAudio";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
 
@@ -60,6 +61,7 @@ export default function Home({ t, lang }: Props) {
 
   return (
     <div className="page-content">
+      <PhotoBackdrop />
       <section className="hero">
         <div className="hero-bg" style={heroImage ? { backgroundImage: `url(${heroImage})` } : {}} />
         <div className="hero-overlay" />

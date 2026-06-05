@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import Footer from "@/components/Footer";
+import PhotoBackdrop from "@/components/PhotoBackdrop";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
 import RevealCard from "@/components/RevealCard";
 import { PAGE_AUDIO_PAUSE_EVENT, PAGE_AUDIO_RESUME_EVENT } from "@/hooks/usePageAudio";
@@ -79,6 +80,7 @@ export default function Songs({ t, lang }: Props) {
 
   return (
     <div className="page-content">
+      <PhotoBackdrop />
       <div className="page-header">
         <h1>{t.songs_title}</h1>
         <p>{t.songs_text}</p>

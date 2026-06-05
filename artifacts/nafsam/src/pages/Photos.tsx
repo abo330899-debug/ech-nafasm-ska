@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from "react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import Footer from "@/components/Footer";
+import PhotoBackdrop from "@/components/PhotoBackdrop";
 import usePageAudio from "@/hooks/usePageAudio";
 import { privateImage } from "@/lib/privateAssets";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
@@ -132,6 +133,7 @@ export default function Photos({ t, lang }: Props) {
 
   return (
     <div className="page-content photos-luxe">
+      <PhotoBackdrop />
       <div className="page-header">
         <h1>{t.photos_title}</h1>
         {p.photos_header_sub && <p className="photos-header-sub">{p.photos_header_sub}</p>}

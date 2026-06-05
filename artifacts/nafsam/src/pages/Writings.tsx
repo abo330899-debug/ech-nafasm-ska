@@ -1,5 +1,6 @@
 import { type Translations, type Lang } from "@/i18n/translations";
 import Footer from "@/components/Footer";
+import PhotoBackdrop from "@/components/PhotoBackdrop";
 import usePageAudio from "@/hooks/usePageAudio";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
 
@@ -22,6 +23,7 @@ export default function Writings({ t, lang }: Props) {
 
   return (
     <div className="page-content">
+      <PhotoBackdrop />
       <div className="page-header">
         <h1>{t.writings_title}</h1>
         {p.writings_text && <p>{p.writings_text}</p>}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { type Translations, type Lang } from "@/i18n/translations";
+import PhotoBackdrop from "@/components/PhotoBackdrop";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
 import useReveal from "@/hooks/useReveal";
 import { mediaUrl, posterUrl } from "@/lib/r2";
@@ -304,6 +305,7 @@ export default function Videos({ t, lang }: Props) {
 
   return (
     <div className="videos-page videos-luxe">
+      <PhotoBackdrop />
       <section className="v-hero" dir="ltr">
         <h1 className="v-hero-title">{t.videos_title}</h1>
         {p.videos_text && <p className="v-hero-sub">{p.videos_text}</p>}

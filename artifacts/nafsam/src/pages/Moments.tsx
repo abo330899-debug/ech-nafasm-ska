@@ -1,6 +1,7 @@
 import { type CSSProperties, type ReactNode } from "react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import Footer from "@/components/Footer";
+import PhotoBackdrop from "@/components/PhotoBackdrop";
 import usePageAudio from "@/hooks/usePageAudio";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
 import { imageUrl } from "@/lib/r2";
@@ -54,6 +55,7 @@ export default function Moments({ t, lang }: Props) {
 
   return (
     <div className="page-content">
+      <PhotoBackdrop />
       <div className="page-header">
         <h1>{t.moments_title}</h1>
         {p.moments_text && <p>{p.moments_text}</p>}
