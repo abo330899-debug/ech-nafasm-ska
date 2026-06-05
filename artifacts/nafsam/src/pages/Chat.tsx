@@ -17,6 +17,15 @@ function dayKey(iso: string): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
+function lastSeenTime(ts: number): string {
+  const d = new Date(ts);
+  const now = new Date();
+  const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  if (d.toDateString() === now.toDateString()) return time;
+  const date = d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  return `${date} ${time}`;
+}
+
 function dayLabel(iso: string, s: { today: string; yesterday: string }): string {
   const d = new Date(iso);
   const now = new Date();
@@ -43,6 +52,7 @@ export default function Chat({ lang }: Props) {
     messages,
     otherOnline,
     otherTyping,
+    otherLastSeen,
     sendText,
     sendImage,
     notifyTyping,
@@ -62,6 +72,9 @@ export default function Chat({ lang }: Props) {
 
   const them = identity ? otherIdentity(identity) : "ilham";
   const themName = identityName(them);
+  // Presence (online / last seen) is intentionally one-way: only Star may see
+  // whether the other person is online or when they were last active.
+  const showPresence = identity === "star";
 
   const filtered = useMemo(() => {
     if (!query.trim()) return messages;
@@ -162,18 +175,26 @@ export default function Chat({ lang }: Props) {
       <div className="chat-shell glass">
         <header className="chat-header">
           <div className="chat-peer">
-            <div className={`chat-avatar ${otherOnline ? "is-online" : ""}`}>
+            <div
+              className={`chat-avatar ${
+                showPresence && otherOnline ? "is-online" : ""
+              }`}
+            >
               {themName.charAt(0)}
             </div>
             <div className="chat-peer-meta">
               <span className="chat-peer-name">{themName}</span>
-              <span className="chat-peer-status">
-                {otherTyping
-                  ? s.typing
-                  : otherOnline
-                    ? s.online
-                    : s.offline}
-              </span>
+              {showPresence && (
+                <span className="chat-peer-status">
+                  {otherTyping
+                    ? s.typing
+                    : otherOnline
+                      ? s.online
+                      : otherLastSeen
+                        ? s.last_seen.replace("{time}", lastSeenTime(otherLastSeen))
+                        : s.offline}
+                </span>
+              )}
             </div>
           </div>
           <button

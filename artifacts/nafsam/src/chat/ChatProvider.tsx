@@ -20,6 +20,7 @@ import {
 } from "./chatContext";
 
 const LAST_READ_KEY = "nafsam_chat_lastread";
+const LAST_SEEN_KEY = "nafsam_chat_lastseen";
 
 function getLastRead(): number {
   try {
@@ -33,6 +34,23 @@ function getLastRead(): number {
 function setLastRead(ts: number): void {
   try {
     localStorage.setItem(LAST_READ_KEY, String(ts));
+  } catch {
+    /* ignore */
+  }
+}
+
+function getStoredLastSeen(): number | null {
+  try {
+    const v = localStorage.getItem(LAST_SEEN_KEY);
+    return v ? Number(v) || null : null;
+  } catch {
+    return null;
+  }
+}
+
+function setStoredLastSeen(ts: number): void {
+  try {
+    localStorage.setItem(LAST_SEEN_KEY, String(ts));
   } catch {
     /* ignore */
   }
@@ -52,6 +70,9 @@ export function ChatProvider({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [otherOnline, setOtherOnline] = useState(false);
   const [otherTyping, setOtherTyping] = useState(false);
+  const [otherLastSeen, setOtherLastSeen] = useState<number | null>(() =>
+    getStoredLastSeen(),
+  );
   const [lastRead, setLastReadState] = useState<number>(() => getLastRead());
 
   const identity = getIdentity();
@@ -134,7 +155,13 @@ export function ChatProvider({
         )
         .on("presence", { event: "sync" }, () => {
           const state = channel?.presenceState() ?? {};
-          setOtherOnline(Boolean(state[them] && state[them].length > 0));
+          const online = Boolean(state[them] && state[them].length > 0);
+          setOtherOnline(online);
+          if (online) {
+            const now = Date.now();
+            setStoredLastSeen(now);
+            setOtherLastSeen(now);
+          }
         })
         .on("broadcast", { event: "typing" }, ({ payload }) => {
           if (payload?.identity && payload.identity !== me) {
@@ -306,6 +333,7 @@ export function ChatProvider({
       messages,
       otherOnline,
       otherTyping,
+      otherLastSeen,
       unread,
       sendText,
       sendImage,
@@ -321,6 +349,7 @@ export function ChatProvider({
       messages,
       otherOnline,
       otherTyping,
+      otherLastSeen,
       unread,
       sendText,
       sendImage,

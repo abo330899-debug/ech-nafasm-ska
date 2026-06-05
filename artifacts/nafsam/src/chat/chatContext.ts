@@ -18,6 +18,7 @@ export interface ChatContextValue {
   messages: ChatMessage[];
   otherOnline: boolean;
   otherTyping: boolean;
+  otherLastSeen: number | null;
   unread: number;
   sendText: (body: string) => Promise<void>;
   sendImage: (file: File) => Promise<void>;
@@ -39,6 +40,7 @@ const DEFAULT_CHAT: ChatContextValue = {
   messages: [],
   otherOnline: false,
   otherTyping: false,
+  otherLastSeen: null,
   unread: 0,
   sendText: async () => {},
   sendImage: async () => {},

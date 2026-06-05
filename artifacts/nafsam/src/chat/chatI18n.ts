@@ -4,6 +4,7 @@ export interface ChatStrings {
   title: string;
   online: string;
   offline: string;
+  last_seen: string;
   typing: string;
   placeholder: string;
   send: string;
@@ -31,6 +32,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     title: "المحادثة",
     online: "متصل الآن",
     offline: "غير متصل",
+    last_seen: "آخر ظهور {time}",
     typing: "يكتب…",
     placeholder: "اكتب رسالة…",
     send: "إرسال",
@@ -56,6 +58,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     title: "Chat",
     online: "online",
     offline: "offline",
+    last_seen: "last seen {time}",
     typing: "typing…",
     placeholder: "Type a message…",
     send: "Send",
@@ -81,6 +84,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     title: "گفتگو",
     online: "آنلاین",
     offline: "آفلاین",
+    last_seen: "آخرین بازدید {time}",
     typing: "در حال نوشتن…",
     placeholder: "پیام بنویس…",
     send: "ارسال",
@@ -106,6 +110,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     title: "Sohbet",
     online: "çevrimiçi",
     offline: "çevrimdışı",
+    last_seen: "son görülme {time}",
     typing: "yazıyor…",
     placeholder: "Bir mesaj yaz…",
     send: "Gönder",
