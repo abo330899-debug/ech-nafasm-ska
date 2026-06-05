@@ -19,10 +19,14 @@ the full list on mount.
 245 cards = ~490 images on mount — enough to OOM mobile Safari.
 
 **How to apply:**
-- Keep the windowing observer effect depending on `visibleCount` so it
-  re-observes after each batch bump; otherwise, if the sentinel stays in view,
-  the observer won't re-fire and loading stalls (IO fires only on intersection
-  *change*).
+- The windowing observer effect must be STABLE — depend only on
+  `videosData.length`, NOT on `visibleCount`. Recreating the observer on every
+  batch bump re-`observe()`s the still-visible sentinel, and IO always delivers
+  an immediate initial callback for an already-intersecting target → that
+  cascades every batch in one tick, loads the whole list, and re-OOMs mobile
+  Safari (page "reloads/restarts" on scroll). A stable observer fires once per
+  real intersection; each batch of tall cards pushes the sentinel out of the
+  600px margin so the next scroll re-triggers it (no stall in practice).
 - Reset `visibleCount` when the data length changes (content load).
 - Fall back to rendering the full list if `IntersectionObserver` is undefined.
 - Modal/lightbox should index the FULL array, not the slice, so prev/next and
