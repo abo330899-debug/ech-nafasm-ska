@@ -61,6 +61,13 @@ create index if not exists messages_created_at_idx on public.messages (created_a
 
 alter table public.messages enable row level security;
 
+-- Base table privileges. RLS decides WHICH rows a user may touch, but the role
+-- still needs table-level privileges to touch the table at all. Supabase does
+-- not reliably auto-grant these for tables created in the SQL editor, so grant
+-- them explicitly (otherwise every query fails with "permission denied").
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.messages to authenticated;
+
 -- Force sender_id + sender_name to come from the authenticated account, never
 -- from the client payload. This makes message identity un-forgeable: a client
 -- cannot insert a row claiming to be the other person.
