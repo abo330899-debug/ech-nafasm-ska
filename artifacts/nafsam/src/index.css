@@ -709,6 +709,10 @@ main{flex:1}
   display:flex;
   flex-direction:column;
   transition:transform .25s ease, box-shadow .25s ease;
+  /* Off-screen video cards skip rendering so the browser can release their
+     decoded thumbnails — keeps mobile memory low and avoids tab reloads. */
+  content-visibility:auto;
+  contain-intrinsic-size:auto 320px;
 }
 .gallery-grid .video-card:hover,
 .gallery-grid .video-card:focus-visible{
@@ -1808,6 +1812,13 @@ audio,video{filter:none}
 .photos-luxe .photo-card.in-view{
   opacity:1;
   transform:translateY(0);
+}
+/* Skip rendering & decoding off-screen cards to cut mobile memory use,
+   which prevents the browser from evicting and reloading the tab while
+   scrolling through the heavy photo album. */
+.photos-luxe .album-grid .photo-card{
+  content-visibility:auto;
+  contain-intrinsic-size:auto 420px;
 }
 .photos-luxe .photo-grid .photo-card:nth-child(2){transition-delay:.05s,.05s,0s,0s}
 .photos-luxe .photo-grid .photo-card:nth-child(3){transition-delay:.10s,.10s,0s,0s}

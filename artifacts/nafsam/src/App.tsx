@@ -13,6 +13,7 @@ import FloatingHearts from "@/components/FloatingHearts";
 import DustParticles from "@/components/DustParticles";
 import { useMagneticButtons } from "@/hooks/useMagneticButtons";
 import { useIdleVignette } from "@/hooks/useIdleVignette";
+import useScrollRestoration from "@/hooks/useScrollRestoration";
 import Navbar from "@/components/Navbar";
 import Login from "@/pages/Login";
 import {
@@ -60,6 +61,7 @@ function AppContent() {
   const [location] = useLocation();
   useMagneticButtons();
   useIdleVignette();
+  useScrollRestoration(location);
 
   const evictAuthRef = useRef<() => void>(() => {});
 
