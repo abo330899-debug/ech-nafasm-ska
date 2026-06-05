@@ -7,6 +7,7 @@ import { type ChatStrings } from "@/chat/chatI18n";
 interface Props {
   message: ChatMessage;
   mine: boolean;
+  senderLabel: string;
   s: ChatStrings;
   onPreview: (url: string) => void;
 }
@@ -16,7 +17,13 @@ function timeLabel(iso: string): string {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function MessageBubble({ message, mine, s, onPreview }: Props) {
+export default function MessageBubble({
+  message,
+  mine,
+  senderLabel,
+  s,
+  onPreview,
+}: Props) {
   const { imageUrl, deleteMessage } = useChat();
   const [imgSrc, setImgSrc] = useState<string | null>(null);
 
@@ -47,6 +54,7 @@ export default function MessageBubble({ message, mine, s, onPreview }: Props) {
   return (
     <div className={`chat-row ${mine ? "mine" : "theirs"}`}>
       <div className={`chat-bubble ${message.deleted ? "is-deleted" : ""}`}>
+        <span className="chat-sender">{senderLabel}</span>
         {message.deleted ? (
           <span className="chat-deleted">{s.deleted}</span>
         ) : (

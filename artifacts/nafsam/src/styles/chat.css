@@ -241,6 +241,22 @@
   color: var(--lux-text-dim);
 }
 
+.chat-sender {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 2px;
+  opacity: 0.85;
+}
+.chat-row.theirs .chat-sender {
+  color: var(--lux-accent, #d8a57c);
+}
+.chat-row.mine .chat-sender {
+  color: #3a2611;
+  opacity: 0.75;
+}
+
 .chat-text {
   margin: 0;
   white-space: pre-wrap;

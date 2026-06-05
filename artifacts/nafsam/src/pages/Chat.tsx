@@ -217,6 +217,9 @@ export default function Chat({ lang }: Props) {
                     key={m.id}
                     message={m}
                     mine={m.sender_name === identity}
+                    senderLabel={identityName(
+                      m.sender_name === "star" ? "star" : "ilham",
+                    )}
                     s={s}
                     onPreview={setPreview}
                   />
