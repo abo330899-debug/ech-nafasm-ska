@@ -111,7 +111,9 @@
   background: transparent;
   color: var(--lux-text-dim);
   cursor: pointer;
-  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+  transition:
+    background 0.2s var(--ease),
+    color 0.2s var(--ease);
 }
 
 .chat-icon-btn:hover:not(:disabled) {
@@ -378,7 +380,9 @@
   color: #1c1206;
   cursor: pointer;
   flex-shrink: 0;
-  transition: transform 0.15s var(--ease), opacity 0.2s var(--ease);
+  transition:
+    transform 0.15s var(--ease),
+    opacity 0.2s var(--ease);
 }
 
 .chat-send:disabled {

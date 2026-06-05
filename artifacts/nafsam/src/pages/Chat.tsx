@@ -22,11 +22,17 @@ function lastSeenTime(ts: number): string {
   const now = new Date();
   const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   if (d.toDateString() === now.toDateString()) return time;
-  const date = d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  const date = d.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+  });
   return `${date} ${time}`;
 }
 
-function dayLabel(iso: string, s: { today: string; yesterday: string }): string {
+function dayLabel(
+  iso: string,
+  s: { today: string; yesterday: string },
+): string {
   const d = new Date(iso);
   const now = new Date();
   const startOf = (x: Date) =>
@@ -209,7 +215,10 @@ export default function Chat({ lang }: Props) {
                     : otherOnline
                       ? s.online
                       : otherLastSeen
-                        ? s.last_seen.replace("{time}", lastSeenTime(otherLastSeen))
+                        ? s.last_seen.replace(
+                            "{time}",
+                            lastSeenTime(otherLastSeen),
+                          )
                         : s.offline}
                 </span>
               )}
@@ -244,9 +253,7 @@ export default function Chat({ lang }: Props) {
           {!ready ? (
             <div className="chat-empty">{s.loading}</div>
           ) : grouped.length === 0 ? (
-            <div className="chat-empty">
-              {query ? s.search_empty : s.empty}
-            </div>
+            <div className="chat-empty">{query ? s.search_empty : s.empty}</div>
           ) : (
             grouped.map((g) => (
               <div key={g.key} className="chat-day">
@@ -329,7 +336,11 @@ export default function Chat({ lang }: Props) {
       {preview && (
         <div className="chat-lightbox" onClick={() => setPreview(null)}>
           <img src={preview} alt={s.image_alt} />
-          <button type="button" className="chat-lightbox-close" aria-label="close">
+          <button
+            type="button"
+            className="chat-lightbox-close"
+            aria-label="close"
+          >
             <X size={22} />
           </button>
         </div>

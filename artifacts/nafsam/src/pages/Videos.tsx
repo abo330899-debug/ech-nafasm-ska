@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import PhotoBackdrop from "@/components/PhotoBackdrop";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
@@ -166,13 +173,7 @@ function CompressIcon() {
   );
 }
 
-function Thumb({
-  file,
-  kind,
-}: {
-  file: string;
-  kind: VideoKind;
-}) {
+function Thumb({ file, kind }: { file: string; kind: VideoKind }) {
   const [imgFailed, setImgFailed] = useState(false);
   if (kind !== "mp4") {
     return (
@@ -313,7 +314,10 @@ export default function Videos({ t, lang }: Props) {
     lastFocusedRef.current = document.activeElement as HTMLElement | null;
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const focusTimer = window.setTimeout(() => closeBtnRef.current?.focus(), 30);
+    const focusTimer = window.setTimeout(
+      () => closeBtnRef.current?.focus(),
+      30,
+    );
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeModal();
       else if (e.key === "ArrowLeft") prevVideo();
@@ -328,7 +332,8 @@ export default function Videos({ t, lang }: Props) {
     };
   }, [activeIndex, closeModal, prevVideo, nextVideo]);
 
-  const active = activeIndex !== null ? videosData[activeIndex] ?? null : null;
+  const active =
+    activeIndex !== null ? (videosData[activeIndex] ?? null) : null;
   const activeKind: VideoKind = active ? detectKind(active.file) : "mp4";
 
   return (
@@ -463,9 +468,7 @@ export default function Videos({ t, lang }: Props) {
                   <div className="v-modal-mega-art" aria-hidden="true">
                     <PlayIcon />
                   </div>
-                  <p className="v-modal-mega-text">
-                    {t.video_mega_text}
-                  </p>
+                  <p className="v-modal-mega-text">{t.video_mega_text}</p>
                   <a
                     className="v-btn v-btn-accent v-btn-cta"
                     href={active.file}
@@ -480,7 +483,8 @@ export default function Videos({ t, lang }: Props) {
 
             <div className="v-modal-info">
               <div className="v-modal-eyebrow">
-                {t.video_memory_label} {(activeIndex ?? 0) + 1} / {videosData.length}
+                {t.video_memory_label} {(activeIndex ?? 0) + 1} /{" "}
+                {videosData.length}
               </div>
               <h3 className="v-modal-title">{active.caption}</h3>
               {active.quote && <p className="v-modal-quote">{active.quote}</p>}
@@ -491,7 +495,11 @@ export default function Videos({ t, lang }: Props) {
                       type="button"
                       className="v-btn v-btn-icon"
                       onClick={toggleTheater}
-                      aria-label={theaterMode ? t.common_theater_compact : t.common_theater_wide}
+                      aria-label={
+                        theaterMode
+                          ? t.common_theater_compact
+                          : t.common_theater_wide
+                      }
                       aria-pressed={theaterMode}
                     >
                       {theaterMode ? <CompressIcon /> : <ExpandIcon />}

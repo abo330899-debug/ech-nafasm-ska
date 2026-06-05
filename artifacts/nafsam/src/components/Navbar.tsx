@@ -37,7 +37,9 @@ export default function Navbar({ t, onLogout }: Props) {
           >
             {l.label}
             {"chat" in l && l.chat && unread > 0 && location !== "/chat" && (
-              <span className="nav-chat-badge">{unread > 99 ? "99+" : unread}</span>
+              <span className="nav-chat-badge">
+                {unread > 99 ? "99+" : unread}
+              </span>
             )}
           </Link>
         ))}

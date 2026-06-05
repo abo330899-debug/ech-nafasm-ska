@@ -51,7 +51,8 @@ export default function Home({ t, lang }: Props) {
     link.setAttribute("data-hero-preload", "1");
     document.head.appendChild(link);
     const img = new Image();
-    (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority = "high";
+    (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority =
+      "high";
     img.decoding = "async";
     img.src = heroImage;
     return () => {
@@ -63,7 +64,10 @@ export default function Home({ t, lang }: Props) {
     <div className="page-content">
       <PhotoBackdrop />
       <section className="hero">
-        <div className="hero-bg" style={heroImage ? { backgroundImage: `url(${heroImage})` } : {}} />
+        <div
+          className="hero-bg"
+          style={heroImage ? { backgroundImage: `url(${heroImage})` } : {}}
+        />
         <div className="hero-overlay" />
         <div className="hero-body">
           <span className="eyebrow">{t.hero_eyebrow}</span>
@@ -72,7 +76,12 @@ export default function Home({ t, lang }: Props) {
           {p.farewell_title && (
             <FarewellPassage
               title={p.farewell_title}
-              paragraphs={[p.farewell_p1 ?? "", p.farewell_p2 ?? "", p.farewell_p3 ?? "", p.farewell_p4 ?? ""].filter(Boolean)}
+              paragraphs={[
+                p.farewell_p1 ?? "",
+                p.farewell_p2 ?? "",
+                p.farewell_p3 ?? "",
+                p.farewell_p4 ?? "",
+              ].filter(Boolean)}
               silverAnchor={p.farewell_silver_anchor ?? ""}
               memoryPattern={p.farewell_memory_pattern ?? ""}
               dir={t.dir}
@@ -80,10 +89,18 @@ export default function Home({ t, lang }: Props) {
             />
           )}
           <div className="elapsed-counter">
-            <span>{el.days} {t.countdown_day}</span>
-            <span>{el.hrs} {t.countdown_hour}</span>
-            <span>{el.mins} {t.countdown_minute}</span>
-            <span>{el.secs} {t.countdown_second}</span>
+            <span>
+              {el.days} {t.countdown_day}
+            </span>
+            <span>
+              {el.hrs} {t.countdown_hour}
+            </span>
+            <span>
+              {el.mins} {t.countdown_minute}
+            </span>
+            <span>
+              {el.secs} {t.countdown_second}
+            </span>
           </div>
           <div className="hero-buttons">
             <Link href="/journey" className="btn btn-primary">

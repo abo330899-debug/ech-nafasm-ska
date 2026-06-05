@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
-import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
+import {
+  Switch,
+  Route,
+  Router as WouterRouter,
+  useLocation,
+  Redirect,
+} from "wouter";
 import { useLang } from "@/hooks/useLang";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Rain from "@/components/Rain";
@@ -9,8 +15,18 @@ import { useMagneticButtons } from "@/hooks/useMagneticButtons";
 import { useIdleVignette } from "@/hooks/useIdleVignette";
 import Navbar from "@/components/Navbar";
 import Login from "@/pages/Login";
-import { fetchSession, broadcastLogout, logout, AUTH_BROADCAST_CHANNEL, STORAGE_LOGOUT_KEY } from "@/lib/auth";
-import { clearPrivateContentCache, setUnauthorizedHandler, revalidatePrivateContent } from "@/hooks/usePrivateContent";
+import {
+  fetchSession,
+  broadcastLogout,
+  logout,
+  AUTH_BROADCAST_CHANNEL,
+  STORAGE_LOGOUT_KEY,
+} from "@/lib/auth";
+import {
+  clearPrivateContentCache,
+  setUnauthorizedHandler,
+  revalidatePrivateContent,
+} from "@/hooks/usePrivateContent";
 
 const Home = lazy(() => import("@/pages/Home"));
 const Photos = lazy(() => import("@/pages/Photos"));
@@ -26,7 +42,13 @@ const ChatProvider = lazy(() =>
 
 type AuthState = "checking" | "authed" | "anon";
 
-function ProtectedRoute({ state, children }: { state: AuthState; children: React.ReactNode }) {
+function ProtectedRoute({
+  state,
+  children,
+}: {
+  state: AuthState;
+  children: React.ReactNode;
+}) {
   if (state === "checking") return null;
   if (state !== "authed") return <Redirect to="/" />;
   return <Suspense fallback={null}>{children}</Suspense>;
@@ -146,35 +168,53 @@ function AppContent() {
 
   const body = (
     <>
-      {authState === "authed" && <Navbar t={t} lang={lang} onLogout={handleLogout} />}
+      {authState === "authed" && (
+        <Navbar t={t} lang={lang} onLogout={handleLogout} />
+      )}
       <main>
         <Switch>
           <Route path="/">
             <Login t={t} lang={lang} onAuth={() => setAuthState("authed")} />
           </Route>
           <Route path="/home">
-            <ProtectedRoute state={authState}><Home t={t} lang={lang} /></ProtectedRoute>
+            <ProtectedRoute state={authState}>
+              <Home t={t} lang={lang} />
+            </ProtectedRoute>
           </Route>
           <Route path="/photos">
-            <ProtectedRoute state={authState}><Photos t={t} lang={lang} /></ProtectedRoute>
+            <ProtectedRoute state={authState}>
+              <Photos t={t} lang={lang} />
+            </ProtectedRoute>
           </Route>
           <Route path="/journey">
-            <ProtectedRoute state={authState}><Journey t={t} lang={lang} /></ProtectedRoute>
+            <ProtectedRoute state={authState}>
+              <Journey t={t} lang={lang} />
+            </ProtectedRoute>
           </Route>
           <Route path="/songs">
-            <ProtectedRoute state={authState}><Songs t={t} lang={lang} /></ProtectedRoute>
+            <ProtectedRoute state={authState}>
+              <Songs t={t} lang={lang} />
+            </ProtectedRoute>
           </Route>
           <Route path="/videos">
-            <ProtectedRoute state={authState}><Videos t={t} lang={lang} /></ProtectedRoute>
+            <ProtectedRoute state={authState}>
+              <Videos t={t} lang={lang} />
+            </ProtectedRoute>
           </Route>
           <Route path="/writings">
-            <ProtectedRoute state={authState}><Writings t={t} lang={lang} /></ProtectedRoute>
+            <ProtectedRoute state={authState}>
+              <Writings t={t} lang={lang} />
+            </ProtectedRoute>
           </Route>
           <Route path="/feelings">
-            <ProtectedRoute state={authState}><Feelings t={t} lang={lang} /></ProtectedRoute>
+            <ProtectedRoute state={authState}>
+              <Feelings t={t} lang={lang} />
+            </ProtectedRoute>
           </Route>
           <Route path="/chat">
-            <ProtectedRoute state={authState}><Chat t={t} lang={lang} /></ProtectedRoute>
+            <ProtectedRoute state={authState}>
+              <Chat t={t} lang={lang} />
+            </ProtectedRoute>
           </Route>
           <Route>
             <Redirect to="/" />

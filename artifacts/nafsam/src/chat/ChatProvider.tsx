@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase, isChatConfigured, CHAT_BUCKET } from "./supabaseClient";
 import {
@@ -206,7 +200,8 @@ export function ChatProvider({
         .on("broadcast", { event: "typing" }, ({ payload }) => {
           if (payload?.identity && payload.identity !== me) {
             setOtherTyping(true);
-            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            if (typingTimeoutRef.current)
+              clearTimeout(typingTimeoutRef.current);
             typingTimeoutRef.current = setTimeout(
               () => setOtherTyping(false),
               3500,
@@ -219,7 +214,11 @@ export function ChatProvider({
       channel.subscribe(async (status) => {
         if (cancelled) return;
         if (status === "SUBSCRIBED") {
-          await channel?.track({ identity: me, at: Date.now(), read: getLastRead() });
+          await channel?.track({
+            identity: me,
+            at: Date.now(),
+            read: getLastRead(),
+          });
           // Subscribe first, then snapshot, so no inserts slip through the gap.
           await loadSnapshot();
           if (!cancelled) setReady(true);
@@ -317,16 +316,13 @@ export function ChatProvider({
     [identity],
   );
 
-  const deleteMessage = useCallback(
-    async (id: string) => {
-      if (!supabase) return;
-      await supabase
-        .from("messages")
-        .update({ deleted: true, body: null, image_path: null })
-        .eq("id", id);
-    },
-    [],
-  );
+  const deleteMessage = useCallback(async (id: string) => {
+    if (!supabase) return;
+    await supabase
+      .from("messages")
+      .update({ deleted: true, body: null, image_path: null })
+      .eq("id", id);
+  }, []);
 
   const notifyTyping = useCallback(() => {
     const ch = channelRef.current;
