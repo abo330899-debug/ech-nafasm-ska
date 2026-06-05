@@ -84,6 +84,23 @@ media/, images/, posters/).
 pairs, splice the photo into `photos` AND a `null` into BOTH `captions.ar` and
 `captions.tr` at the SAME index (null → renders `photos_fallback_caption`).
 
+**Adding videos to /videos:** page renders `content.json` `videos[]` generically
+(`caption`=shown title, `quote`=line below, index→"memory N" label); no per-lang
+variant, so just push `{title,file,quote,caption}` (Arabic fine even though older
+entries are Turkish). Video streams from R2 `media/<file>`; thumbnail from R2
+`posters/<base>.jpg` (base = filename minus ext). Generate posters with
+`ffmpeg -ss 0.5 -i media/<f> -frames:v 1 -vf scale=720:-2 posters/<base>.jpg`.
+HEVC is already shipped in production raw (no transcode pipeline) — uploading raw
+iPhone .MP4/.MOV is the established pattern; viewer is Apple/Safari. `private/` is
+fully gitignored so adding media/content needs NO git push, only R2 PUTs.
+
+**Background processes die when the bash tool call returns** — `nohup ... &` does
+NOT survive; the child is killed once the foreground bash command exits. For long
+jobs (e.g. uploading ~1GB to R2) write a RESUMABLE foreground script that records
+completed keys to a tmp file and self-exits a few seconds before the 120s bash
+timeout, then call it repeatedly until it prints done. (R2 upload of ~230 files /
+1.1GB actually finished well within one 95s foreground chunk at concurrency 4.)
+
 **Static `openAt`:** static `fetchSession()` returns a real `openAt` from
 `VITE_OPEN_AT` (fallback `2026-05-29T17:00:00`, mirrors server `DEFAULT_OPEN_AT`),
 not `0`. Returning `0` made the login "elapsed since" counter show ~20609 days
