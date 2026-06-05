@@ -43,18 +43,27 @@ Supabase REST API with the anon key, INSERT as one, SELECT as the other, then
 DELETE to clean up. The message author is stamped server-side by a BEFORE
 INSERT trigger (`chat_set_sender`), so `sender_name` is forced from the account.
 
-**"Seen" read receipts ride on Realtime presence, NOT a DB column.**
-Each client adds `read: <newest-message-server-time-ms>` to its presence
-`track()` payload; the peer reads it on presence "sync" and shows a "seen" line
-under the last of *their own* messages whose `created_at <= otherLastRead`.
-Persisted per-identity in localStorage (`nafsam_chat_otherread_<id>`) so it
-survives reloads on the sender's device.
-**Why:** the hosted Supabase has no admin access from this repl (no
-SUPABASE_DB_URL), so a `read_at` column + RLS change can't be applied/deployed.
-Presence needs zero schema/RLS change → ships with the normal Cloudflare build.
-The read marker is anchored to the newest message's *server* `created_at`
-(never `Date.now()` when messages exist) so a fast device clock can't broadcast
-a future timestamp that falsely marks unread messages as seen.
-**Limitation:** presence is ephemeral — if the peer reads while you're offline
-and both go offline, you only see "seen" once their presence is observed live;
-the localStorage cache then keeps it across your own reloads.
+**"Seen" read receipts use BOTH live presence AND a durable per-user pointer.**
+Live: each client adds `read: <newest-message-server-time-ms>` to its presence
+`track()`; the peer reads it on presence "sync" and shows a "seen" line under the
+last of *their own* messages whose `created_at <= otherLastRead`. Durable: a
+`public.read_state` table (one row per identity, `last_read_at timestamptz`) is
+upserted on every read and the peer snapshots + subscribes to it on a SEPARATE
+`nafsam-read` channel. Both sources feed `otherLastRead` via `Math.max`, so the
+marker only ever advances forward. Also cached per-identity in localStorage
+(`nafsam_chat_otherread_<id>`).
+**Why two layers:** presence alone is ephemeral — if the peer reads while you're
+offline and both go offline, you'd never learn it was seen. `read_state` makes
+"seen" correct on a fresh device / after reload regardless of who was online.
+The read marker is anchored to the newest message's *server* `created_at` (never
+`Date.now()` when messages exist) so a fast device clock can't mark unread
+messages as seen.
+**Deploy dependency (easy to miss):** the durable layer is best-effort — if
+`read_state` hasn't been created in Supabase it silently no-ops and chat falls
+back to presence-only (no regression). To actually enable durable "seen" you
+MUST re-run `supabase/schema.sql` in the Supabase SQL editor (it is idempotent;
+adds the table + trigger + RLS + realtime). No admin access from this repl, so
+this is a manual dashboard step. The durable read channel is intentionally
+isolated from the message channel so a missing table can never break messaging.
+RLS + a BEFORE INSERT/UPDATE trigger force `identity` from the account (mirrors
+`chat_set_sender`), so neither account can write the other's pointer.

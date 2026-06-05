@@ -6,11 +6,15 @@
 -- It creates:
 --   * public.chat_identity()    (maps the signed-in email -> 'star' | 'ilham')
 --   * public.messages           (chat history, with row-level security)
+--   * public.read_state         (durable per-user read pointer for "seen")
 --   * a BEFORE INSERT trigger   (forces sender_id / sender_name from the account
 --                                so identity can NOT be spoofed by the client)
 --   * RLS policies              (ONLY the two known accounts can read/write)
---   * realtime publication      (live message delivery)
+--   * realtime publication      (live message + read-state delivery)
 --   * storage bucket chat-images + storage policies (image messages)
+--
+-- This file is idempotent: safe to re-run after an upgrade. If you already had
+-- an earlier version deployed, just paste and Run again to add public.read_state.
 --
 -- AFTER running this, create the two login accounts (see CHAT_SETUP.md):
 --   Authentication -> Users -> Add user  (keep "Auto Confirm User" ON)
@@ -120,12 +124,79 @@ create policy "chat_delete_own" on public.messages
   using (public.chat_identity() is not null and sender_id = auth.uid());
 
 -- ---------------------------------------------------------------------------
--- Realtime — broadcast row changes on public.messages
+-- Read state — a durable per-user read pointer so "seen" survives offline /
+-- reload / a fresh device. Presence broadcasts the live read marker, but it is
+-- ephemeral: if the peer reads while you are offline and you both then go
+-- offline, the presence signal is gone. This table persists the last-read
+-- timestamp per identity (one row each) so the sender always learns their
+-- message was seen, even on a brand-new device. The client merges this with the
+-- live presence value (takes the max), so the realtime path is unchanged.
+-- ---------------------------------------------------------------------------
+create table if not exists public.read_state (
+  identity     text primary key check (identity in ('star', 'ilham')),
+  last_read_at timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
+alter table public.read_state enable row level security;
+
+grant select, insert, update on public.read_state to authenticated;
+
+-- Force the row's identity to come from the authenticated account (never the
+-- client payload) and keep updated_at fresh. Mirrors chat_set_sender so neither
+-- account can write the other's read pointer.
+create or replace function public.read_state_set_identity()
+returns trigger
+language plpgsql
+as $$
+declare
+  ident text := public.chat_identity();
+begin
+  if ident is null then
+    raise exception 'not a chat participant';
+  end if;
+  new.identity := ident;
+  new.updated_at := now();
+  return new;
+end
+$$;
+
+drop trigger if exists read_state_set_identity_trg on public.read_state;
+create trigger read_state_set_identity_trg
+  before insert or update on public.read_state
+  for each row execute function public.read_state_set_identity();
+
+-- Both known accounts may read each other's pointer (that is the whole point).
+drop policy if exists "read_state_select" on public.read_state;
+create policy "read_state_select" on public.read_state
+  for select to authenticated
+  using (public.chat_identity() is not null);
+
+-- A user may only create their own pointer row (the trigger stamps identity).
+drop policy if exists "read_state_insert_own" on public.read_state;
+create policy "read_state_insert_own" on public.read_state
+  for insert to authenticated
+  with check (identity = public.chat_identity());
+
+-- A user may only update their own pointer row, never the peer's.
+drop policy if exists "read_state_update_own" on public.read_state;
+create policy "read_state_update_own" on public.read_state
+  for update to authenticated
+  using (identity = public.chat_identity())
+  with check (identity = public.chat_identity());
+
+-- ---------------------------------------------------------------------------
+-- Realtime — broadcast row changes on public.messages and public.read_state
 -- ---------------------------------------------------------------------------
 do $$
 begin
   begin
     alter publication supabase_realtime add table public.messages;
+  exception
+    when duplicate_object then null; -- already added
+  end;
+  begin
+    alter publication supabase_realtime add table public.read_state;
   exception
     when duplicate_object then null; -- already added
   end;

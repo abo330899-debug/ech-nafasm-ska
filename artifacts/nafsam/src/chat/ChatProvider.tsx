@@ -279,13 +279,79 @@ export function ChatProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, identity, upsertMessage]);
 
-  // Broadcast our own read marker over presence so the other side can render a
-  // "seen" indicator without any extra table or DB write.
+  // Broadcast our own read marker over presence (live, ephemeral) AND persist it
+  // to the durable read_state table (survives offline / reload / a fresh device).
+  // The durable write is best-effort: if the table has not been migrated yet it
+  // simply errors and we fall back to presence-only — no regression.
   useEffect(() => {
     const ch = channelRef.current;
-    if (!ch || !identity) return;
-    ch.track({ identity, at: Date.now(), read: lastRead });
+    if (ch && identity) ch.track({ identity, at: Date.now(), read: lastRead });
+    if (supabase && identity && lastRead > 0) {
+      void supabase
+        .from("read_state")
+        .upsert(
+          { identity, last_read_at: new Date(lastRead).toISOString() },
+          { onConflict: "identity" },
+        )
+        .then(({ error }) => {
+          // Table may not exist yet (pre-migration); presence still covers us.
+          void error;
+        });
+    }
   }, [lastRead, identity]);
+
+  // Durable "seen": load the peer's persisted read pointer once and subscribe to
+  // its changes on a dedicated channel. Merged into otherLastRead via max, so it
+  // only ever advances "seen" forward and never fights the live presence value.
+  // Isolated from the message channel so a missing table can't break messaging.
+  useEffect(() => {
+    if (!enabled || !isChatConfigured || !supabase || !identity) return;
+    const client = supabase;
+    const me = identity as ChatIdentity;
+    const them = otherIdentity(me);
+    let cancelled = false;
+
+    const applyPeerRead = (iso: string | null | undefined) => {
+      if (!iso) return;
+      const ms = new Date(iso).getTime();
+      if (!ms) return;
+      setOtherLastRead((prev) => {
+        const next = Math.max(prev ?? 0, ms);
+        setStoredOtherRead(me, next);
+        return next;
+      });
+    };
+
+    void client
+      .from("read_state")
+      .select("identity,last_read_at")
+      .eq("identity", them)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return;
+        applyPeerRead((data as { last_read_at?: string }).last_read_at);
+      });
+
+    const channel = client
+      .channel("nafsam-read")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "read_state" },
+        (payload) => {
+          const row = payload.new as {
+            identity?: string;
+            last_read_at?: string;
+          };
+          if (row?.identity === them) applyPeerRead(row.last_read_at);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      client.removeChannel(channel);
+    };
+  }, [enabled, identity]);
 
   const sendText = useCallback(
     async (body: string) => {
