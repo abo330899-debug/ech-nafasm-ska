@@ -1820,6 +1820,10 @@ audio,video{filter:none}
   content-visibility:auto;
   contain-intrinsic-size:auto 420px;
 }
+.album-load-sentinel{
+  width:100%;
+  height:1px;
+}
 .photos-luxe .photo-grid .photo-card:nth-child(2){transition-delay:.05s,.05s,0s,0s}
 .photos-luxe .photo-grid .photo-card:nth-child(3){transition-delay:.10s,.10s,0s,0s}
 .photos-luxe .photo-grid .photo-card:nth-child(4){transition-delay:.15s,.15s,0s,0s}

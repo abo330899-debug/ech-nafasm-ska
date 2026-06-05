@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode, type CSSProperties } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type CSSProperties,
+} from "react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import Footer from "@/components/Footer";
 import PhotoBackdrop from "@/components/PhotoBackdrop";
@@ -42,6 +48,8 @@ interface Props {
 function pad2(n: number) {
   return n < 10 ? `0${n}` : String(n);
 }
+
+const ALBUM_BATCH = 12;
 
 const SPECIAL_PHOTO_TEXT_KEYS = [
   "photo1_text",
@@ -131,12 +139,45 @@ export default function Photos({ t, lang }: Props) {
     };
   });
 
+  // Window the album grid: render a prefix and grow it via an IntersectionObserver
+  // sentinel. Rendering all cards (each mounts its own observer + <img>) at once
+  // OOM-reloads mobile Safari on long scrolls. The observer must stay stable
+  // (keyed on length only, NOT visibleCount) or it cascades the whole list.
+  const albumCount = albumPhotos.length;
+  const [visibleCount, setVisibleCount] = useState(ALBUM_BATCH);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVisibleCount(ALBUM_BATCH);
+  }, [albumCount]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setVisibleCount(albumCount);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisibleCount((c) => Math.min(c + ALBUM_BATCH, albumCount));
+        }
+      },
+      { root: null, rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [albumCount]);
+
   return (
     <div className="page-content photos-luxe">
       <PhotoBackdrop />
       <div className="page-header">
         <h1>{t.photos_title}</h1>
-        {p.photos_header_sub && <p className="photos-header-sub">{p.photos_header_sub}</p>}
+        {p.photos_header_sub && (
+          <p className="photos-header-sub">{p.photos_header_sub}</p>
+        )}
       </div>
 
       <div className="photo-grid">
@@ -171,37 +212,47 @@ export default function Photos({ t, lang }: Props) {
           </RevealArticle>
         ))}
 
-        {featuredPhoto && (() => {
-          const featuredSrc = privateImage(featuredPhoto.file);
-          return (
-            <RevealArticle className="photo-card glass photo-card-featured" index={nonFeaturedPhotos.length}>
-              <div
-                className="photo-card-media"
-                onClick={() => setLightbox(featuredSrc)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setLightbox(featuredSrc);
-                  }
-                }}
+        {featuredPhoto &&
+          (() => {
+            const featuredSrc = privateImage(featuredPhoto.file);
+            return (
+              <RevealArticle
+                className="photo-card glass photo-card-featured"
+                index={nonFeaturedPhotos.length}
               >
-                <LuxImage
-                  src={featuredSrc}
-                  alt={p.photo7_text ?? ""}
-                  className="photo-img"
-                  nextSrc={albumPhotos.slice(0, 2).map((x) => x.src)}
-                />
-                <span className="photo-card-badge photo-card-badge-featured">★</span>
-              </div>
-              <div className="photo-caption-featured">
-                {p.photo7_text && <p className="featured-quote">{p.photo7_text}</p>}
-                {p.photo7_sub && <p className="featured-sub">{p.photo7_sub}</p>}
-              </div>
-            </RevealArticle>
-          );
-        })()}
+                <div
+                  className="photo-card-media"
+                  onClick={() => setLightbox(featuredSrc)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setLightbox(featuredSrc);
+                    }
+                  }}
+                >
+                  <LuxImage
+                    src={featuredSrc}
+                    alt={p.photo7_text ?? ""}
+                    className="photo-img"
+                    nextSrc={albumPhotos.slice(0, 2).map((x) => x.src)}
+                  />
+                  <span className="photo-card-badge photo-card-badge-featured">
+                    ★
+                  </span>
+                </div>
+                <div className="photo-caption-featured">
+                  {p.photo7_text && (
+                    <p className="featured-quote">{p.photo7_text}</p>
+                  )}
+                  {p.photo7_sub && (
+                    <p className="featured-sub">{p.photo7_sub}</p>
+                  )}
+                </div>
+              </RevealArticle>
+            );
+          })()}
       </div>
 
       <div className="album-divider">
@@ -211,7 +262,7 @@ export default function Photos({ t, lang }: Props) {
       </div>
 
       <div className="photo-grid album-grid">
-        {albumPhotos.map((ph, i) => (
+        {albumPhotos.slice(0, visibleCount).map((ph, i) => (
           <RevealArticle key={`a-${i}`} className="photo-card glass" index={i}>
             <div
               className="photo-card-media"
@@ -229,10 +280,11 @@ export default function Photos({ t, lang }: Props) {
                 src={ph.src}
                 alt={ph.title ?? ""}
                 className="photo-img"
-                nextSrc={[
-                  albumPhotos[i + 1]?.src,
-                  albumPhotos[i + 2]?.src,
-                ].filter(Boolean) as string[]}
+                nextSrc={
+                  [albumPhotos[i + 1]?.src, albumPhotos[i + 2]?.src].filter(
+                    Boolean,
+                  ) as string[]
+                }
               />
               <span className="photo-card-badge">{pad2(i + 1)}</span>
               {ph.title && (
@@ -249,6 +301,14 @@ export default function Photos({ t, lang }: Props) {
           </RevealArticle>
         ))}
       </div>
+
+      {visibleCount < albumPhotos.length && (
+        <div
+          ref={sentinelRef}
+          className="album-load-sentinel"
+          aria-hidden="true"
+        />
+      )}
 
       {lightbox && (
         <div
