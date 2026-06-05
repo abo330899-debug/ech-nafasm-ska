@@ -1,0 +1,14 @@
+# Nafsam
+
+> Nafsam is a private, invitation-only personal memory archive with a cinematic, dark, luxury aesthetic. The public landing page shows a countdown and a gated entry; all memories — photos, songs, videos, and writings — live behind authentication and are not publicly accessible.
+
+## About
+- Nafsam is a personal keepsake site, not a commercial product or service.
+- It is multilingual: Arabic, English, Persian (Farsi), and Turkish.
+- Only the landing page at the canonical URL below is public. Every other page requires a private login.
+
+## Public pages
+- [Nafsam landing page](https://echandska-1.pages.dev/): the only public page — a countdown and a gated entry to the archive.
+
+## Not for crawling
+- The archive routes (/home, /moments, /photos, /songs, /videos, /writings, /chat) and the API (/api/) require authentication and contain private personal content. Please do not index or fetch them.

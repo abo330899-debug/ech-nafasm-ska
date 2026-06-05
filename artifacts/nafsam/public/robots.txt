@@ -1,0 +1,17 @@
+# Nafsam — robots.txt
+# Only the landing page (/) is public. Everything else is a private,
+# authentication-gated personal archive and should not be crawled or indexed.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /login
+Disallow: /home
+Disallow: /moments
+Disallow: /photos
+Disallow: /songs
+Disallow: /videos
+Disallow: /writings
+Disallow: /chat
+
+Sitemap: https://echandska-1.pages.dev/sitemap.xml
