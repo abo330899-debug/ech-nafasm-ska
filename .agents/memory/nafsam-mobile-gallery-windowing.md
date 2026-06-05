@@ -11,9 +11,10 @@ once is what crashed iOS Safari ("A problem repeatedly occurred" → black scree
 
 **Rule:** Any gallery page that maps over a large media array must render a
 windowed prefix (`slice(0, visibleCount)`) and grow it via an IntersectionObserver
-sentinel near the page bottom, not render the full list on mount. Both Videos
-AND the Photos album grid now implement this (Photos was the remaining culprit
-behind the "scroll down → reload → jump to top" report).
+sentinel near the page bottom, not render the full list on mount. This applies to
+every long media grid in the app (both the videos gallery and the photos album),
+and to any new one added later — an un-windowed long grid is the cause of the
+"scroll down → reload → jump to top" mobile failure.
 
 **Why:** Each card mounts its own IntersectionObserver (`useReveal`) plus poster
 `<img>` nodes. The Videos card renders TWO posters each (blurred bg + fg), so
