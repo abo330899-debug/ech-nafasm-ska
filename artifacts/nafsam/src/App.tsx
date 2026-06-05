@@ -19,6 +19,10 @@ const Songs = lazy(() => import("@/pages/Songs"));
 const Videos = lazy(() => import("@/pages/Videos"));
 const Writings = lazy(() => import("@/pages/Writings"));
 const Feelings = lazy(() => import("@/pages/Feelings"));
+const Chat = lazy(() => import("@/pages/Chat"));
+const ChatProvider = lazy(() =>
+  import("@/chat/ChatProvider").then((m) => ({ default: m.ChatProvider })),
+);
 
 type AuthState = "checking" | "authed" | "anon";
 
@@ -140,13 +144,9 @@ function AppContent() {
     };
   }, []);
 
-  return (
-    <div className="app-shell">
-      <Rain />
-      <FloatingHearts />
-      <DustParticles />
-      <LanguageSwitcher lang={lang} setLang={setLang} />
-      {authState === "authed" && <Navbar t={t} onLogout={handleLogout} />}
+  const body = (
+    <>
+      {authState === "authed" && <Navbar t={t} lang={lang} onLogout={handleLogout} />}
       <main>
         <Switch>
           <Route path="/">
@@ -173,11 +173,30 @@ function AppContent() {
           <Route path="/feelings">
             <ProtectedRoute state={authState}><Feelings t={t} lang={lang} /></ProtectedRoute>
           </Route>
+          <Route path="/chat">
+            <ProtectedRoute state={authState}><Chat t={t} lang={lang} /></ProtectedRoute>
+          </Route>
           <Route>
             <Redirect to="/" />
           </Route>
         </Switch>
       </main>
+    </>
+  );
+
+  return (
+    <div className="app-shell">
+      <Rain />
+      <FloatingHearts />
+      <DustParticles />
+      <LanguageSwitcher lang={lang} setLang={setLang} />
+      {authState === "authed" ? (
+        <Suspense fallback={body}>
+          <ChatProvider enabled>{body}</ChatProvider>
+        </Suspense>
+      ) : (
+        body
+      )}
     </div>
   );
 }

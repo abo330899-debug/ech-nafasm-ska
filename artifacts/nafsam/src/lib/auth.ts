@@ -63,6 +63,35 @@ export type LoginResult =
   | { ok: true }
   | { ok: false; reason: "wrong" | "closed" | "rate_limited" | "network" };
 
+const IDENTITY_KEY = "nafsam_identity";
+
+// Derive the chat identity from the login word and kick off a background
+// Supabase sign-in. Supabase is dynamically imported so it never lands in the
+// eager auth bundle, and the sign-in is best-effort: it must never block or
+// fail the Nafsam login itself.
+function onLoginSuccess(answer: string): void {
+  const id = answer.trim().toLowerCase() === "ska" ? "star" : "ilham";
+  try {
+    localStorage.setItem(IDENTITY_KEY, id);
+  } catch {
+    /* ignore */
+  }
+  import("@/chat/chatAuth")
+    .then((m) => m.signInToChat(id, answer))
+    .catch(() => {});
+}
+
+function onLogoutCleanup(): void {
+  try {
+    localStorage.removeItem(IDENTITY_KEY);
+  } catch {
+    /* ignore */
+  }
+  import("@/chat/chatAuth")
+    .then((m) => m.signOutChat())
+    .catch(() => {});
+}
+
 export async function login(answer: string): Promise<LoginResult> {
   if (STATIC_MODE) {
     try {
@@ -70,6 +99,7 @@ export async function login(answer: string): Promise<LoginResult> {
       const hash = await sha256(answer.trim().toLowerCase());
       if (hashes.includes(hash)) {
         localStorage.setItem(STATIC_TOKEN_KEY, STATIC_TOKEN_VALUE);
+        onLoginSuccess(answer);
         return { ok: true };
       }
       return { ok: false, reason: "wrong" };
@@ -84,7 +114,10 @@ export async function login(answer: string): Promise<LoginResult> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answer }),
     });
-    if (res.ok) return { ok: true };
+    if (res.ok) {
+      onLoginSuccess(answer);
+      return { ok: true };
+    }
     if (res.status === 403) return { ok: false, reason: "closed" };
     if (res.status === 429) return { ok: false, reason: "rate_limited" };
     return { ok: false, reason: "wrong" };
@@ -114,9 +147,11 @@ export function broadcastLogout(): void {
 export async function logout(): Promise<void> {
   if (STATIC_MODE) {
     try { localStorage.removeItem(STATIC_TOKEN_KEY); } catch { /* ignore */ }
+    onLogoutCleanup();
     broadcastLogout();
     return;
   }
+  onLogoutCleanup();
   const res = await fetch("/api/auth/logout", {
     method: "POST",
     credentials: "same-origin",

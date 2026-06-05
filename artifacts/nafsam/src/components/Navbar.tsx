@@ -1,13 +1,16 @@
 import { Link, useLocation } from "wouter";
-import { type Translations } from "@/i18n/translations";
+import { type Translations, type Lang } from "@/i18n/translations";
+import { useChat } from "@/chat/chatContext";
 
 interface Props {
   t: Translations;
+  lang: Lang;
   onLogout: () => void;
 }
 
 export default function Navbar({ t, onLogout }: Props) {
   const [location] = useLocation();
+  const { unread, configured } = useChat();
 
   const links = [
     { href: "/home", label: t.nav_home },
@@ -17,6 +20,7 @@ export default function Navbar({ t, onLogout }: Props) {
     { href: "/videos", label: t.nav_videos },
     { href: "/writings", label: t.nav_writings },
     { href: "/feelings", label: t.nav_feelings },
+    ...(configured ? [{ href: "/chat", label: t.nav_chat, chat: true }] : []),
   ];
 
   return (
@@ -32,6 +36,9 @@ export default function Navbar({ t, onLogout }: Props) {
             className={location === l.href ? "active" : ""}
           >
             {l.label}
+            {"chat" in l && l.chat && unread > 0 && location !== "/chat" && (
+              <span className="nav-chat-badge">{unread > 99 ? "99+" : unread}</span>
+            )}
           </Link>
         ))}
         <button className="nav-logout" onClick={onLogout}>
