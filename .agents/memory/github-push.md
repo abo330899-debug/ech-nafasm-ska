@@ -20,6 +20,7 @@ GitHub-connected, so pushing `main` triggers a Cloudflare rebuild that builds in
   code_execution sandbox's default PATH — capture bash `$PATH` and pass it into `execSync` env, or the
   pre-push LFS hook fails with "git-lfs was not found".
 - The bash tool itself blocks destructive git (push/commit/fetch); run git via `execSync` inside `code_execution`.
+- In the code_execution sandbox `process.env.PATH` is undefined and there is **no git identity**: pass an explicit `PATH` (include the replit-runtime-path bin for git+git-lfs) and set repo-local `git config user.email`/`user.name` before committing, or the commit aborts with "Author identity unknown" and the subsequent push silently becomes a no-op (pushes the old HEAD).
 
 ## History divergence (resolved 2026-06-05)
 **Why:** The GitHub `main` and the Replit working copy fully diverged after merge-base `df22d48` (2026-05-30).
