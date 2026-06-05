@@ -1428,6 +1428,11 @@ main{flex:1}
   opacity:.75;
 }
 
+.v-load-sentinel{
+  width:100%;
+  height:1px;
+}
+
 .v-modal{
   position:fixed;
   inset:0;

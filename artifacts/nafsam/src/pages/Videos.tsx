@@ -43,6 +43,8 @@ interface Props {
 
 type VideoKind = "mp4" | "youtube" | "mega";
 
+const BATCH = 18;
+
 function detectKind(file: string): VideoKind {
   if (/youtube\.com|youtu\.be/i.test(file)) return "youtube";
   if (/mega\.nz|mega\.co\.nz/i.test(file)) return "mega";
@@ -227,6 +229,32 @@ export default function Videos({ t, lang }: Props) {
   const videosData = data?.videos ?? [];
   void lang;
 
+  const [visibleCount, setVisibleCount] = useState(BATCH);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVisibleCount(BATCH);
+  }, [videosData.length]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setVisibleCount(videosData.length);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisibleCount((c) => Math.min(c + BATCH, videosData.length));
+        }
+      },
+      { root: null, rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [videosData.length, visibleCount]);
+
   const openModal = useCallback((index: number) => {
     setActiveIndex(index);
   }, []);
@@ -320,7 +348,7 @@ export default function Videos({ t, lang }: Props) {
       </section>
 
       <div className="v-gallery">
-        {videosData.map((item, index) => {
+        {videosData.slice(0, visibleCount).map((item, index) => {
           const kind = detectKind(item.file);
           return (
             <RevealVideoCard
@@ -358,6 +386,10 @@ export default function Videos({ t, lang }: Props) {
           );
         })}
       </div>
+
+      {visibleCount < videosData.length && (
+        <div ref={sentinelRef} className="v-load-sentinel" aria-hidden="true" />
+      )}
 
       {p.videos_footer && <div className="v-footer">{p.videos_footer}</div>}
 
