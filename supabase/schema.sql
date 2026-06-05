@@ -15,7 +15,9 @@
 -- AFTER running this, create the two login accounts (see CHAT_SETUP.md):
 --   Authentication -> Users -> Add user  (keep "Auto Confirm User" ON)
 --     star@nafsam.app   password: nafsam-ska
---     ilham@nafsam.app  password: nafsam-<ilham word>
+--     ilham@nafsam.app  password: nafsam-ilham
+--   (Chat passwords are fixed per identity, NOT derived from the login word, so
+--    any of Ilham's valid site words opens the chat. See CHAT_SETUP.md.)
 --
 -- IMPORTANT: turn OFF public sign-ups for this project
 --   (Authentication -> Providers -> Email -> "Allow new users to sign up" OFF).
