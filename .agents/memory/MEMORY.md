@@ -1,2 +1,3 @@
 - [Nafsam static (R2) mode](nafsam-static-mode.md) — static serving needs branches in r2.ts+auth.ts+usePrivateContent.ts; VITE_AUTH_TOKENS = sha256 of NAFSAM_PASSWORDS, regenerate on change.
+- [Nafsam photos↔captions](nafsam-photos-captions.md) — album pairs data.photos[i] with captions[lang][i] by index; reorder photos (not captions) to fix; dupes/non-anchored photos make perfect match impossible.
 - [GitHub push (ECHandSKA-1)](github-push.md) — push via GitHub connector token + credential helper, git-lfs needs bash PATH; remote was force-overwritten to match Replit copy (backup branch saved).
