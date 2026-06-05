@@ -44,7 +44,11 @@ var silently overrode the committed value — the live bundle shipped only 4
 never reached production. Changed to **always** apply the file (file wins).
 **Why:** everything in that file is public-by-design (hashes, anon key, R2 base),
 so the committed file is the right source of truth; dashboard overrides just
-cause silent drift. **How to apply:** to verify what's ACTUALLY live, fetch the
+cause silent drift. **Also (2026-06-05):** the canonical login-word hashes are
+now baked into `src/lib/auth.ts` as `AUTH_TOKENS_BUILTIN`; `VITE_AUTH_TOKENS`
+only UNIONS extra hashes on top (never removes), so a missing/stale env can't
+lock anyone out. To add/change words: regen via gen-auth-tokens, paste hashes
+into `AUTH_TOKENS_BUILTIN`. **How to apply:** to verify what's ACTUALLY live, fetch the
 deployed bundle and grep for token hashes, e.g.
 `curl -s https://echandska-1.pages.dev/ ` → find `assets/index-*.js` → grep for
 `sha256(word)`. Live site is `echandska-1.pages.dev`. The static login fn is

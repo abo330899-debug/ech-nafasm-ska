@@ -11,8 +11,8 @@ build as the rest of Nafsam — no app server involved.
 
 **Identity → fixed Supabase account (NOT word-derived).**
 Login word `ska` → Star; every other valid Nafsam word → Ilham. The Supabase
-sign-in password depends ONLY on the identity, not on the exact word:
-`star → nafsam-ska`, `ilham → nafsam-ilham`.
+sign-in password depends ONLY on the identity, not on the exact word (one fixed
+password per identity; the literal values live in `chatAuth.ts`, not here).
 **Why:** Ilham can open Nafsam with several different valid words. An earlier
 design derived the password as `nafsam-<word>`, so the moment she used any word
 other than the one her single Supabase account was created with, chat sign-in
