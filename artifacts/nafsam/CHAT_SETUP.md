@@ -31,19 +31,20 @@ No one picks who they are — it follows the word they logged in with.
 
 ## 3. Create the two login accounts
 
-The app signs in to Supabase with a password **derived from the Nafsam word**
-using the fixed prefix `nafsam-`. So the account passwords must be:
+The app signs in to Supabase with a **fixed password per identity** — it does
+**not** depend on which word was typed. This matters because Ilham can open
+Nafsam with several different valid words, and all of them must reach the same
+chat account. Create exactly these two accounts:
 
 1. **Authentication → Users → Add user** (do this twice). Make sure
    **Auto Confirm User** is **ON** so they can sign in immediately.
 
-   | Email             | Password               |
-   | ----------------- | ---------------------- |
-   | `star@nafsam.app` | `nafsam-ska`           |
-   | `ilham@nafsam.app`| `nafsam-<ilham word>`  |
+   | Email             | Password        |
+   | ----------------- | --------------- |
+   | `star@nafsam.app` | `nafsam-ska`    |
+   | `ilham@nafsam.app`| `nafsam-ilham`  |
 
-   Replace `<ilham word>` with Ilham's main Nafsam login word, all lowercase.
-   Example: if her word is `gulum`, her password is `nafsam-gulum`.
+   Type these passwords exactly as shown (all lowercase).
 
 2. **Turn OFF public sign-ups** so no one else can ever create an account in
    this project: **Authentication → Providers → Email →** uncheck
@@ -55,14 +56,15 @@ using the fixed prefix `nafsam-`. So the account passwords must be:
 > the signed-in account itself (a server-side trigger), so neither person — nor
 > anyone else — can post a message pretending to be the other.
 
-> **Note:** Ilham can have several valid site words, but only the one whose
-> `nafsam-<word>` matches the account above will open the chat. Other words
-> still open the rest of the site. Tell her which word opens the chat.
+> **Any of Ilham's words works:** every valid site word that isn't `ska` maps
+> to Ilham, and they all open the chat as `ilham@nafsam.app`. `ska` is the only
+> word that opens the chat as Star.
 
-> **Why this is safe:** the real secret is the word, which is never stored in
-> the website code or in git — only the public `nafsam-` prefix is. The site
-> only ships the public Supabase URL and anon key (both designed to be public;
-> the database security rules are what protect the data).
+> **Why this is safe:** the real gate is the Nafsam login word, which is
+> verified before the chat ever signs in and is never stored in the website code
+> or git. The site only ships the public Supabase URL and anon key (both
+> designed to be public); the database row-level-security rules are what protect
+> the data.
 
 ## 4. Add the two public keys
 
@@ -98,6 +100,8 @@ automatically. Until then, the chat link is hidden and `/chat` shows
 
 ## Resetting a password
 
-If you change Ilham's chat word, update her Supabase user's password to the new
-`nafsam-<word>` under **Authentication → Users → (user) → Reset password**, or
-just delete and recreate the user.
+The chat passwords are fixed (`nafsam-ska` and `nafsam-ilham`) and don't change
+when Ilham's site words change. If you ever want to rotate them, update the
+matching value in `artifacts/nafsam/src/chat/chatAuth.ts` **and** the Supabase
+user's password under **Authentication → Users → (user) → Reset password** so
+the two stay in sync, then redeploy.

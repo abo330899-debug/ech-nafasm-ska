@@ -77,7 +77,7 @@ function onLoginSuccess(answer: string): void {
     /* ignore */
   }
   import("@/chat/chatAuth")
-    .then((m) => m.signInToChat(id, answer))
+    .then((m) => m.signInToChat(id))
     .catch(() => {});
 }
 
