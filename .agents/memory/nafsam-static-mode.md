@@ -43,6 +43,26 @@ Removing/renaming that `.env` reverts the app to server (/api) mode.
 been stripped AND no dev env enabled them, so the preview hit /api with an unset
 `NAFSAM_PASSWORDS` → every answer 401.
 
+**Preview reads from R2, not local API (footgun):** because dev `.env` sets
+`VITE_STATIC_MODE=true`, the Replit dev preview fetches `content.json` and images
+from the public R2 bucket — NOT the local api-server. So editing
+`artifacts/api-server/private/content.json` (reorder, add photos) shows NOTHING in
+the preview until you upload to R2. Symptom: user says additions "don't appear".
+**How to apply:** to make content/photo changes visible (and live, same bucket),
+upload to R2 via CF API: `PUT https://api.cloudflare.com/client/v4/accounts/d2680f7c5ff39f8d9177a51dbf7fec75/r2/buckets/media/objects/<key>`
+with `Authorization: Bearer $CLOUDFLARE_API_TOKEN`. `content.json` key is at bucket
+root; album images are `images/all_photos/<file>`. The repo's
+`scripts upload-to-r2` uploads the media+images DIRS but does NOT upload
+`content.json` — upload that separately (a small delta PUT of content.json + only
+the new image files avoids re-pushing the ~1.5GB media). Public base =
+`VITE_R2_BASE` (pub-79afa43f…r2.dev). Bucket name is `media` (holds content.json,
+media/, images/, posters/).
+
+**Album photo↔caption pairing is index-based:** `data.photos[i]` ↔
+`data.captions[lang][i]`. To add captionless photos without breaking existing
+pairs, splice the photo into `photos` AND a `null` into BOTH `captions.ar` and
+`captions.tr` at the SAME index (null → renders `photos_fallback_caption`).
+
 **Static `openAt`:** static `fetchSession()` returns a real `openAt` from
 `VITE_OPEN_AT` (fallback `2026-05-29T17:00:00`, mirrors server `DEFAULT_OPEN_AT`),
 not `0`. Returning `0` made the login "elapsed since" counter show ~20609 days
