@@ -1,1 +1,2 @@
 - [Nafsam static (R2) mode](nafsam-static-mode.md) — static serving needs branches in r2.ts+auth.ts+usePrivateContent.ts; VITE_AUTH_TOKENS = sha256 of NAFSAM_PASSWORDS, regenerate on change.
+- [GitHub push (ECHandSKA-1)](github-push.md) — push via GitHub connector token + credential helper, git-lfs needs bash PATH; remote was force-overwritten to match Replit copy (backup branch saved).
