@@ -34,3 +34,16 @@ user-accepted tradeoff.
 **Deploy wiring:** `artifacts/nafsam/.replit-artifact/artifact.toml` inlines
 `VITE_STATIC_MODE` + `VITE_R2_BASE` in the production build command;
 `VITE_AUTH_TOKENS` is read from the production env var at build time (verified).
+
+**Current activation (dev preview + builds):** `artifacts/nafsam/.env` (committed)
+sets the three VITE vars so Vite auto-loads them in BOTH `vite dev` and
+`vite build` — this is what makes the dev preview standalone, not just CF_PAGES.
+Removing/renaming that `.env` reverts the app to server (/api) mode.
+**Why:** the previous "login broken in preview" was because static branches had
+been stripped AND no dev env enabled them, so the preview hit /api with an unset
+`NAFSAM_PASSWORDS` → every answer 401.
+
+**Static `openAt`:** static `fetchSession()` returns a real `openAt` from
+`VITE_OPEN_AT` (fallback `2026-05-29T17:00:00`, mirrors server `DEFAULT_OPEN_AT`),
+not `0`. Returning `0` made the login "elapsed since" counter show ~20609 days
+(epoch). Keep these two defaults in sync if the open date ever changes.
