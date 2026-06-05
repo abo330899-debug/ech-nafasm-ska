@@ -2,6 +2,7 @@ import { type Lang } from "@/i18n/translations";
 
 export interface ChatStrings {
   title: string;
+  app_name: string;
   online: string;
   offline: string;
   last_seen: string;
@@ -10,7 +11,10 @@ export interface ChatStrings {
   placeholder: string;
   send: string;
   attach: string;
+  gallery: string;
+  camera: string;
   search: string;
+  search_chats: string;
   search_placeholder: string;
   search_empty: string;
   delete: string;
@@ -29,11 +33,23 @@ export interface ChatStrings {
   seen: string;
   sent: string;
   delivered: string;
+  record: string;
+  recording: string;
+  cancel: string;
+  mic_denied: string;
+  back: string;
+  emoji: string;
+  react: string;
+  voice_message: string;
+  photo_message: string;
+  sidebar_quote: string;
+  no_messages_preview: string;
 }
 
 export const chatStrings: Record<Lang, ChatStrings> = {
   ar: {
     title: "المحادثة",
+    app_name: "نفسم",
     online: "متصل الآن",
     offline: "غير متصل",
     last_seen: "آخر ظهور {time}",
@@ -41,8 +57,11 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     typing_name: "{name} يكتب…",
     placeholder: "اكتب رسالة…",
     send: "إرسال",
-    attach: "إرفاق صورة",
+    attach: "إرفاق",
+    gallery: "معرض الصور",
+    camera: "الكاميرا",
     search: "بحث",
+    search_chats: "ابحث…",
     search_placeholder: "ابحث في الرسائل…",
     search_empty: "لا توجد نتائج",
     delete: "حذف",
@@ -61,9 +80,21 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     seen: "تمت القراءة",
     sent: "أُرسلت",
     delivered: "تم التسليم",
+    record: "تسجيل رسالة صوتية",
+    recording: "جارٍ التسجيل…",
+    cancel: "إلغاء",
+    mic_denied: "تم رفض الوصول إلى الميكروفون",
+    back: "رجوع",
+    emoji: "الرموز",
+    react: "تفاعل",
+    voice_message: "🎤 رسالة صوتية",
+    photo_message: "📷 صورة",
+    sidebar_quote: "أحبّكِ في عالمٍ لا أنتمي إليه.",
+    no_messages_preview: "لا توجد رسائل بعد",
   },
   en: {
     title: "Chat",
+    app_name: "Nafsam",
     online: "online",
     offline: "offline",
     last_seen: "last seen {time}",
@@ -71,8 +102,11 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     typing_name: "{name} is typing…",
     placeholder: "Type a message…",
     send: "Send",
-    attach: "Attach image",
+    attach: "Attach",
+    gallery: "Gallery",
+    camera: "Camera",
     search: "Search",
+    search_chats: "Search…",
     search_placeholder: "Search messages…",
     search_empty: "No results",
     delete: "Delete",
@@ -91,9 +125,21 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     seen: "Seen",
     sent: "Sent",
     delivered: "Delivered",
+    record: "Record a voice message",
+    recording: "Recording…",
+    cancel: "Cancel",
+    mic_denied: "Microphone access denied",
+    back: "Back",
+    emoji: "Emoji",
+    react: "React",
+    voice_message: "🎤 Voice message",
+    photo_message: "📷 Photo",
+    sidebar_quote: "I love you in a world where I don't belong.",
+    no_messages_preview: "No messages yet",
   },
   fa: {
     title: "گفتگو",
+    app_name: "نفسم",
     online: "آنلاین",
     offline: "آفلاین",
     last_seen: "آخرین بازدید {time}",
@@ -101,8 +147,11 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     typing_name: "{name} در حال نوشتن است…",
     placeholder: "پیام بنویس…",
     send: "ارسال",
-    attach: "پیوست تصویر",
+    attach: "پیوست",
+    gallery: "گالری",
+    camera: "دوربین",
     search: "جستجو",
+    search_chats: "جستجو…",
     search_placeholder: "جستجوی پیام‌ها…",
     search_empty: "نتیجه‌ای نیست",
     delete: "حذف",
@@ -121,9 +170,21 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     seen: "خوانده شد",
     sent: "ارسال شد",
     delivered: "تحویل شد",
+    record: "ضبط پیام صوتی",
+    recording: "در حال ضبط…",
+    cancel: "لغو",
+    mic_denied: "دسترسی به میکروفون رد شد",
+    back: "بازگشت",
+    emoji: "ایموجی",
+    react: "واکنش",
+    voice_message: "🎤 پیام صوتی",
+    photo_message: "📷 عکس",
+    sidebar_quote: "دوستت دارم، در دنیایی که به آن تعلق ندارم.",
+    no_messages_preview: "هنوز پیامی نیست",
   },
   tr: {
     title: "Sohbet",
+    app_name: "Nafsam",
     online: "çevrimiçi",
     offline: "çevrimdışı",
     last_seen: "son görülme {time}",
@@ -131,8 +192,11 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     typing_name: "{name} yazıyor…",
     placeholder: "Bir mesaj yaz…",
     send: "Gönder",
-    attach: "Resim ekle",
+    attach: "Ekle",
+    gallery: "Galeri",
+    camera: "Kamera",
     search: "Ara",
+    search_chats: "Ara…",
     search_placeholder: "Mesajlarda ara…",
     search_empty: "Sonuç yok",
     delete: "Sil",
@@ -151,5 +215,16 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     seen: "Görüldü",
     sent: "Gönderildi",
     delivered: "İletildi",
+    record: "Sesli mesaj kaydet",
+    recording: "Kaydediliyor…",
+    cancel: "İptal",
+    mic_denied: "Mikrofon erişimi reddedildi",
+    back: "Geri",
+    emoji: "Emoji",
+    react: "Tepki ver",
+    voice_message: "🎤 Sesli mesaj",
+    photo_message: "📷 Fotoğraf",
+    sidebar_quote: "Ait olmadığım bir dünyada seni seviyorum.",
+    no_messages_preview: "Henüz mesaj yok",
   },
 };

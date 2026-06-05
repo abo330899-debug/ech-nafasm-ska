@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import type { ChatIdentity } from "./chatAuth";
+import type { Reactions } from "./chatMedia";
 
 export interface ChatMessage {
   id: string;
@@ -16,6 +17,7 @@ export interface ChatContextValue {
   authError: boolean;
   identity: ChatIdentity | null;
   messages: ChatMessage[];
+  reactions: Reactions;
   otherOnline: boolean;
   otherTyping: boolean;
   otherLastSeen: number | null;
@@ -23,6 +25,8 @@ export interface ChatContextValue {
   unread: number;
   sendText: (body: string) => Promise<void>;
   sendImage: (file: File) => Promise<void>;
+  sendVoice: (blob: Blob, durationMs: number) => Promise<void>;
+  toggleReaction: (messageId: string, emoji: string) => Promise<void>;
   deleteMessage: (id: string) => Promise<void>;
   notifyTyping: () => void;
   markRead: () => void;
@@ -39,6 +43,7 @@ const DEFAULT_CHAT: ChatContextValue = {
   authError: false,
   identity: null,
   messages: [],
+  reactions: {},
   otherOnline: false,
   otherTyping: false,
   otherLastSeen: null,
@@ -46,6 +51,8 @@ const DEFAULT_CHAT: ChatContextValue = {
   unread: 0,
   sendText: async () => {},
   sendImage: async () => {},
+  sendVoice: async () => {},
+  toggleReaction: async () => {},
   deleteMessage: async () => {},
   notifyTyping: () => {},
   markRead: () => {},

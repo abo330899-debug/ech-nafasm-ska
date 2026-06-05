@@ -12,6 +12,14 @@ import {
   type ChatContextValue,
   type ChatMessage,
 } from "./chatContext";
+import {
+  type Reactions,
+  isControlBody,
+  parseReaction,
+  buildReactionBody,
+  voiceFileName,
+  extForAudioType,
+} from "./chatMedia";
 
 const LAST_READ_KEY = "nafsam_chat_lastread";
 const LAST_SEEN_KEY = "nafsam_chat_lastseen";
@@ -84,7 +92,8 @@ export function ChatProvider({
 }) {
   const [ready, setReady] = useState(false);
   const [authError, setAuthError] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Raw rows include reaction "control messages"; they are reduced/filtered below.
+  const [rows, setRows] = useState<ChatMessage[]>([]);
   const [otherOnline, setOtherOnline] = useState(false);
   const [otherTyping, setOtherTyping] = useState(false);
   const [otherLastSeen, setOtherLastSeen] = useState<number | null>(() =>
@@ -100,8 +109,8 @@ export function ChatProvider({
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingSentRef = useRef(0);
 
-  const upsertMessage = useCallback((row: ChatMessage) => {
-    setMessages((prev) => {
+  const upsertRow = useCallback((row: ChatMessage) => {
+    setRows((prev) => {
       const idx = prev.findIndex((m) => m.id === row.id);
       if (idx >= 0) {
         const next = prev.slice();
@@ -130,15 +139,19 @@ export function ChatProvider({
     let authTimer: ReturnType<typeof setTimeout> | null = null;
 
     async function loadSnapshot() {
+      // Fetch the *most recent* window. Ordering ascending + limit would return
+      // the oldest rows; descending keeps the live conversation in view. Reaction
+      // "control" rows share this table, so a generous window keeps recent
+      // messages and their reactions together; the merge below re-sorts ascending.
       const { data, error } = await client
         .from("messages")
         .select("*")
-        .order("created_at", { ascending: true })
-        .limit(1000);
+        .order("created_at", { ascending: false })
+        .limit(2000);
       if (cancelled || error || !data) return;
       // Merge rather than replace: realtime inserts that arrived between
       // subscribe and this fetch are already in state and must be kept.
-      setMessages((prev) => {
+      setRows((prev) => {
         const map = new Map(prev.map((m) => [m.id, m]));
         for (const row of data as ChatMessage[]) map.set(row.id, row);
         return Array.from(map.values()).sort((a, b) =>
@@ -156,12 +169,12 @@ export function ChatProvider({
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "messages" },
-          (payload) => upsertMessage(payload.new as ChatMessage),
+          (payload) => upsertRow(payload.new as ChatMessage),
         )
         .on(
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "messages" },
-          (payload) => upsertMessage(payload.new as ChatMessage),
+          (payload) => upsertRow(payload.new as ChatMessage),
         )
         .on(
           "postgres_changes",
@@ -169,7 +182,7 @@ export function ChatProvider({
           (payload) => {
             const old = payload.old as { id?: string };
             if (old?.id) {
-              setMessages((prev) => prev.filter((m) => m.id !== old.id));
+              setRows((prev) => prev.filter((m) => m.id !== old.id));
             }
           },
         )
@@ -277,7 +290,7 @@ export function ChatProvider({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, identity, upsertMessage]);
+  }, [enabled, identity, upsertRow]);
 
   // Broadcast our own read marker over presence (live, ephemeral) AND persist it
   // to the durable read_state table (survives offline / reload / a fresh device).
@@ -353,6 +366,27 @@ export function ChatProvider({
     };
   }, [enabled, identity]);
 
+  // Split the raw rows into the visible conversation and the reaction map.
+  const messages = useMemo(
+    () => rows.filter((m) => !isControlBody(m.body)),
+    [rows],
+  );
+
+  const reactions = useMemo<Reactions>(() => {
+    const out: Reactions = {};
+    for (const m of rows) {
+      const r = parseReaction(m.body);
+      if (!r) continue;
+      const bucket = (out[r.targetId] ??= {});
+      if (r.emoji) bucket[m.sender_name] = r.emoji;
+      else delete bucket[m.sender_name];
+    }
+    return out;
+  }, [rows]);
+
+  const reactionsRef = useRef(reactions);
+  reactionsRef.current = reactions;
+
   const sendText = useCallback(
     async (body: string) => {
       const text = body.trim();
@@ -378,6 +412,37 @@ export function ChatProvider({
       await supabase
         .from("messages")
         .insert({ image_path: path, sender_name: identity });
+    },
+    [identity],
+  );
+
+  const sendVoice = useCallback(
+    async (blob: Blob, durationMs: number) => {
+      if (!supabase || !identity) return;
+      const type = blob.type || "audio/webm";
+      const ext = extForAudioType(type);
+      const path = voiceFileName(identity, durationMs, ext);
+      const { error: upErr } = await supabase.storage
+        .from(CHAT_BUCKET)
+        .upload(path, blob, { contentType: type });
+      if (upErr) throw upErr;
+      await supabase
+        .from("messages")
+        .insert({ image_path: path, sender_name: identity });
+    },
+    [identity],
+  );
+
+  // Reactions are durable "control messages": inserting a row with an empty
+  // emoji removes the reaction; latest write per (reactor, target) wins.
+  const toggleReaction = useCallback(
+    async (messageId: string, emoji: string) => {
+      if (!supabase || !identity) return;
+      const current = reactionsRef.current[messageId]?.[identity];
+      const next = current === emoji ? "" : emoji;
+      await supabase
+        .from("messages")
+        .insert({ body: buildReactionBody(messageId, next), sender_name: identity });
     },
     [identity],
   );
@@ -450,6 +515,7 @@ export function ChatProvider({
       authError,
       identity,
       messages,
+      reactions,
       otherOnline,
       otherTyping,
       otherLastSeen,
@@ -457,6 +523,8 @@ export function ChatProvider({
       unread,
       sendText,
       sendImage,
+      sendVoice,
+      toggleReaction,
       deleteMessage,
       notifyTyping,
       markRead,
@@ -467,6 +535,7 @@ export function ChatProvider({
       authError,
       identity,
       messages,
+      reactions,
       otherOnline,
       otherTyping,
       otherLastSeen,
@@ -474,6 +543,8 @@ export function ChatProvider({
       unread,
       sendText,
       sendImage,
+      sendVoice,
+      toggleReaction,
       deleteMessage,
       notifyTyping,
       markRead,

@@ -168,9 +168,13 @@ function AppContent() {
     };
   }, []);
 
+  // The chat is a dedicated full-screen experience with its own chrome, so the
+  // site navbar (and the floating language switcher) are suppressed there.
+  const isChat = location === "/chat";
+
   const body = (
     <>
-      {authState === "authed" && (
+      {authState === "authed" && !isChat && (
         <Navbar t={t} lang={lang} onLogout={handleLogout} />
       )}
       <main>
@@ -231,7 +235,7 @@ function AppContent() {
       <Rain />
       <FloatingHearts />
       <DustParticles />
-      <LanguageSwitcher lang={lang} setLang={setLang} />
+      {!isChat && <LanguageSwitcher lang={lang} setLang={setLang} />}
       {authState === "authed" ? (
         <Suspense fallback={body}>
           <ChatProvider enabled>{body}</ChatProvider>
