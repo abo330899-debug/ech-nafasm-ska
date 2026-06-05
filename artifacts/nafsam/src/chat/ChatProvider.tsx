@@ -56,6 +56,29 @@ function setStoredLastSeen(ts: number): void {
   }
 }
 
+const OTHER_READ_KEY = "nafsam_chat_otherread";
+
+// Scope the stored peer read-marker by our own identity so that switching
+// identities on a shared device never resurrects a stale "seen" state.
+function getStoredOtherRead(id: string | null): number | null {
+  if (!id) return null;
+  try {
+    const v = localStorage.getItem(`${OTHER_READ_KEY}_${id}`);
+    return v ? Number(v) || null : null;
+  } catch {
+    return null;
+  }
+}
+
+function setStoredOtherRead(id: string | null, ts: number): void {
+  if (!id) return;
+  try {
+    localStorage.setItem(`${OTHER_READ_KEY}_${id}`, String(ts));
+  } catch {
+    /* ignore */
+  }
+}
+
 const signedUrlCache = new Map<string, { url: string; expires: number }>();
 
 export function ChatProvider({
@@ -72,6 +95,9 @@ export function ChatProvider({
   const [otherTyping, setOtherTyping] = useState(false);
   const [otherLastSeen, setOtherLastSeen] = useState<number | null>(() =>
     getStoredLastSeen(),
+  );
+  const [otherLastRead, setOtherLastRead] = useState<number | null>(() =>
+    getStoredOtherRead(getIdentity()),
   );
   const [lastRead, setLastReadState] = useState<number>(() => getLastRead());
 
@@ -155,12 +181,26 @@ export function ChatProvider({
         )
         .on("presence", { event: "sync" }, () => {
           const state = channel?.presenceState() ?? {};
-          const online = Boolean(state[them] && state[them].length > 0);
+          const metas = (state[them] ?? []) as Array<{ read?: number }>;
+          const online = metas.length > 0;
           setOtherOnline(online);
           if (online) {
             const now = Date.now();
             setStoredLastSeen(now);
             setOtherLastSeen(now);
+          }
+          let theirRead = 0;
+          for (const meta of metas) {
+            if (typeof meta.read === "number" && meta.read > theirRead) {
+              theirRead = meta.read;
+            }
+          }
+          if (theirRead > 0) {
+            setOtherLastRead((prev) => {
+              const next = Math.max(prev ?? 0, theirRead);
+              setStoredOtherRead(identity, next);
+              return next;
+            });
           }
         })
         .on("broadcast", { event: "typing" }, ({ payload }) => {
@@ -179,7 +219,7 @@ export function ChatProvider({
       channel.subscribe(async (status) => {
         if (cancelled) return;
         if (status === "SUBSCRIBED") {
-          await channel?.track({ identity: me, at: Date.now() });
+          await channel?.track({ identity: me, at: Date.now(), read: getLastRead() });
           // Subscribe first, then snapshot, so no inserts slip through the gap.
           await loadSnapshot();
           if (!cancelled) setReady(true);
@@ -240,6 +280,14 @@ export function ChatProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, identity, upsertMessage]);
 
+  // Broadcast our own read marker over presence so the other side can render a
+  // "seen" indicator without any extra table or DB write.
+  useEffect(() => {
+    const ch = channelRef.current;
+    if (!ch || !identity) return;
+    ch.track({ identity, at: Date.now(), read: lastRead });
+  }, [lastRead, identity]);
+
   const sendText = useCallback(
     async (body: string) => {
       const text = body.trim();
@@ -294,10 +342,19 @@ export function ChatProvider({
   }, [identity]);
 
   const markRead = useCallback(() => {
-    const now = Date.now();
-    setLastRead(now);
-    setLastReadState(now);
-  }, []);
+    // Anchor the read marker strictly to the newest message's server timestamp
+    // so the comparison against other messages' created_at is immune to device
+    // clock skew, and a fast local clock can never broadcast a future "read"
+    // that would mark still-unseen messages as seen on the peer's side.
+    let newest = 0;
+    for (const m of messages) {
+      const t = new Date(m.created_at).getTime();
+      if (t > newest) newest = t;
+    }
+    const ts = newest || Date.now();
+    setLastRead(ts);
+    setLastReadState(ts);
+  }, [messages]);
 
   const imageUrl = useCallback(async (path: string): Promise<string | null> => {
     if (!supabase) return null;
@@ -334,6 +391,7 @@ export function ChatProvider({
       otherOnline,
       otherTyping,
       otherLastSeen,
+      otherLastRead,
       unread,
       sendText,
       sendImage,
@@ -350,6 +408,7 @@ export function ChatProvider({
       otherOnline,
       otherTyping,
       otherLastSeen,
+      otherLastRead,
       unread,
       sendText,
       sendImage,

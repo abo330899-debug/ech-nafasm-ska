@@ -25,6 +25,7 @@ export interface ChatStrings {
   unread_one: string;
   image_alt: string;
   sending_image: string;
+  seen: string;
 }
 
 export const chatStrings: Record<Lang, ChatStrings> = {
@@ -53,6 +54,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     unread_one: "رسالة جديدة",
     image_alt: "صورة",
     sending_image: "جارٍ إرسال الصورة…",
+    seen: "تمت القراءة",
   },
   en: {
     title: "Chat",
@@ -79,6 +81,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     unread_one: "new message",
     image_alt: "image",
     sending_image: "Sending image…",
+    seen: "Seen",
   },
   fa: {
     title: "گفتگو",
@@ -105,6 +108,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     unread_one: "پیام جدید",
     image_alt: "تصویر",
     sending_image: "در حال ارسال تصویر…",
+    seen: "خوانده شد",
   },
   tr: {
     title: "Sohbet",
@@ -131,5 +135,6 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     unread_one: "yeni mesaj",
     image_alt: "resim",
     sending_image: "Resim gönderiliyor…",
+    seen: "Görüldü",
   },
 };

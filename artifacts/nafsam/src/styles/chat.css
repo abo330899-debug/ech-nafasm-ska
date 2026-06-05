@@ -276,6 +276,15 @@
   color: #2a1c0c;
 }
 
+.chat-seen {
+  width: 100%;
+  text-align: end;
+  font-size: 0.64rem;
+  opacity: 0.7;
+  margin: -2px 6px 4px;
+  color: var(--lux-text);
+}
+
 .chat-image-btn {
   display: block;
   padding: 0;

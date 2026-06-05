@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Send, ImagePlus, Search, X, ArrowDown } from "lucide-react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import { useChat, type ChatMessage } from "@/chat/chatContext";
@@ -53,6 +53,7 @@ export default function Chat({ lang }: Props) {
     otherOnline,
     otherTyping,
     otherLastSeen,
+    otherLastRead,
     sendText,
     sendImage,
     notifyTyping,
@@ -94,6 +95,23 @@ export default function Chat({ lang }: Props) {
     }
     return out;
   }, [filtered, s]);
+
+  // Id of the newest message I sent that the other person has already read, so
+  // the "seen" line is shown only once, under my latest read message.
+  const lastMineSeenId = useMemo(() => {
+    if (!identity || !otherLastRead) return null;
+    let id: string | null = null;
+    for (const m of messages) {
+      if (
+        m.sender_name === identity &&
+        !m.deleted &&
+        new Date(m.created_at).getTime() <= otherLastRead
+      ) {
+        id = m.id;
+      }
+    }
+    return id;
+  }, [messages, identity, otherLastRead]);
 
   function scrollToBottom(behavior: ScrollBehavior = "smooth") {
     const el = scrollRef.current;
@@ -234,16 +252,20 @@ export default function Chat({ lang }: Props) {
               <div key={g.key} className="chat-day">
                 <div className="chat-day-label">{g.label}</div>
                 {g.items.map((m) => (
-                  <MessageBubble
-                    key={m.id}
-                    message={m}
-                    mine={m.sender_name === identity}
-                    senderLabel={identityName(
-                      m.sender_name === "star" ? "star" : "ilham",
+                  <Fragment key={m.id}>
+                    <MessageBubble
+                      message={m}
+                      mine={m.sender_name === identity}
+                      senderLabel={identityName(
+                        m.sender_name === "star" ? "star" : "ilham",
+                      )}
+                      s={s}
+                      onPreview={setPreview}
+                    />
+                    {m.id === lastMineSeenId && (
+                      <div className="chat-seen">{s.seen}</div>
                     )}
-                    s={s}
-                    onPreview={setPreview}
-                  />
+                  </Fragment>
                 ))}
               </div>
             ))
