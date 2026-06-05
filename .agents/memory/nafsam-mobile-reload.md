@@ -24,10 +24,13 @@ can't reach the saved offset → drops to top.
    timeout fallback and cancellation on first user input. Wrap all `sessionStorage`
    access in try/catch (private-mode browsers throw).
 
-2. **Prevent the eviction** — `content-visibility:auto` + `contain-intrinsic-size` on
-   off-screen `.album-grid .photo-card` and `.gallery-grid .video-card` in `index.css`,
-   so the browser can skip rendering and release decoded thumbnails. This is the actual
-   root-cause mitigation; restoration alone only hides the symptom.
+2. **Prevent the eviction** — the proven root-cause fix is *windowing* the long
+   grids (see nafsam-mobile-gallery-windowing.md): render a `slice(0, visibleCount)`
+   grown by a stable IntersectionObserver sentinel so hundreds of cards/observers/
+   `<img>` nodes don't mount at once. The Photos album grid was the remaining
+   un-windowed list. As a complementary memory cut, `content-visibility:auto` +
+   `contain-intrinsic-size` is applied to off-screen `.album-grid .photo-card` and
+   `.gallery-grid .video-card` in `index.css`.
 
 **Why:** memory-pressure eviction can't be fully prevented from JS, so do both — cut
 memory so it happens rarely, and restore position so it's harmless when it does.
