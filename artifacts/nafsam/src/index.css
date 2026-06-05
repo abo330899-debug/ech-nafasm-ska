@@ -887,6 +887,28 @@ main{flex:1}
   justify-content:center;
   min-height:80vh;
   padding:40px 20px;
+  position:relative;
+  isolation:isolate;
+}
+
+/* faint photo backdrop shared by login (دخولية) & farewell (خروجية) */
+.romance-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background-image:
+    linear-gradient(180deg, rgba(6,7,14,.86) 0%, rgba(6,7,14,.82) 45%, rgba(6,7,14,.92) 100%),
+    var(--romance-img);
+  background-size:cover;
+  background-position:center 18%;
+  filter:blur(1.5px) saturate(.82);
+}
+.romance-backdrop::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at 50% 38%, transparent 0%, rgba(4,5,11,.55) 78%);
 }
 .login-container{
   max-width:700px;
@@ -4847,6 +4869,14 @@ html.is-idle::after{
   color:var(--fl-ink);
   font-family:"Tajawal","Cairo","Cormorant Garamond",serif;
   overflow-x:hidden;
+  z-index:1;
+  isolation:isolate;
+}
+.feelings-page .romance-backdrop{
+  filter:blur(2px) saturate(.7);
+  background-image:
+    linear-gradient(180deg, rgba(3,5,11,.88) 0%, rgba(10,7,18,.86) 45%, rgba(26,15,16,.92) 100%),
+    var(--romance-img);
 }
 
 /* shared reveal */

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import EmberParticles from "@/components/EmberParticles";
 import SmokeVeil from "@/components/SmokeVeil";
+import PhotoBackdrop from "@/components/PhotoBackdrop";
 import { type Translations, type Lang } from "@/i18n/translations";
 import { usePrivateContent, pickLangFeelings } from "@/hooks/usePrivateContent";
 
@@ -61,6 +62,7 @@ export default function Feelings({ t, lang }: Props) {
 
   return (
     <div className="feelings-page" ref={rootRef}>
+      <PhotoBackdrop />
       {/* ===== HERO ===== */}
       <section className="fl-hero">
         <SmokeVeil intensity="heavy" />

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { type Translations, type Lang } from "@/i18n/translations";
 import usePageAudio from "@/hooks/usePageAudio";
+import PhotoBackdrop from "@/components/PhotoBackdrop";
 import { fetchSession, login, type SessionCard } from "@/lib/auth";
 
 // The login UI intentionally does NOT ship any answer identifiers to the client.
@@ -132,6 +133,7 @@ export default function Login({ t, lang, onAuth }: Props) {
 
   return (
     <div className="page-content login-page">
+      <PhotoBackdrop />
       <div className="login-container glass">
         <h1 className="login-title">{t.login_title}</h1>
         <p className="login-text">{t.login_text}</p>
