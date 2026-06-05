@@ -1,16 +1,27 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { Send, ImagePlus, Search, X, ArrowDown } from "lucide-react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import { useChat, type ChatMessage } from "@/chat/chatContext";
 import { chatStrings } from "@/chat/chatI18n";
 import { otherIdentity, identityName } from "@/chat/chatAuth";
-import MessageBubble from "@/components/chat/MessageBubble";
+import MessageBubble, {
+  type TickStatus,
+} from "@/components/chat/MessageBubble";
 import "@/styles/chat.css";
 
 interface Props {
   t: Translations;
   lang: Lang;
 }
+
+const MAX_COMPOSER_HEIGHT = 150;
 
 function dayKey(iso: string): string {
   const d = new Date(iso);
@@ -47,6 +58,15 @@ function dayLabel(
   });
 }
 
+interface Particle {
+  left: number;
+  size: number;
+  delay: number;
+  duration: number;
+  drift: number;
+  opacity: number;
+}
+
 export default function Chat({ lang }: Props) {
   const s = chatStrings[lang];
   const chat = useChat();
@@ -75,13 +95,28 @@ export default function Chat({ lang }: Props) {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const nearBottomRef = useRef(true);
+  // Timestamp of when the history finished loading. Only messages that arrive
+  // *after* this animate in, so the initial ~history render stays jank-free.
+  const mountTimeRef = useRef(0);
 
   const them = identity ? otherIdentity(identity) : "ilham";
   const themName = identityName(them);
-  // Presence (online / last seen) is intentionally one-way: only Star may see
-  // whether the other person is online or when they were last active.
-  const showPresence = identity === "star";
+
+  // Floating dust / particle field — generated once for a calm, romantic drift.
+  const particles = useMemo<Particle[]>(
+    () =>
+      Array.from({ length: 20 }, () => ({
+        left: Math.random() * 100,
+        size: 1.5 + Math.random() * 3.5,
+        delay: Math.random() * 16,
+        duration: 14 + Math.random() * 16,
+        drift: Math.random() * 40 - 20,
+        opacity: 0.15 + Math.random() * 0.35,
+      })),
+    [],
+  );
 
   const filtered = useMemo(() => {
     if (!query.trim()) return messages;
@@ -102,22 +137,23 @@ export default function Chat({ lang }: Props) {
     return out;
   }, [filtered, s]);
 
-  // Id of the newest message I sent that the other person has already read, so
-  // the "seen" line is shown only once, under my latest read message.
-  const lastMineSeenId = useMemo(() => {
-    if (!identity || !otherLastRead) return null;
-    let id: string | null = null;
-    for (const m of messages) {
-      if (
-        m.sender_name === identity &&
-        !m.deleted &&
-        new Date(m.created_at).getTime() <= otherLastRead
-      ) {
-        id = m.id;
-      }
-    }
-    return id;
-  }, [messages, identity, otherLastRead]);
+  // Per-message delivery state for my own messages: sent (✓), delivered (✓✓),
+  // or seen (✓✓ highlighted). Seen is anchored to the peer's durable read
+  // pointer; delivered is inferred from the peer being/having been online.
+  function tickFor(m: ChatMessage): TickStatus {
+    const t = new Date(m.created_at).getTime();
+    if (otherLastRead && t <= otherLastRead) return "seen";
+    if (otherOnline) return "delivered";
+    if (otherLastSeen && t <= otherLastSeen) return "delivered";
+    return "sent";
+  }
+
+  function autoGrow() {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, MAX_COMPOSER_HEIGHT)}px`;
+  }
 
   function scrollToBottom(behavior: ScrollBehavior = "smooth") {
     const el = scrollRef.current;
@@ -129,17 +165,21 @@ export default function Chat({ lang }: Props) {
     if (ready) markRead();
   }, [ready, messages.length, markRead]);
 
-  // Auto-scroll to newest when near the bottom or on first load.
+  // Auto-scroll to newest when near the bottom or on first load, and keep the
+  // view pinned when the typing indicator appears.
   useEffect(() => {
     if (nearBottomRef.current && !query) {
       scrollToBottom(messages.length <= 1 ? "auto" : "smooth");
     } else if (!nearBottomRef.current) {
       setShowJump(true);
     }
-  }, [messages.length, query]);
+  }, [messages.length, otherTyping, query]);
 
   useEffect(() => {
-    if (ready) scrollToBottom("auto");
+    if (ready) {
+      if (mountTimeRef.current === 0) mountTimeRef.current = Date.now();
+      scrollToBottom("auto");
+    }
   }, [ready]);
 
   function onScroll() {
@@ -150,16 +190,33 @@ export default function Chat({ lang }: Props) {
     if (near) setShowJump(false);
   }
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSend() {
     const text = draft.trim();
-    if (!text) return;
+    if (!text || uploading) return;
     setDraft("");
+    requestAnimationFrame(autoGrow);
     nearBottomRef.current = true;
     try {
       await sendText(text);
     } catch {
       setDraft(text);
+      requestAnimationFrame(autoGrow);
+    }
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    // Enter sends; Shift+Enter inserts a newline. Never send mid-IME
+    // composition (Arabic / Turkish / mobile keyboards rely on this).
+    // keyCode 229 is the cross-browser fallback for an active composition
+    // where `isComposing` is unreliable.
+    if (
+      e.key === "Enter" &&
+      !e.shiftKey &&
+      !e.nativeEvent.isComposing &&
+      e.keyCode !== 229
+    ) {
+      e.preventDefault();
+      void handleSend();
     }
   }
 
@@ -194,34 +251,49 @@ export default function Chat({ lang }: Props) {
     );
   }
 
+  const statusText = otherTyping
+    ? s.typing_name.replace("{name}", themName)
+    : otherOnline
+      ? s.online
+      : otherLastSeen
+        ? s.last_seen.replace("{time}", lastSeenTime(otherLastSeen))
+        : s.offline;
+
   return (
     <div className="page-content chat-page">
       <div className="chat-shell glass">
+        <div className="chat-particles" aria-hidden="true">
+          {particles.map((p, i) => (
+            <span
+              key={i}
+              className="chat-dust"
+              style={
+                {
+                  left: `${p.left}%`,
+                  width: `${p.size}px`,
+                  height: `${p.size}px`,
+                  opacity: p.opacity,
+                  animationDelay: `${p.delay}s`,
+                  animationDuration: `${p.duration}s`,
+                  "--drift": `${p.drift}px`,
+                } as CSSProperties
+              }
+            />
+          ))}
+        </div>
+
         <header className="chat-header">
           <div className="chat-peer">
-            <div
-              className={`chat-avatar ${
-                showPresence && otherOnline ? "is-online" : ""
-              }`}
-            >
+            <div className={`chat-avatar ${otherOnline ? "is-online" : ""}`}>
               {themName.charAt(0)}
             </div>
             <div className="chat-peer-meta">
               <span className="chat-peer-name">{themName}</span>
-              {showPresence && (
-                <span className="chat-peer-status">
-                  {otherTyping
-                    ? s.typing
-                    : otherOnline
-                      ? s.online
-                      : otherLastSeen
-                        ? s.last_seen.replace(
-                            "{time}",
-                            lastSeenTime(otherLastSeen),
-                          )
-                        : s.offline}
-                </span>
-              )}
+              <span
+                className={`chat-peer-status ${otherTyping ? "is-typing" : ""}`}
+              >
+                {statusText}
+              </span>
             </div>
           </div>
           <button
@@ -266,16 +338,32 @@ export default function Chat({ lang }: Props) {
                       senderLabel={identityName(
                         m.sender_name === "star" ? "star" : "ilham",
                       )}
+                      status={
+                        m.sender_name === identity ? tickFor(m) : undefined
+                      }
+                      animate={
+                        mountTimeRef.current > 0 &&
+                        new Date(m.created_at).getTime() >= mountTimeRef.current
+                      }
                       s={s}
                       onPreview={setPreview}
                     />
-                    {m.id === lastMineSeenId && (
-                      <div className="chat-seen">{s.seen}</div>
-                    )}
                   </Fragment>
                 ))}
               </div>
             ))
+          )}
+
+          {ready && otherTyping && !query && (
+            <div className="chat-row theirs chat-typing-row">
+              <div className="chat-typing-bubble">
+                <span className="chat-typing-dots">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              </div>
+            </div>
           )}
         </div>
 
@@ -294,7 +382,13 @@ export default function Chat({ lang }: Props) {
           </button>
         )}
 
-        <form className="chat-composer" onSubmit={handleSend}>
+        <form
+          className="chat-composer"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleSend();
+          }}
+        >
           <input
             ref={fileRef}
             type="file"
@@ -304,7 +398,7 @@ export default function Chat({ lang }: Props) {
           />
           <button
             type="button"
-            className="chat-icon-btn"
+            className="chat-icon-btn chat-attach"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
             aria-label={s.attach}
@@ -312,20 +406,25 @@ export default function Chat({ lang }: Props) {
           >
             <ImagePlus size={20} />
           </button>
-          <input
+          <textarea
+            ref={inputRef}
             className="chat-input"
+            dir="auto"
+            rows={1}
             value={draft}
             onChange={(e) => {
               setDraft(e.target.value);
+              autoGrow();
               notifyTyping();
             }}
+            onKeyDown={onKeyDown}
             placeholder={uploading ? s.sending_image : s.placeholder}
             disabled={uploading}
           />
           <button
             type="submit"
             className="chat-send"
-            disabled={!draft.trim()}
+            disabled={!draft.trim() || uploading}
             aria-label={s.send}
           >
             <Send size={18} />

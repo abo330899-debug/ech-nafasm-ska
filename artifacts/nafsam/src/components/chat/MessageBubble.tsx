@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Check, CheckCheck } from "lucide-react";
 import { useChat } from "@/chat/chatContext";
 import { type ChatMessage } from "@/chat/chatContext";
 import { type ChatStrings } from "@/chat/chatI18n";
+
+export type TickStatus = "sent" | "delivered" | "seen";
 
 interface Props {
   message: ChatMessage;
   mine: boolean;
   senderLabel: string;
+  status?: TickStatus;
+  animate?: boolean;
   s: ChatStrings;
   onPreview: (url: string) => void;
 }
@@ -21,6 +25,8 @@ export default function MessageBubble({
   message,
   mine,
   senderLabel,
+  status,
+  animate,
   s,
   onPreview,
 }: Props) {
@@ -51,8 +57,13 @@ export default function MessageBubble({
     }
   }
 
+  const statusLabel =
+    status === "seen" ? s.seen : status === "delivered" ? s.delivered : s.sent;
+
   return (
-    <div className={`chat-row ${mine ? "mine" : "theirs"}`}>
+    <div
+      className={`chat-row ${mine ? "mine" : "theirs"} ${animate ? "is-new" : ""}`}
+    >
       <div className={`chat-bubble ${message.deleted ? "is-deleted" : ""}`}>
         <span className="chat-sender">{senderLabel}</span>
         {message.deleted ? (
@@ -68,10 +79,30 @@ export default function MessageBubble({
                 <img src={imgSrc} alt={s.image_alt} className="chat-image" />
               </button>
             )}
-            {message.body && <p className="chat-text">{message.body}</p>}
+            {message.body && (
+              <p className="chat-text" dir="auto">
+                {message.body}
+              </p>
+            )}
           </>
         )}
-        <span className="chat-time">{timeLabel(message.created_at)}</span>
+        <span className="chat-meta">
+          <span className="chat-time">{timeLabel(message.created_at)}</span>
+          {mine && !message.deleted && status && (
+            <span
+              className={`chat-ticks is-${status}`}
+              role="img"
+              aria-label={statusLabel}
+              title={statusLabel}
+            >
+              {status === "sent" ? (
+                <Check size={14} strokeWidth={2.4} />
+              ) : (
+                <CheckCheck size={14} strokeWidth={2.4} />
+              )}
+            </span>
+          )}
+        </span>
         {mine && !message.deleted && (
           <button
             type="button"

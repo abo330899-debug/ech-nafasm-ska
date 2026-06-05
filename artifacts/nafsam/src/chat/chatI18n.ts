@@ -6,6 +6,7 @@ export interface ChatStrings {
   offline: string;
   last_seen: string;
   typing: string;
+  typing_name: string;
   placeholder: string;
   send: string;
   attach: string;
@@ -26,6 +27,8 @@ export interface ChatStrings {
   image_alt: string;
   sending_image: string;
   seen: string;
+  sent: string;
+  delivered: string;
 }
 
 export const chatStrings: Record<Lang, ChatStrings> = {
@@ -35,6 +38,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     offline: "غير متصل",
     last_seen: "آخر ظهور {time}",
     typing: "يكتب…",
+    typing_name: "{name} يكتب…",
     placeholder: "اكتب رسالة…",
     send: "إرسال",
     attach: "إرفاق صورة",
@@ -55,6 +59,8 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     image_alt: "صورة",
     sending_image: "جارٍ إرسال الصورة…",
     seen: "تمت القراءة",
+    sent: "أُرسلت",
+    delivered: "تم التسليم",
   },
   en: {
     title: "Chat",
@@ -62,6 +68,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     offline: "offline",
     last_seen: "last seen {time}",
     typing: "typing…",
+    typing_name: "{name} is typing…",
     placeholder: "Type a message…",
     send: "Send",
     attach: "Attach image",
@@ -82,6 +89,8 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     image_alt: "image",
     sending_image: "Sending image…",
     seen: "Seen",
+    sent: "Sent",
+    delivered: "Delivered",
   },
   fa: {
     title: "گفتگو",
@@ -89,6 +98,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     offline: "آفلاین",
     last_seen: "آخرین بازدید {time}",
     typing: "در حال نوشتن…",
+    typing_name: "{name} در حال نوشتن است…",
     placeholder: "پیام بنویس…",
     send: "ارسال",
     attach: "پیوست تصویر",
@@ -109,6 +119,8 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     image_alt: "تصویر",
     sending_image: "در حال ارسال تصویر…",
     seen: "خوانده شد",
+    sent: "ارسال شد",
+    delivered: "تحویل شد",
   },
   tr: {
     title: "Sohbet",
@@ -116,6 +128,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     offline: "çevrimdışı",
     last_seen: "son görülme {time}",
     typing: "yazıyor…",
+    typing_name: "{name} yazıyor…",
     placeholder: "Bir mesaj yaz…",
     send: "Gönder",
     attach: "Resim ekle",
@@ -136,5 +149,7 @@ export const chatStrings: Record<Lang, ChatStrings> = {
     image_alt: "resim",
     sending_image: "Resim gönderiliyor…",
     seen: "Görüldü",
+    sent: "Gönderildi",
+    delivered: "İletildi",
   },
 };
