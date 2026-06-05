@@ -38,7 +38,16 @@ export default function Journey({ t }: Props) {
   const data = usePrivateContent();
   usePageAudio(data?.pageAudio?.photos ?? "");
   const photosDir = data?.mediaConfig?.photosDir ?? "";
-  const journey = data?.journey ?? [];
+  const journey = (Array.isArray(data?.journey) ? data.journey : []).filter(
+    (ch): ch is NonNullable<typeof ch> =>
+      !!ch &&
+      typeof ch.file === "string" &&
+      ch.file.trim() !== "" &&
+      typeof ch.title === "string" &&
+      ch.title.trim() !== "" &&
+      typeof ch.quote === "string" &&
+      ch.quote.trim() !== "",
+  );
 
   return (
     <div className="page-content journey-page">
