@@ -253,7 +253,7 @@ export default function Videos({ t, lang }: Props) {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [videosData.length, visibleCount]);
+  }, [videosData.length]);
 
   const openModal = useCallback((index: number) => {
     setActiveIndex(index);
