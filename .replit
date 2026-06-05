@@ -103,6 +103,7 @@ externalPort = 6800
 [userenv]
 
 [userenv.shared]
+nafsam-chat = "1wfI0kHaittPhyC5"
 
 [userenv.production]
 
