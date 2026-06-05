@@ -3536,6 +3536,69 @@ a,button,.btn,.links a{
 .videos-luxe .v-modal-actions{gap:var(--s-1);margin-top:var(--s-2)}
 .videos-luxe .v-duration{padding:4px var(--s-1)}
 
+/* ============================================================
+   VIDEO MODAL — CINEMATIC NEAR-FULLSCREEN PLAYER (desktop)
+   Large stage, video fills the screen elegantly, slim info panel.
+   ============================================================ */
+@media (min-width:769px){
+  .videos-luxe .v-modal{padding:clamp(24px,3vw,48px)}
+  .videos-luxe .v-modal-box{
+    width:100%;
+    max-width:min(1320px,94vw);
+    max-height:94vh;
+    padding:0;
+    gap:0;
+    border-radius:24px;
+  }
+  /* cinematic stage: video centered on a soft dark backdrop (not flat black) */
+  .videos-luxe .v-modal-media{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:0;
+    background:radial-gradient(130% 130% at 50% 0%, #0a0e1c 0%, #05070f 100%);
+  }
+  .videos-luxe .v-modal-media-mp4{padding:0}
+  .videos-luxe .v-modal-media-mp4 .v-modal-video{
+    width:100%;
+    max-width:100%;
+    max-height:80vh;
+    height:auto;
+    object-fit:contain;
+  }
+  .videos-luxe .v-modal-media-youtube{
+    width:100%;
+    aspect-ratio:16 / 9;
+    max-height:80vh;
+  }
+  .videos-luxe .v-modal-info{
+    padding:18px 28px 22px;
+  }
+  /* theater toggle → truly edge-to-edge */
+  .videos-luxe .v-modal-theater .v-modal-box{
+    max-width:98vw;
+    max-height:98vh;
+  }
+  .videos-luxe .v-modal-theater .v-modal-media-mp4 .v-modal-video,
+  .videos-luxe .v-modal-theater .v-modal-media-youtube{
+    max-height:90vh;
+  }
+  /* larger centered play button on cards */
+  .videos-luxe .v-play{width:76px;height:76px}
+}
+
+/* refined, premium centered play button (all sizes) */
+.videos-luxe .v-play{
+  background:rgba(8,11,22,.40);
+  border:1.5px solid rgba(216,165,124,.62);
+  box-shadow:
+    0 12px 36px -10px rgba(0,0,0,.7),
+    inset 0 0 0 1px rgba(255,255,255,.07);
+  backdrop-filter:blur(14px) saturate(1.12);
+  -webkit-backdrop-filter:blur(14px) saturate(1.12);
+}
+.videos-luxe .v-play svg{width:26px;height:26px}
+
 /* ---------- Footer ---------- */
 footer,.footer{padding:var(--s-4) var(--s-3)}
 
