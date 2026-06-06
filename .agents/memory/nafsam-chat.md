@@ -96,10 +96,22 @@ the shared `chunksRef`/`startRef`/`cancelledRef` buffers of two sessions
 interleave and produce dropped/garbled uploads.
 
 **Presence + typing are SYMMETRIC by design (both sides see each other's
-online / last-seen / typing).** An earlier build gated presence to one identity.
+typing / read state).** An earlier build gated presence to one identity.
 **Why:** symmetric presence is the explicitly requested Telegram/WhatsApp
 behavior — do NOT "restore" a one-way gate thinking it's a privacy bug. It
 exposes nothing beyond what the realtime presence channel + `read_state` already
-carried for the two authorized identities. Delivery state is shown as ticks
-(sent/delivered/seen) instead of a text line, where "seen" is still anchored to
-`otherLastRead` (so it depends on the durable read_state step above).
+carried for the two authorized identities.
+
+**Header status is ALWAYS "online" — "last seen" is never shown (product
+choice).** `statusText` in `Chat.tsx` resolves to typing → else `s.online`
+unconditionally, and both peer avatars always carry `is-online`. The real
+`otherOnline`/`otherLastSeen` values are NOT used for the header anymore (only
+inside `tickFor`). Do not "fix" this back to last-seen — it was explicitly
+requested that both Star & Ilham always appear connected.
+
+**Bubble read receipts are Telegram-style and decoupled from the always-online
+header.** `tickFor` still computes real sent/delivered/seen from
+presence + `otherLastRead`, but `MessageBubble` renders only TWO visual states:
+a single `Check` for anything not yet read (sent OR delivered), and a double
+blue `CheckCheck` (`.chat-ticks.is-seen`) once `created_at <= otherLastRead`.
+So "two blue ticks" still depends on the durable `read_state` step above.
