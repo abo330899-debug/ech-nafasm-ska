@@ -5,7 +5,7 @@ import { type ChatMessage } from "@/chat/chatContext";
 import { type ChatStrings } from "@/chat/chatI18n";
 import {
   type ChatIdentity,
-  identityAvatar,
+  identityShort,
   otherIdentity,
 } from "@/chat/chatAuth";
 import { parseVoice, REACTION_EMOJIS } from "@/chat/chatMedia";
@@ -126,14 +126,7 @@ export default function MessageBubble({
     >
       {!mine && (
         <div className={`chat-row-avatar ${showAvatar ? "" : "is-hidden"}`}>
-          {myIdentity ? (
-            <img
-              src={identityAvatar(otherIdentity(myIdentity))}
-              alt={senderLabel}
-            />
-          ) : (
-            senderLabel.charAt(0)
-          )}
+          {myIdentity ? identityShort(otherIdentity(myIdentity)) : senderLabel.charAt(0)}
         </div>
       )}
 

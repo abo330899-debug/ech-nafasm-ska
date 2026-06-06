@@ -1,6 +1,4 @@
 import { supabase } from "./supabaseClient";
-import starAvatar from "@/assets/star.jpeg";
-import ilhamAvatar from "@/assets/ilham.jpeg";
 
 export type ChatIdentity = "star" | "ilham";
 
@@ -83,13 +81,15 @@ export function identityName(id: ChatIdentity): string {
   return id === "star" ? "Star" : "إلهام";
 }
 
-const AVATARS: Record<ChatIdentity, string> = {
-  star: starAvatar,
-  ilham: ilhamAvatar,
+// Short text marks shown in place of profile photos. The login word "ska"
+// maps to Star (see STAR_WORD), so Star is "ska." and Ilham is "ech.".
+const SHORT_LABELS: Record<ChatIdentity, string> = {
+  star: "ska.",
+  ilham: "ech.",
 };
 
-export function identityAvatar(id: ChatIdentity): string {
-  return AVATARS[id];
+export function identityShort(id: ChatIdentity): string {
+  return SHORT_LABELS[id];
 }
 
 export function otherIdentity(id: ChatIdentity): ChatIdentity {
