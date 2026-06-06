@@ -612,7 +612,9 @@ export default function Chat({ lang }: Props) {
           >
             <ChevronLeft size={22} />
             {unread > 0 && (
-              <span className="chat-back-count">{unread}</span>
+              <span className="chat-back-count">
+                {unread > 99 ? "99+" : unread}
+              </span>
             )}
           </button>
 
@@ -624,6 +626,8 @@ export default function Chat({ lang }: Props) {
               setQuery("");
             }}
             aria-label={s.search}
+            aria-expanded={searching}
+            aria-controls="chat-search"
           >
             <span className="chat-peer-name" dir="auto">
               {themName}
@@ -642,7 +646,7 @@ export default function Chat({ lang }: Props) {
         </header>
 
         {searching && (
-          <div className="chat-search">
+          <div className="chat-search" id="chat-search">
             <Search size={16} />
             <input
               autoFocus
