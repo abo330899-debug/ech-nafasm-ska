@@ -1084,7 +1084,9 @@
   align-items: flex-end;
   gap: 6px;
   padding: 8px clamp(8px, 2.5vw, 16px);
-  padding-bottom: 0;
+  /* Flush against the keyboard when it is open (iOS reports a 0 inset then),
+     but leave room for the home indicator when the keyboard is closed. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   background: #1e1e24;
 }
