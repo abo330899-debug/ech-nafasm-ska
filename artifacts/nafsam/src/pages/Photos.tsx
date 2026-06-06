@@ -49,7 +49,7 @@ function pad2(n: number) {
   return n < 10 ? `0${n}` : String(n);
 }
 
-const ALBUM_BATCH = 12;
+const ALBUM_BATCH = 8;
 
 const SPECIAL_PHOTO_TEXT_KEYS = [
   "photo1_text",
@@ -164,7 +164,7 @@ export default function Photos({ t, lang }: Props) {
           setVisibleCount((c) => Math.min(c + ALBUM_BATCH, albumCount));
         }
       },
-      { root: null, rootMargin: "600px 0px" },
+      { root: null, rootMargin: "400px 0px" },
     );
     io.observe(el);
     return () => io.disconnect();

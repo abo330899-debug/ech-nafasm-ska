@@ -1346,7 +1346,7 @@ main{flex:1}
   /* Off-screen video cards skip rendering so the browser can release their
      decoded thumbnails — keeps mobile memory low and avoids tab reloads. */
   content-visibility:auto;
-  contain-intrinsic-size:auto 320px;
+  contain-intrinsic-size:auto 460px;
 }
 .v-card:hover,.v-card:focus-visible{
   transform:translateY(-8px);
@@ -1818,7 +1818,7 @@ audio,video{filter:none}
    scrolling through the heavy photo album. */
 .photos-luxe .album-grid .photo-card{
   content-visibility:auto;
-  contain-intrinsic-size:auto 420px;
+  contain-intrinsic-size:auto 560px;
 }
 .album-load-sentinel{
   width:100%;

@@ -50,7 +50,7 @@ interface Props {
 
 type VideoKind = "mp4" | "youtube" | "mega";
 
-const BATCH = 18;
+const BATCH = 9;
 
 function detectKind(file: string): VideoKind {
   if (/youtube\.com|youtu\.be/i.test(file)) return "youtube";
@@ -250,7 +250,7 @@ export default function Videos({ t, lang }: Props) {
           setVisibleCount((c) => Math.min(c + BATCH, videosData.length));
         }
       },
-      { root: null, rootMargin: "600px 0px" },
+      { root: null, rootMargin: "400px 0px" },
     );
     io.observe(el);
     return () => io.disconnect();

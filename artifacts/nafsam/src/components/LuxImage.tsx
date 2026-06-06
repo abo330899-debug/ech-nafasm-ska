@@ -35,6 +35,16 @@ export default function LuxImage({
 
   useEffect(() => {
     if (!loaded || !nextSrc) return;
+    // Skip ahead-of-scroll prefetch on phones / data-saver. Warming full-res
+    // images ahead of the viewport piles up decoded bitmaps and is a primary
+    // cause of iOS Safari OOM-reloading the tab during fast scrolling.
+    if (typeof window !== "undefined") {
+      const conn = (
+        navigator as unknown as { connection?: { saveData?: boolean } }
+      ).connection;
+      const isNarrow = window.matchMedia("(max-width: 820px)").matches;
+      if (conn?.saveData || isNarrow) return;
+    }
     if (Array.isArray(nextSrc)) nextSrc.forEach(prefetchImage);
     else prefetchImage(nextSrc);
   }, [loaded, nextSrc]);
