@@ -256,6 +256,25 @@ export default function Videos({ t, lang }: Props) {
     return () => io.disconnect();
   }, [videosData.length]);
 
+  // Stall guard: a stable observer only fires on threshold crossings, so if a
+  // freshly-appended batch leaves the sentinel still inside the preload zone no
+  // further callback fires and auto-loading stops. After each batch, measure the
+  // sentinel's live position and top up while it stays within the preload zone.
+  // Geometry-based (not the IO ref) so it self-limits once enough cards render —
+  // it never recreates the observer, which would cascade the whole list.
+  useEffect(() => {
+    if (visibleCount >= videosData.length) return;
+    const el = sentinelRef.current;
+    if (!el || typeof window === "undefined") return;
+    const id = requestAnimationFrame(() => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight + 400) {
+        setVisibleCount((c) => Math.min(c + BATCH, videosData.length));
+      }
+    });
+    return () => cancelAnimationFrame(id);
+  }, [visibleCount, videosData.length]);
+
   const openModal = useCallback((index: number) => {
     setActiveIndex(index);
   }, []);

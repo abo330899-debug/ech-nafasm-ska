@@ -170,6 +170,25 @@ export default function Photos({ t, lang }: Props) {
     return () => io.disconnect();
   }, [albumCount]);
 
+  // Stall guard: a stable observer only fires on threshold crossings, so if a
+  // freshly-appended batch leaves the sentinel still inside the preload zone no
+  // further callback fires and auto-loading stops. After each batch, measure the
+  // sentinel's live position and top up while it stays within the preload zone.
+  // Geometry-based (not the IO ref) so it self-limits once enough cards render —
+  // it never recreates the observer, which would cascade the whole list.
+  useEffect(() => {
+    if (visibleCount >= albumCount) return;
+    const el = sentinelRef.current;
+    if (!el || typeof window === "undefined") return;
+    const id = requestAnimationFrame(() => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight + 400) {
+        setVisibleCount((c) => Math.min(c + ALBUM_BATCH, albumCount));
+      }
+    });
+    return () => cancelAnimationFrame(id);
+  }, [visibleCount, albumCount]);
+
   return (
     <div className="page-content photos-luxe">
       <PhotoBackdrop />
