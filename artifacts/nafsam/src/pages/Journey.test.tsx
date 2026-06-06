@@ -4,9 +4,14 @@ import type { Translations } from "@/i18n/translations";
 
 const mockContent = vi.fn();
 
-vi.mock("@/hooks/usePrivateContent", () => ({
-  usePrivateContent: () => mockContent(),
-}));
+vi.mock("@/hooks/usePrivateContent", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/hooks/usePrivateContent")>();
+  return {
+    ...actual,
+    usePrivateContent: () => mockContent(),
+  };
+});
 
 vi.mock("@/hooks/usePageAudio", () => ({ default: () => {} }));
 
