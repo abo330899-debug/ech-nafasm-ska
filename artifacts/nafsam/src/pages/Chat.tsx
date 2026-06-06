@@ -18,6 +18,7 @@ import {
   X,
   ArrowDown,
   ArrowLeft,
+  ChevronLeft,
   Trash2,
   Heart,
 } from "lucide-react";
@@ -605,36 +606,39 @@ export default function Chat({ lang }: Props) {
         <header className="chat-header">
           <button
             type="button"
-            className="chat-icon-btn chat-back"
+            className="chat-back-pill"
             onClick={() => navigate("/home")}
             aria-label={s.back}
           >
-            <ArrowLeft size={20} />
+            <ChevronLeft size={22} />
+            {unread > 0 && (
+              <span className="chat-back-count">{unread}</span>
+            )}
           </button>
-          <div className="chat-peer">
-            <div className={`chat-avatar ${otherOnline ? "is-online" : ""}`}>
-              <img src={identityAvatar(them)} alt={themName} />
-            </div>
-            <div className="chat-peer-meta">
-              <span className="chat-peer-name">{themName}</span>
-              <span
-                className={`chat-peer-status ${otherTyping ? "is-typing" : ""}`}
-              >
-                {statusText}
-              </span>
-            </div>
-          </div>
+
           <button
             type="button"
-            className="chat-icon-btn"
+            className={`chat-peer ${searching ? "is-searching" : ""}`}
             onClick={() => {
               setSearching((v) => !v);
               setQuery("");
             }}
             aria-label={s.search}
           >
-            {searching ? <X size={18} /> : <Search size={18} />}
+            <span className="chat-peer-name" dir="auto">
+              {themName}
+            </span>
+            <span
+              className={`chat-peer-status ${otherTyping ? "is-typing" : ""}`}
+              dir="auto"
+            >
+              {searching ? s.search_placeholder : statusText}
+            </span>
           </button>
+
+          <div className={`chat-avatar ${otherOnline ? "is-online" : ""}`}>
+            <img src={identityAvatar(them)} alt={themName} />
+          </div>
         </header>
 
         {searching && (
