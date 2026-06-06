@@ -101,6 +101,14 @@ completed keys to a tmp file and self-exits a few seconds before the 120s bash
 timeout, then call it repeatedly until it prints done. (R2 upload of ~230 files /
 1.1GB actually finished well within one 95s foreground chunk at concurrency 4.)
 
+**`/feelings` page is content.json-driven (silent-empty footgun):**
+`Feelings.tsx` renders heroSub/storyParagraphs/memoryFragments/collapseLines/
+endingLine ONLY from `content.json` `feelings[lang]` (fallback `feelings.tr` then
+`{}`); translations.ts only supplies titles. If `content.json` has no `feelings`
+key the page shows just the hero title + empty section bodies. To fill it: add
+`feelings.ar` (+ `feelings.tr` as the cross-lang fallback) then PUT content.json
+to R2 (same flow as all content). No git push — `private/` is gitignored.
+
 **Static `openAt`:** static `fetchSession()` returns a real `openAt` from
 `VITE_OPEN_AT` (fallback `2026-05-29T17:00:00`, mirrors server `DEFAULT_OPEN_AT`),
 not `0`. Returning `0` made the login "elapsed since" counter show ~20609 days
