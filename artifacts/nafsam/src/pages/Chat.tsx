@@ -332,6 +332,29 @@ export default function Chat({ lang }: Props) {
     });
   }
 
+  // Keep the chat sized to the *visual* viewport so the composer sits right
+  // above the on-screen keyboard (like WhatsApp/Telegram) instead of being
+  // hidden behind it on iOS Safari. Falls back to 100dvh where unsupported.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const apply = () => {
+      const de = document.documentElement.style;
+      de.setProperty("--chat-vh", `${vv.height}px`);
+      de.setProperty("--chat-top", `${vv.offsetTop}px`);
+    };
+    apply();
+    vv.addEventListener("resize", apply);
+    vv.addEventListener("scroll", apply);
+    return () => {
+      vv.removeEventListener("resize", apply);
+      vv.removeEventListener("scroll", apply);
+      const de = document.documentElement.style;
+      de.removeProperty("--chat-vh");
+      de.removeProperty("--chat-top");
+    };
+  }, []);
+
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -742,33 +765,19 @@ export default function Chat({ lang }: Props) {
               hidden
             />
 
-            <div className="chat-composer-tools">
-              <button
-                type="button"
-                className={`chat-icon-btn ${emojiOpen ? "is-active" : ""}`}
-                onClick={() => {
-                  setEmojiOpen((v) => !v);
-                  setAttachOpen(false);
-                }}
-                aria-label={s.emoji}
-                title={s.emoji}
-              >
-                <Smile size={21} />
-              </button>
-              <button
-                type="button"
-                className={`chat-icon-btn ${attachOpen ? "is-active" : ""}`}
-                onClick={() => {
-                  setAttachOpen((v) => !v);
-                  setEmojiOpen(false);
-                }}
-                disabled={uploading}
-                aria-label={s.attach}
-                title={s.attach}
-              >
-                <Paperclip size={21} />
-              </button>
-            </div>
+            <button
+              type="button"
+              className={`chat-icon-btn chat-attach ${attachOpen ? "is-active" : ""}`}
+              onClick={() => {
+                setAttachOpen((v) => !v);
+                setEmojiOpen(false);
+              }}
+              disabled={uploading}
+              aria-label={s.attach}
+              title={s.attach}
+            >
+              <Paperclip size={22} />
+            </button>
 
             {emojiOpen && (
               <div className="chat-emoji-pop">
@@ -805,21 +814,35 @@ export default function Chat({ lang }: Props) {
               </div>
             )}
 
-            <textarea
-              ref={inputRef}
-              className="chat-input"
-              dir="auto"
-              rows={1}
-              value={draft}
-              onChange={(e) => {
-                setDraft(e.target.value);
-                autoGrow();
-                notifyTyping();
-              }}
-              onKeyDown={onKeyDown}
-              placeholder={uploading ? s.sending_image : s.placeholder}
-              disabled={uploading}
-            />
+            <div className="chat-input-wrap">
+              <textarea
+                ref={inputRef}
+                className="chat-input"
+                dir="auto"
+                rows={1}
+                value={draft}
+                onChange={(e) => {
+                  setDraft(e.target.value);
+                  autoGrow();
+                  notifyTyping();
+                }}
+                onKeyDown={onKeyDown}
+                placeholder={uploading ? s.sending_image : s.placeholder}
+                disabled={uploading}
+              />
+              <button
+                type="button"
+                className={`chat-emoji-btn ${emojiOpen ? "is-active" : ""}`}
+                onClick={() => {
+                  setEmojiOpen((v) => !v);
+                  setAttachOpen(false);
+                }}
+                aria-label={s.emoji}
+                title={s.emoji}
+              >
+                <Smile size={22} />
+              </button>
+            </div>
 
             {hasDraft ? (
               <button
