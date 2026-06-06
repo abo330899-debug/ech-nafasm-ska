@@ -102,16 +102,18 @@ behavior — do NOT "restore" a one-way gate thinking it's a privacy bug. It
 exposes nothing beyond what the realtime presence channel + `read_state` already
 carried for the two authorized identities.
 
-**Header status is ALWAYS "online" — "last seen" is never shown (product
-choice).** `statusText` in `Chat.tsx` resolves to typing → else `s.online`
-unconditionally, and both peer avatars always carry `is-online`. The real
-`otherOnline`/`otherLastSeen` values are NOT used for the header anymore (only
-inside `tickFor`). Do not "fix" this back to last-seen — it was explicitly
-requested that both Star & Ilham always appear connected.
+**Header status reflects REAL presence: "online" while the peer is on the page,
+"last seen <time>" once they leave.** `statusText` in `Chat.tsx` = typing → else
+`otherOnline ? online : otherLastSeen ? last_seen : offline`, and avatars carry
+`is-online` only when `otherOnline`. **History/footgun:** an "always online"
+variant (statusText hardcoded to `s.online`, avatars always `is-online`,
+`lastSeenTime` deleted) was shipped briefly then explicitly reverted — the user
+wants genuine online/last-seen, NOT a fake permanent-online. Do not re-introduce
+the always-online version.
 
-**Bubble read receipts are Telegram-style and decoupled from the always-online
-header.** `tickFor` still computes real sent/delivered/seen from
-presence + `otherLastRead`, but `MessageBubble` renders only TWO visual states:
+**Bubble read receipts are Telegram-style.** `tickFor` computes real
+sent/delivered/seen from presence + `otherLastRead`, but `MessageBubble`
+renders only TWO visual states:
 a single `Check` for anything not yet read (sent OR delivered), and a double
 blue `CheckCheck` (`.chat-ticks.is-seen`) once `created_at <= otherLastRead`.
 So "two blue ticks" still depends on the durable `read_state` step above.
