@@ -11,6 +11,13 @@ interface Contact {
   online: boolean;
 }
 
+interface Message {
+  id: number;
+  text: string;
+  sent: boolean;
+  time: string;
+}
+
 const CONTACT: Contact = {
   name: "Nafsam",
   initials: "N",
@@ -31,6 +38,29 @@ function formatTime(secs: number) {
   return `${pad(m)}:${pad(s)}`;
 }
 
+function nowTime() {
+  const d = new Date();
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const INITIAL_MESSAGES: Message[] = [
+  { id: 1, text: "هلا 🌙", sent: false, time: "21:02" },
+  { id: 2, text: "وينك؟ اشتقتلك", sent: false, time: "21:02" },
+  { id: 3, text: "هلا فيك ❤️ هنا دايماً", sent: true, time: "21:03" },
+  { id: 4, text: "تحب نتكلم صوت؟", sent: false, time: "21:04" },
+];
+
+const AUTO_REPLIES = [
+  "تمام 😊",
+  "حلو كثير ❤️",
+  "صح كلامك",
+  "هههه دمك خفيف",
+  "وانا بعد اشتقتلك",
+  "خبرني اكثر 👀",
+  "اوكي، موجود",
+  "🌙✨",
+];
+
 export default function App() {
   const [callState, setCallState] = useState<CallState>("idle");
   const [muted, setMuted] = useState(false);
@@ -38,14 +68,26 @@ export default function App() {
   const [videoOn, setVideoOn] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [visible, setVisible] = useState(false);
+
+  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const [draft, setDraft] = useState("");
+  const [typing, setTyping] = useState(false);
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sequenceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const replyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const endHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const endResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearTimers = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (sequenceRef.current) clearTimeout(sequenceRef.current);
+    if (endHideRef.current) clearTimeout(endHideRef.current);
+    if (endResetRef.current) clearTimeout(endResetRef.current);
     timerRef.current = null;
     sequenceRef.current = null;
+    endHideRef.current = null;
+    endResetRef.current = null;
   }, []);
 
   const startCall = useCallback(() => {
@@ -67,19 +109,49 @@ export default function App() {
     }, 2000);
   }, []);
 
+  const startVideoCall = useCallback(() => {
+    startCall();
+    setVideoOn(true);
+  }, [startCall]);
+
   const endCall = useCallback(() => {
     clearTimers();
     setCallState("ended");
-    setTimeout(() => {
+    endHideRef.current = setTimeout(() => {
       setVisible(false);
-      setTimeout(() => {
+      endResetRef.current = setTimeout(() => {
         setCallState("idle");
         setElapsed(0);
       }, 300);
     }, 800);
   }, [clearTimers]);
 
-  useEffect(() => () => clearTimers(), [clearTimers]);
+  const sendMessage = useCallback(() => {
+    const text = draft.trim();
+    if (!text) return;
+    const mine: Message = { id: Date.now(), text, sent: true, time: nowTime() };
+    setMessages((m) => [...m, mine]);
+    setDraft("");
+
+    setTyping(true);
+    if (replyRef.current) clearTimeout(replyRef.current);
+    replyRef.current = setTimeout(() => {
+      const reply = AUTO_REPLIES[Math.floor(Math.random() * AUTO_REPLIES.length)];
+      setTyping(false);
+      setMessages((m) => [
+        ...m,
+        { id: Date.now() + 1, text: reply, sent: false, time: nowTime() },
+      ]);
+    }, 1400);
+  }, [draft]);
+
+  useEffect(
+    () => () => {
+      clearTimers();
+      if (replyRef.current) clearTimeout(replyRef.current);
+    },
+    [clearTimers],
+  );
 
   const statusText =
     callState === "calling"
@@ -96,7 +168,16 @@ export default function App() {
 
   return (
     <div className="tg-root">
-      <ContactCard contact={CONTACT} onCall={startCall} />
+      <ChatScreen
+        contact={CONTACT}
+        messages={messages}
+        draft={draft}
+        typing={typing}
+        onDraftChange={setDraft}
+        onSend={sendMessage}
+        onCall={startCall}
+        onVideoCall={startVideoCall}
+      />
 
       <div className={`tg-overlay ${visible ? "tg-overlay--in" : "tg-overlay--out"}`}>
         {visible && (
@@ -122,69 +203,121 @@ export default function App() {
   );
 }
 
-function ContactCard({
+function ChatScreen({
   contact,
+  messages,
+  draft,
+  typing,
+  onDraftChange,
+  onSend,
   onCall,
+  onVideoCall,
 }: {
   contact: Contact;
+  messages: Message[];
+  draft: string;
+  typing: boolean;
+  onDraftChange: (v: string) => void;
+  onSend: () => void;
   onCall: () => void;
+  onVideoCall: () => void;
 }) {
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, typing]);
+
+  const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      onSend();
+    }
+  };
+
   return (
-    <div className="tg-contact-page">
-      <div className="tg-contact-top-bar">
-        <div className="tg-contact-back">
+    <div className="tg-chat-page">
+      <div className="tg-chat-header">
+        <div className="tg-chat-back">
           <svg width="11" height="19" viewBox="0 0 11 19" fill="none">
             <path d="M10 1L2 9.5L10 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span>Chats</span>
         </div>
-        <div className="tg-contact-actions">
-          <button className="tg-icon-btn" aria-label="Video call" onClick={onCall}>
+
+        <div className="tg-chat-peer">
+          <span className="tg-chat-peer-name">{contact.name}</span>
+          <span className="tg-chat-peer-status">
+            {contact.online ? "online" : "last seen recently"}
+          </span>
+        </div>
+
+        <div className="tg-chat-header-right">
+          <button className="tg-icon-btn" aria-label="Video call" onClick={onVideoCall}>
             <VideoCallIcon />
           </button>
-          <button className="tg-icon-btn" aria-label="Call" onClick={onCall}>
+          <button className="tg-icon-btn" aria-label="Voice call" onClick={onCall}>
             <PhoneIcon />
           </button>
+          <Avatar contact={contact} size={36} />
         </div>
       </div>
 
-      <div className="tg-contact-info">
-        <Avatar contact={contact} size={80} />
-        <h1 className="tg-contact-name">{contact.name}</h1>
-        <p className="tg-contact-status">{contact.online ? "online" : "last seen recently"}</p>
+      <div className="tg-chat-bg" />
+
+      <div className="tg-chat-messages" ref={listRef}>
+        <div className="tg-chat-day">Today</div>
+        {messages.map((m) => (
+          <div
+            key={m.id}
+            className={`tg-bubble-row ${m.sent ? "tg-bubble-row--out" : "tg-bubble-row--in"}`}
+          >
+            <div
+              className={`tg-bubble ${m.sent ? "tg-bubble--out" : "tg-bubble--in"}`}
+              dir="auto"
+            >
+              <span className="tg-bubble-text">{m.text}</span>
+              <span className="tg-bubble-meta">
+                {m.time}
+                {m.sent && <ReadIcon />}
+              </span>
+            </div>
+          </div>
+        ))}
+        {typing && (
+          <div className="tg-bubble-row tg-bubble-row--in">
+            <div className="tg-bubble tg-bubble--in tg-bubble--typing">
+              <span className="tg-typing-dot" />
+              <span className="tg-typing-dot" />
+              <span className="tg-typing-dot" />
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="tg-contact-body">
-        <div className="tg-info-section">
-          <div className="tg-info-row">
-            <div className="tg-info-icon tg-info-icon--blue">
-              <PhoneIcon />
-            </div>
-            <div className="tg-info-content">
-              <p className="tg-info-value">+1 234 567 8900</p>
-              <p className="tg-info-label">mobile</p>
-            </div>
-          </div>
-          <div className="tg-info-divider" />
-          <div className="tg-info-row">
-            <div className="tg-info-icon tg-info-icon--blue">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="currentColor" />
-              </svg>
-            </div>
-            <div className="tg-info-content">
-              <p className="tg-info-value">@{contact.name.toLowerCase()}</p>
-              <p className="tg-info-label">Telegram</p>
-            </div>
-          </div>
-        </div>
-
-        <button className="tg-call-row" onClick={onCall}>
-          <div className="tg-call-row-icon">
-            <PhoneIcon />
-          </div>
-          <span>Voice Call</span>
+      <div className="tg-composer">
+        <button className="tg-composer-attach" aria-label="Attach">
+          <AttachIcon />
         </button>
+        <textarea
+          className="tg-composer-input"
+          placeholder="Message"
+          rows={1}
+          value={draft}
+          dir="auto"
+          onChange={(e) => onDraftChange(e.target.value)}
+          onKeyDown={handleKey}
+        />
+        {draft.trim() ? (
+          <button className="tg-composer-send" aria-label="Send" onClick={onSend}>
+            <SendIcon />
+          </button>
+        ) : (
+          <button className="tg-composer-mic" aria-label="Voice message">
+            <MicIcon muted={false} />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -333,6 +466,31 @@ function VideoCallIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
       <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function AttachIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+      <path d="M16.5 6v11.5a4 4 0 0 1-8 0V5a2.5 2.5 0 0 1 5 0v10.5a1 1 0 0 1-2 0V6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function SendIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ReadIcon() {
+  return (
+    <svg className="tg-read-icon" width="16" height="11" viewBox="0 0 16 11" fill="none">
+      <path d="M1 5.5L4.2 8.7L10.5 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5.5 8.5L6.2 9.2L12.5 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
