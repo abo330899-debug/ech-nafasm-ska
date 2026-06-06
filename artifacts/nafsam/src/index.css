@@ -798,6 +798,18 @@ main{flex:1}
     padding:14px;
   }
   .gallery-grid .info h3{ font-size:.85rem; }
+
+  .login-container{padding:30px 20px}
+  .login-title{font-size:1.9rem}
+  .login-text{font-size:.86rem;margin-bottom:24px}
+  .login-form{flex-direction:column;gap:12px;margin-bottom:16px}
+  .login-select,
+  .login-input{width:100%;min-width:0}
+  .login-btn{width:100%;min-width:0}
+  .elapsed-block{padding:18px 14px}
+  .elapsed-unit{min-width:42px}
+  .elapsed-unit strong{font-size:1.7rem}
+  .login-msg{width:100%}
 }
 
 .writings-list{
@@ -885,8 +897,12 @@ main{flex:1}
   display:flex;
   align-items:center;
   justify-content:center;
-  min-height:80vh;
+  min-height:100vh;
+  min-height:100svh;
+  min-height:100dvh;
   padding:40px 20px;
+  padding-top:max(40px,env(safe-area-inset-top,40px));
+  padding-bottom:max(40px,calc(env(safe-area-inset-bottom,0px) + 64px));
   position:relative;
   isolation:isolate;
 }
@@ -933,6 +949,10 @@ main{flex:1}
   grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
   gap:12px;
   margin-bottom:28px;
+}
+.user-cards-grid:empty{
+  display:none;
+  margin:0;
 }
 .user-card{
   padding:16px 12px;
