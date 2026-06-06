@@ -360,6 +360,13 @@ export default function Videos({ t, lang }: Props) {
   const activeCaption = active ? pickLocalized(active.caption, lang) : "";
   const activeQuote = active ? pickLocalized(active.quote, lang) : "";
 
+  const featured = videosData[0] ?? null;
+  const featuredKind: VideoKind = featured ? detectKind(featured.file) : "mp4";
+  const featuredCaption = featured ? pickLocalized(featured.caption, lang) : "";
+  const featuredQuote = featured ? pickLocalized(featured.quote, lang) : "";
+  const featuredPoster =
+    featured && featuredKind === "mp4" ? buildPoster(featured.file) : "";
+
   return (
     <div className="videos-page videos-luxe">
       <PhotoBackdrop />
@@ -376,8 +383,54 @@ export default function Videos({ t, lang }: Props) {
         </div>
       </section>
 
+      {featured && (
+        <section className="v-spotlight">
+          <button
+            type="button"
+            className="v-spotlight-card"
+            onClick={() => openModal(0)}
+            aria-label={featuredCaption}
+          >
+            <div className="v-spotlight-media">
+              {featuredPoster ? (
+                <img
+                  className="v-spotlight-img"
+                  src={featuredPoster}
+                  alt=""
+                  aria-hidden="true"
+                  loading="eager"
+                  decoding="async"
+                  draggable={false}
+                />
+              ) : (
+                <div className="v-thumb-fallback" aria-hidden="true" />
+              )}
+              <div className="v-spotlight-scrim" aria-hidden="true" />
+              <div className="v-play v-play-lg" aria-hidden="true">
+                <PlayIcon />
+              </div>
+            </div>
+            <div className="v-spotlight-body">
+              <span className="v-spotlight-eyebrow">
+                <span className="v-spotlight-dot" aria-hidden="true" />
+                {t.video_featured}
+              </span>
+              <h2 className="v-spotlight-title">{featuredCaption}</h2>
+              {featuredQuote && (
+                <p className="v-spotlight-quote">{featuredQuote}</p>
+              )}
+              <span className="v-spotlight-cta">
+                <PlayIcon />
+                {t.video_watch}
+              </span>
+            </div>
+          </button>
+        </section>
+      )}
+
       <div className="v-gallery">
         {videosData.slice(0, visibleCount).map((item, index) => {
+          if (featured && index === 0) return null;
           const kind = detectKind(item.file);
           const caption = pickLocalized(item.caption, lang);
           const quote = pickLocalized(item.quote, lang);

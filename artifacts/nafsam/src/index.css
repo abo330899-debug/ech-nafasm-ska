@@ -2092,6 +2092,170 @@ audio,video{filter:none}
   font-weight:700;
 }
 
+/* ---------- FEATURED SPOTLIGHT ---------- */
+.videos-luxe .v-spotlight{
+  max-width:1280px;
+  margin:0 auto 34px;
+  padding:0 clamp(14px,3vw,28px);
+}
+.videos-luxe .v-spotlight-card{
+  position:relative;
+  display:block;
+  width:100%;
+  text-align:start;
+  padding:0;
+  font:inherit;
+  color:inherit;
+  cursor:pointer;
+  border:1px solid rgba(216,165,124,.3);
+  border-radius:28px;
+  overflow:hidden;
+  background:#0e1120;
+  box-shadow:
+    0 40px 90px -36px rgba(0,0,0,.85),
+    0 0 90px -26px var(--lux-rose-glow);
+  transition:
+    transform .55s cubic-bezier(.2,.8,.2,1),
+    box-shadow .55s cubic-bezier(.2,.8,.2,1),
+    border-color .4s ease;
+  animation:luxRise .5s cubic-bezier(.2,.8,.2,1) both;
+}
+.videos-luxe .v-spotlight-card:hover,
+.videos-luxe .v-spotlight-card:focus-visible{
+  transform:translateY(-4px);
+  border-color:rgba(216,165,124,.6);
+  box-shadow:
+    0 52px 120px -36px rgba(0,0,0,.9),
+    0 0 130px -22px var(--lux-rose-glow);
+  outline:none;
+}
+.videos-luxe .v-spotlight-media{
+  position:relative;
+  width:100%;
+  aspect-ratio:16 / 9;
+  max-height:540px;
+  overflow:hidden;
+  background:#0e1120;
+}
+.videos-luxe .v-spotlight-img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  display:block;
+  filter:saturate(1.03);
+  transition:transform .7s cubic-bezier(.2,.8,.2,1), filter .4s ease;
+}
+.videos-luxe .v-spotlight-card:hover .v-spotlight-img{
+  transform:scale(1.04);
+  filter:saturate(1.12) brightness(1.05);
+}
+.videos-luxe .v-spotlight-scrim{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(to top,
+    rgba(7,11,22,.95) 0%,
+    rgba(7,11,22,.55) 44%,
+    rgba(7,11,22,.04) 100%);
+}
+.videos-luxe .v-spotlight-body{
+  position:absolute;
+  inset-inline:0;
+  bottom:0;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding:clamp(20px,4vw,44px);
+  max-width:780px;
+}
+.videos-luxe .v-spotlight-eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  align-self:flex-start;
+  padding:7px 16px;
+  border-radius:999px;
+  border:1px solid var(--lux-rose-soft);
+  background:rgba(7,11,22,.5);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  color:var(--lux-rose-hi);
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.videos-luxe .v-spotlight-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--lux-rose-hi);
+  animation:spotDot 1.8s ease-in-out infinite;
+}
+@keyframes spotDot{
+  0%,100%{box-shadow:0 0 0 0 rgba(216,165,124,.6)}
+  50%{box-shadow:0 0 0 7px rgba(216,165,124,0)}
+}
+.videos-luxe .v-spotlight-title{
+  margin:0;
+  color:#fff;
+  font-size:clamp(1.45rem,3.4vw,2.3rem);
+  font-weight:700;
+  line-height:1.22;
+}
+.videos-luxe .v-spotlight-quote{
+  margin:0;
+  max-width:640px;
+  color:var(--lux-text-dim);
+  font-size:clamp(.9rem,1.6vw,1.05rem);
+  line-height:1.6;
+  font-style:italic;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.videos-luxe .v-spotlight-cta{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  align-self:flex-start;
+  margin-top:4px;
+  padding:11px 24px;
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--lux-rose-hi),var(--lux-rose));
+  color:#1a0f14;
+  font-size:.9rem;
+  font-weight:700;
+  letter-spacing:.02em;
+  box-shadow:0 14px 36px -12px var(--lux-rose-glow);
+  transition:transform .3s ease, box-shadow .3s ease;
+}
+.videos-luxe .v-spotlight-card:hover .v-spotlight-cta{
+  transform:translateY(-1px);
+  box-shadow:0 18px 44px -12px var(--lux-rose-glow);
+}
+.videos-luxe .v-play-lg{
+  width:88px;
+  height:88px;
+}
+.videos-luxe .v-play-lg svg{
+  width:30px;
+  height:30px;
+}
+.videos-luxe .v-spotlight-card:hover .v-play-lg{
+  transform:translate(-50%,-50%) scale(1.08);
+  background:rgba(216,165,124,.95);
+  color:#1a0f14;
+}
+@media (max-width:640px){
+  .videos-luxe .v-spotlight{margin-bottom:24px}
+  .videos-luxe .v-spotlight-media{aspect-ratio:4 / 5;max-height:none}
+  .videos-luxe .v-spotlight-body{gap:10px}
+  .videos-luxe .v-play-lg{width:66px;height:66px}
+  .videos-luxe .v-play-lg svg{width:24px;height:24px}
+}
+
 /* ---------- VIDEO GALLERY ---------- */
 .videos-luxe .v-gallery{
   display:grid;

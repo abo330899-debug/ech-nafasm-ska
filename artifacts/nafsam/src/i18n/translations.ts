@@ -37,6 +37,8 @@ export interface Translations {
   songs_text: string;
   videos_title: string;
   video_memory_label: string;
+  video_featured: string;
+  video_watch: string;
   video1_title: string;
   video2_title: string;
   writings_title: string;
@@ -116,6 +118,8 @@ export const translations: Record<Lang, Translations> = {
     songs_text: "Bir zamanlar sıcaklık olan şarkılar, şimdi hatıraya açık uzun bir gece oldu.",
     videos_title: "Videolar",
     video_memory_label: "Hatıra",
+    video_featured: "Öne Çıkan",
+    video_watch: "İzle",
     video1_title: "Video 1",
     video2_title: "Video 2",
     writings_title: "Boğulma",
@@ -194,6 +198,8 @@ export const translations: Record<Lang, Translations> = {
     songs_text: "Songs that were once warmth have become a long night open to memory.",
     videos_title: "Videos",
     video_memory_label: "Memory",
+    video_featured: "Featured",
+    video_watch: "Watch",
     video1_title: "Video 1",
     video2_title: "Video 2",
     writings_title: "Drowning",
@@ -272,6 +278,8 @@ export const translations: Record<Lang, Translations> = {
     songs_text: "أغانٍ كانت دفءً في يوم ما، صارت الآن ليلاً طويلاً مفتوحاً على الذاكرة.",
     videos_title: "مقاطع",
     video_memory_label: "ذكرى",
+    video_featured: "المقطع المميّز",
+    video_watch: "شاهد",
     video1_title: "مقطع ١",
     video2_title: "مقطع ٢",
     writings_title: "غرق",
@@ -350,6 +358,8 @@ export const translations: Record<Lang, Translations> = {
     songs_text: "ترانه‌هایی که زمانی گرما بودند، حالا شبی طولانی و باز به‌روی خاطره شده‌اند.",
     videos_title: "ویدیوها",
     video_memory_label: "خاطره",
+    video_featured: "ویژه",
+    video_watch: "تماشا",
     video1_title: "ویدیو ۱",
     video2_title: "ویدیو ۲",
     writings_title: "غرق شدن",
