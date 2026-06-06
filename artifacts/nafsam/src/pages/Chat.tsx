@@ -829,6 +829,13 @@ export default function Chat({ lang }: Props) {
                   notifyTyping();
                 }}
                 onKeyDown={onKeyDown}
+                onFocus={() => {
+                  // Tapping the field opens the system keyboard, which shrinks
+                  // the visual viewport. Once that resize settles, keep the
+                  // latest messages and the composer visible above the keyboard.
+                  nearBottomRef.current = true;
+                  window.setTimeout(() => scrollToBottom("auto"), 250);
+                }}
                 placeholder={uploading ? s.sending_image : s.placeholder}
                 disabled={uploading}
               />
