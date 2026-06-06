@@ -50,17 +50,6 @@ function dayKey(iso: string): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
-function lastSeenTime(ts: number): string {
-  const d = new Date(ts);
-  const now = new Date();
-  const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  if (d.toDateString() === now.toDateString()) return time;
-  const date = d.toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-  });
-  return `${date} ${time}`;
-}
 
 function dayLabel(
   iso: string,
@@ -485,13 +474,12 @@ export default function Chat({ lang }: Props) {
     );
   }
 
+  // Both peers are always presented as connected: "last seen" is never shown,
+  // only "online" (or the live typing indicator). Read receipts on the bubbles
+  // still reflect the real delivered/read state.
   const statusText = otherTyping
     ? s.typing_name.replace("{name}", themName)
-    : otherOnline
-      ? s.online
-      : otherLastSeen
-        ? s.last_seen.replace("{time}", lastSeenTime(otherLastSeen))
-        : s.offline;
+    : s.online;
 
   const hasDraft = draft.trim().length > 0;
 
@@ -567,9 +555,7 @@ export default function Chat({ lang }: Props) {
         </div>
         <div className="chat-convo-list">
           <div className="chat-convo is-active">
-            <div
-              className={`chat-avatar lg is-text ${otherOnline ? "is-online" : ""}`}
-            >
+            <div className="chat-avatar lg is-text is-online">
               <span className="chat-avatar-mark">{identityShort(them)}</span>
             </div>
             <div className="chat-convo-main">
@@ -642,9 +628,7 @@ export default function Chat({ lang }: Props) {
             </span>
           </button>
 
-          <div
-            className={`chat-avatar is-text ${otherOnline ? "is-online" : ""}`}
-          >
+          <div className="chat-avatar is-text is-online">
             <span className="chat-avatar-mark">{identityShort(them)}</span>
           </div>
         </header>

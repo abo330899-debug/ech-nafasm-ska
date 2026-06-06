@@ -174,10 +174,10 @@ export default function MessageBubble({
                 aria-label={statusLabel}
                 title={statusLabel}
               >
-                {status === "sent" ? (
-                  <Check size={14} strokeWidth={2.4} />
-                ) : (
+                {status === "seen" ? (
                   <CheckCheck size={14} strokeWidth={2.4} />
+                ) : (
+                  <Check size={14} strokeWidth={2.4} />
                 )}
               </span>
             )}
