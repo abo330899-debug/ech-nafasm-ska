@@ -5,3 +5,4 @@
 - [Nafsam photos↔captions](nafsam-photos-captions.md) — album pairs data.photos[i] with captions[lang][i] by index; reorder photos (not captions) to fix; dupes/non-anchored photos make perfect match impossible.
 - [Nafsam mobile gallery windowing](nafsam-mobile-gallery-windowing.md) — large galleries (245 videos) must render a windowed slice + IO sentinel or iOS Safari OOM-reloads.
 - [GitHub push (ECHandSKA-1)](github-push.md) — push via GitHub connector token + credential helper, git-lfs needs bash PATH; remote was force-overwritten to match Replit copy (backup branch saved).
+- [Telegram Call workflow fix](telegram-call-workflow.md) — telegram-call standalone workflow SIGKILL-fails always; serve its dist via api-server static route + add /telegram-call to api-server paths instead.

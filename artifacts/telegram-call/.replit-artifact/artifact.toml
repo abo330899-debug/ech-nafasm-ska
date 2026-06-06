@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/telegram-call/"
+title = "Telegram Call UI"
+version = "1.0.0"
+id = "artifacts/telegram-call"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = ["/telegram-call"]
+localPort = 8080
+
+[services.development]
+run = "echo 'Served by api-server on port 8080'"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/telegram-call", "run", "build"]
+publicDir = "artifacts/telegram-call/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "8080"
+BASE_PATH = "/telegram-call/"

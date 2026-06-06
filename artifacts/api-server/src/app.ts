@@ -74,6 +74,12 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
+const tgDir = path.resolve(__dirname, "../../telegram-call/dist/public");
+app.use("/telegram-call", express.static(tgDir));
+app.get("/telegram-call/*path", (_req, res) => {
+  res.sendFile(path.join(tgDir, "index.html"));
+});
+
 if (process.env.NODE_ENV === "production") {
   const staticDir = path.resolve(__dirname, "../../nafsam/dist/public");
   app.use(express.static(staticDir));
