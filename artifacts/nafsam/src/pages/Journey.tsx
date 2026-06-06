@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import PhotoBackdrop from "@/components/PhotoBackdrop";
 import usePageAudio from "@/hooks/usePageAudio";
 import { privateImage } from "@/lib/privateAssets";
-import { usePrivateContent } from "@/hooks/usePrivateContent";
+import { usePrivateContent, pickLocalized } from "@/hooks/usePrivateContent";
 import LuxImage from "@/components/LuxImage";
 import useReveal from "@/hooks/useReveal";
 import { type Translations, type Lang } from "@/i18n/translations";
@@ -34,7 +34,7 @@ function pad2(n: number) {
   return n < 10 ? `0${n}` : String(n);
 }
 
-export default function Journey({ t }: Props) {
+export default function Journey({ t, lang }: Props) {
   const data = usePrivateContent();
   usePageAudio(data?.pageAudio?.photos ?? "");
   const photosDir = data?.mediaConfig?.photosDir ?? "";
@@ -43,10 +43,8 @@ export default function Journey({ t }: Props) {
       !!ch &&
       typeof ch.file === "string" &&
       ch.file.trim() !== "" &&
-      typeof ch.title === "string" &&
-      ch.title.trim() !== "" &&
-      typeof ch.quote === "string" &&
-      ch.quote.trim() !== "",
+      pickLocalized(ch.title, lang).trim() !== "" &&
+      pickLocalized(ch.quote, lang).trim() !== "",
   );
 
   return (
@@ -66,6 +64,8 @@ export default function Journey({ t }: Props) {
             journey[i + 1] && photosDir
               ? privateImage(`${photosDir}/${journey[i + 1].file}`)
               : undefined;
+          const chTitle = pickLocalized(ch.title, lang);
+          const chQuote = pickLocalized(ch.quote, lang);
           return (
             <RevealChapter key={i} index={i}>
               <div className="journey-node" aria-hidden="true">
@@ -75,7 +75,7 @@ export default function Journey({ t }: Props) {
                 <div className="journey-media">
                   <LuxImage
                     src={src}
-                    alt={ch.title}
+                    alt={chTitle}
                     className="journey-img"
                     priority={i < 2 ? "high" : "auto"}
                     nextSrc={nextSrc}
@@ -83,8 +83,8 @@ export default function Journey({ t }: Props) {
                   <span className="journey-num">{pad2(i + 1)}</span>
                 </div>
                 <figcaption className="journey-text">
-                  <h2 className="journey-chapter-title">{ch.title}</h2>
-                  <p className="journey-quote">{ch.quote}</p>
+                  <h2 className="journey-chapter-title">{chTitle}</h2>
+                  <p className="journey-quote">{chQuote}</p>
                 </figcaption>
               </figure>
             </RevealChapter>

@@ -8,7 +8,11 @@ import {
 } from "react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import PhotoBackdrop from "@/components/PhotoBackdrop";
-import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
+import {
+  usePrivateContent,
+  pickLangPages,
+  pickLocalized,
+} from "@/hooks/usePrivateContent";
 import useReveal from "@/hooks/useReveal";
 import { mediaUrl, posterUrl } from "@/lib/r2";
 
@@ -228,7 +232,6 @@ export default function Videos({ t, lang }: Props) {
   const data = usePrivateContent();
   const p = pickLangPages(data, lang);
   const videosData = data?.videos ?? [];
-  void lang;
 
   const [visibleCount, setVisibleCount] = useState(BATCH);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -354,6 +357,8 @@ export default function Videos({ t, lang }: Props) {
   const active =
     activeIndex !== null ? (videosData[activeIndex] ?? null) : null;
   const activeKind: VideoKind = active ? detectKind(active.file) : "mp4";
+  const activeCaption = active ? pickLocalized(active.caption, lang) : "";
+  const activeQuote = active ? pickLocalized(active.quote, lang) : "";
 
   return (
     <div className="videos-page videos-luxe">
@@ -374,6 +379,8 @@ export default function Videos({ t, lang }: Props) {
       <div className="v-gallery">
         {videosData.slice(0, visibleCount).map((item, index) => {
           const kind = detectKind(item.file);
+          const caption = pickLocalized(item.caption, lang);
+          const quote = pickLocalized(item.quote, lang);
           return (
             <RevealVideoCard
               key={item.file}
@@ -382,7 +389,7 @@ export default function Videos({ t, lang }: Props) {
               onClick={() => openModal(index)}
               role="button"
               tabIndex={0}
-              aria-label={item.caption}
+              aria-label={caption}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
@@ -403,8 +410,8 @@ export default function Videos({ t, lang }: Props) {
                 <div className="v-date">
                   {t.video_memory_label} {index + 1}
                 </div>
-                <div className="v-title">{item.caption}</div>
-                {item.quote && <div className="v-quote">{item.quote}</div>}
+                <div className="v-title">{caption}</div>
+                {quote && <div className="v-quote">{quote}</div>}
               </div>
             </RevealVideoCard>
           );
@@ -422,7 +429,7 @@ export default function Videos({ t, lang }: Props) {
           className={`v-modal active${theaterMode ? " v-modal-theater" : ""}`}
           role="dialog"
           aria-modal="true"
-          aria-label={active.caption}
+          aria-label={activeCaption}
           onClick={(e) => {
             if (e.target === e.currentTarget) closeModal();
           }}
@@ -477,7 +484,7 @@ export default function Videos({ t, lang }: Props) {
                   key={active.file}
                   className="v-modal-iframe"
                   src={getYouTubeEmbed(active.file)}
-                  title={active.caption}
+                  title={activeCaption}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
@@ -505,8 +512,8 @@ export default function Videos({ t, lang }: Props) {
                 {t.video_memory_label} {(activeIndex ?? 0) + 1} /{" "}
                 {videosData.length}
               </div>
-              <h3 className="v-modal-title">{active.caption}</h3>
-              {active.quote && <p className="v-modal-quote">{active.quote}</p>}
+              <h3 className="v-modal-title">{activeCaption}</h3>
+              {activeQuote && <p className="v-modal-quote">{activeQuote}</p>}
               <div className="v-modal-actions">
                 {activeKind === "mp4" && (
                   <>

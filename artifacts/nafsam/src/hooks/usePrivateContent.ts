@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import type { Lang } from "@/i18n/translations";
 import { STATIC_MODE, R2_BASE } from "@/lib/r2";
 
+export type Localized = string | Partial<Record<Lang, string>>;
+
 export interface VideoItem {
   title: string;
   file: string;
-  quote: string;
-  caption: string;
+  quote: Localized;
+  caption: Localized;
 }
 
 export interface StoryCaption {
@@ -40,8 +42,8 @@ export interface SpecialPhotoItem {
 
 export interface JourneyEntry {
   file: string;
-  title: string;
-  quote: string;
+  title: Localized;
+  quote: Localized;
 }
 
 export interface PrivatePages {
@@ -146,6 +148,12 @@ export function pickLangFeelings(
 ): FeelingsContent {
   if (!data?.feelings) return {};
   return data.feelings[lang] ?? data.feelings.tr ?? {};
+}
+
+export function pickLocalized(val: Localized | undefined, lang: Lang): string {
+  if (val == null) return "";
+  if (typeof val === "string") return val;
+  return val[lang] ?? val.ar ?? val.tr ?? val.en ?? val.fa ?? "";
 }
 
 let cache: PrivateContent | null = null;
