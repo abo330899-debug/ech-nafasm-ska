@@ -1,4 +1,5 @@
 - [Nafsam static (R2) mode](nafsam-static-mode.md) — static serving needs branches in r2.ts+auth.ts+usePrivateContent.ts; VITE_AUTH_TOKENS = sha256 of NAFSAM_PASSWORDS, regenerate on change.
+- [Nafsam content i18n](nafsam-content-i18n.md) — videos/journey caption/quote now 4-lang objects via pickLocalized; bulk-translate with gpt-5-mini in FOREGROUND resumable script (bg procs die).
 - [Nafsam chat (/chat, Supabase)](nafsam-chat.md) — login word→fixed Supabase account (NOT word-derived); needs confirmed users + messages table GRANTs or every query 403s.
 - [Nafsam mobile reload-on-scroll](nafsam-mobile-reload.md) — heavy media → mobile tab eviction jumps to top; fix = scroll restoration hook + content-visibility on off-screen cards.
 - [Nafsam photos↔captions](nafsam-photos-captions.md) — album pairs data.photos[i] with captions[lang][i] by index; reorder photos (not captions) to fix; dupes/non-anchored photos make perfect match impossible.
