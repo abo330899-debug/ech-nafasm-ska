@@ -3,7 +3,11 @@ import { Trash2, Check, CheckCheck, SmilePlus } from "lucide-react";
 import { useChat } from "@/chat/chatContext";
 import { type ChatMessage } from "@/chat/chatContext";
 import { type ChatStrings } from "@/chat/chatI18n";
-import { type ChatIdentity } from "@/chat/chatAuth";
+import {
+  type ChatIdentity,
+  identityAvatar,
+  otherIdentity,
+} from "@/chat/chatAuth";
 import { parseVoice, REACTION_EMOJIS } from "@/chat/chatMedia";
 import VoicePlayer from "./VoicePlayer";
 
@@ -122,7 +126,14 @@ export default function MessageBubble({
     >
       {!mine && (
         <div className={`chat-row-avatar ${showAvatar ? "" : "is-hidden"}`}>
-          {senderLabel.charAt(0)}
+          {myIdentity ? (
+            <img
+              src={identityAvatar(otherIdentity(myIdentity))}
+              alt={senderLabel}
+            />
+          ) : (
+            senderLabel.charAt(0)
+          )}
         </div>
       )}
 

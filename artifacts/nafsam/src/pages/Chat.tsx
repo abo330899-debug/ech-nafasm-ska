@@ -24,7 +24,7 @@ import {
 import { type Translations, type Lang } from "@/i18n/translations";
 import { useChat, type ChatMessage } from "@/chat/chatContext";
 import { chatStrings } from "@/chat/chatI18n";
-import { otherIdentity, identityName } from "@/chat/chatAuth";
+import { otherIdentity, identityName, identityAvatar } from "@/chat/chatAuth";
 import { parseVoice } from "@/chat/chatMedia";
 import MessageBubble, {
   type TickStatus,
@@ -560,7 +560,7 @@ export default function Chat({ lang }: Props) {
         <div className="chat-convo-list">
           <div className="chat-convo is-active">
             <div className={`chat-avatar lg ${otherOnline ? "is-online" : ""}`}>
-              {themName.charAt(0)}
+              <img src={identityAvatar(them)} alt={themName} />
             </div>
             <div className="chat-convo-main">
               <div className="chat-convo-top">
@@ -606,7 +606,7 @@ export default function Chat({ lang }: Props) {
           </button>
           <div className="chat-peer">
             <div className={`chat-avatar ${otherOnline ? "is-online" : ""}`}>
-              {themName.charAt(0)}
+              <img src={identityAvatar(them)} alt={themName} />
             </div>
             <div className="chat-peer-meta">
               <span className="chat-peer-name">{themName}</span>
@@ -681,7 +681,9 @@ export default function Chat({ lang }: Props) {
 
           {ready && otherTyping && !query && (
             <div className="chat-row theirs chat-typing-row">
-              <div className="chat-row-avatar">{themName.charAt(0)}</div>
+              <div className="chat-row-avatar">
+                <img src={identityAvatar(them)} alt={themName} />
+              </div>
               <div className="chat-typing-bubble">
                 <span className="chat-typing-dots">
                   <i />

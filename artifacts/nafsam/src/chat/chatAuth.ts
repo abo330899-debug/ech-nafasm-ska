@@ -1,4 +1,6 @@
 import { supabase } from "./supabaseClient";
+import starAvatar from "@/assets/star.jpeg";
+import ilhamAvatar from "@/assets/ilham.jpeg";
 
 export type ChatIdentity = "star" | "ilham";
 
@@ -79,6 +81,15 @@ export function expectedEmail(id: ChatIdentity): string {
 
 export function identityName(id: ChatIdentity): string {
   return id === "star" ? "Star" : "إلهام";
+}
+
+const AVATARS: Record<ChatIdentity, string> = {
+  star: starAvatar,
+  ilham: ilhamAvatar,
+};
+
+export function identityAvatar(id: ChatIdentity): string {
+  return AVATARS[id];
 }
 
 export function otherIdentity(id: ChatIdentity): ChatIdentity {
