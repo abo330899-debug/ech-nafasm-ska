@@ -37,3 +37,20 @@ memory so it happens rarely, and restore position so it's harmless when it does.
 
 **How to apply:** any new long media list should get the same `content-visibility`
 treatment; scroll restoration is global so new routes are covered automatically.
+
+## When windowing alone still reloads on fast scroll
+
+Windowing + content-visibility + lazy/async images were ALL deployed and the user
+*still* reported fast-scroll reload on iOS. Three further memory cuts that helped,
+all low-risk:
+- **Kill the ahead-of-scroll prefetch on phones.** `LuxImage`'s `nextSrc` warms the
+  next 1-2 full-res images on every load; on a fast scroll this runaway chain piles
+  up decoded bitmaps. Gate that effect on `matchMedia("(max-width:820px)")` /
+  `navigator.connection.saveData` so phones never prefetch ahead. This is the single
+  biggest remaining win because it fights the very memory the windowing saves.
+- **Smaller windowing batches + tighter rootMargin** (videos 18→9, photos 12→8;
+  rootMargin 600px→400px) so fewer heavy cards mount per scroll burst.
+- **Bigger `contain-intrinsic-size`** (video 320→460px, photo 420→560px) so
+  off-screen placeholders better match real card height and the page doesn't jump.
+**Why:** the prefetch chain and oversized batches re-introduce the exact decoded-image
+pressure windowing is meant to remove; on iOS the decoded-bitmap budget is the limit.
