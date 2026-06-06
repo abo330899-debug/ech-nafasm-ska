@@ -1084,11 +1084,9 @@
   align-items: flex-end;
   gap: 6px;
   padding: 8px clamp(8px, 2.5vw, 16px);
-  padding-bottom: max(8px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--lux-border-soft);
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  padding-bottom: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: #1e1e24;
 }
 
 .chat-emoji-pop {
@@ -1192,16 +1190,16 @@
   min-height: 44px;
   max-height: 150px;
   padding: 0 6px;
-  border-radius: 22px;
-  border: 1px solid var(--lux-border-soft);
-  background: rgba(255, 255, 255, 0.06);
+  border-radius: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #2c2c34;
   transition:
     border-color 0.2s var(--ease),
     background 0.2s var(--ease);
 }
 .chat-input-wrap:focus-within {
-  border-color: var(--c-accent);
-  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: #2c2c34;
 }
 
 .chat-emoji-btn {

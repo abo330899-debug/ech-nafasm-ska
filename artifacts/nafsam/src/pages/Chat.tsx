@@ -344,10 +344,17 @@ export default function Chat({ lang }: Props) {
       de.setProperty("--chat-top", `${vv.offsetTop}px`);
     };
     apply();
-    vv.addEventListener("resize", apply);
+    const onResize = () => {
+      apply();
+      // When the keyboard opens/closes the viewport changes size; scroll to
+      // keep the latest messages above the keyboard so the user sees context.
+      nearBottomRef.current = true;
+      window.setTimeout(() => scrollToBottom("auto"), 100);
+    };
+    vv.addEventListener("resize", onResize);
     vv.addEventListener("scroll", apply);
     return () => {
-      vv.removeEventListener("resize", apply);
+      vv.removeEventListener("resize", onResize);
       vv.removeEventListener("scroll", apply);
       const de = document.documentElement.style;
       de.removeProperty("--chat-vh");
