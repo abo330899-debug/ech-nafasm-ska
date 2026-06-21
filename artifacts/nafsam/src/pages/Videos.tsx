@@ -14,6 +14,7 @@ import {
   pickLocalized,
 } from "@/hooks/usePrivateContent";
 import useReveal from "@/hooks/useReveal";
+import useNearViewport from "@/hooks/useNearViewport";
 import { mediaUrl, posterUrl } from "@/lib/r2";
 
 function RevealVideoCard({
@@ -55,6 +56,14 @@ interface Props {
 type VideoKind = "mp4" | "youtube" | "mega";
 
 const BATCH = 9;
+
+// On phones, skip the duplicate blurred-fill poster <img>. The card already
+// renders a contained foreground poster; rendering a second full poster per
+// card doubles decoded bitmaps and is a primary driver of the iOS OOM reload.
+const PHONE =
+  typeof window !== "undefined" && typeof window.matchMedia === "function"
+    ? window.matchMedia("(max-width: 820px)").matches
+    : false;
 
 function detectKind(file: string): VideoKind {
   if (/youtube\.com|youtu\.be/i.test(file)) return "youtube";
@@ -179,9 +188,15 @@ function CompressIcon() {
 
 function Thumb({ file, kind }: { file: string; kind: VideoKind }) {
   const [imgFailed, setImgFailed] = useState(false);
+  // Mount the poster only while the card is near the viewport so off-screen
+  // posters are unmounted and their decoded bitmaps reclaimed — without this,
+  // scrolling the gallery accumulates posters until iOS Safari OOM-reloads.
+  const { ref, near } = useNearViewport<HTMLDivElement>({
+    rootMargin: "1200px 0px",
+  });
   if (kind !== "mp4") {
     return (
-      <div className="v-thumb v-thumb-static">
+      <div className="v-thumb v-thumb-static" ref={ref}>
         <div className="v-thumb-fallback" aria-hidden="true" />
         <div className="v-play" aria-hidden="true">
           <PlayIcon />
@@ -190,19 +205,22 @@ function Thumb({ file, kind }: { file: string; kind: VideoKind }) {
     );
   }
   const poster = buildPoster(file);
+  const showPoster = near && !!poster && !imgFailed;
   return (
-    <div className="v-thumb">
-      {poster && !imgFailed ? (
+    <div className="v-thumb" ref={ref}>
+      {showPoster ? (
         <>
-          <img
-            className="v-thumb-bg"
-            src={poster}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-            draggable={false}
-          />
+          {!PHONE && (
+            <img
+              className="v-thumb-bg"
+              src={poster}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
+          )}
           <img
             className="v-thumb-fg"
             src={poster}

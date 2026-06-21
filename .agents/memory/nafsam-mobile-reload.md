@@ -54,3 +54,31 @@ all low-risk:
   off-screen placeholders better match real card height and the page doesn't jump.
 **Why:** the prefetch chain and oversized batches re-introduce the exact decoded-image
 pressure windowing is meant to remove; on iOS the decoded-bitmap budget is the limit.
+
+## When ALL the above still reloads — unmount off-screen images (the decisive fix)
+
+Windowing only ever GROWS; every full-res image you scroll past stays decoded, so a
+deep scroll still exceeds the iOS bitmap budget. `content-visibility:auto` is only
+honoured on Safari 18+, so it does not save older iPhones. The fix that actually
+holds: **mount the heavy `<img>` only while its card is near the viewport and unmount
+it (replace with an equal-size placeholder) once it scrolls far away** — removing the
+node lets the browser reclaim the decoded bitmap, capping memory to ~a viewport's worth.
+
+- Hook: `src/hooks/useNearViewport.ts` — two-way IntersectionObserver (NOT one-shot
+  like `useReveal`), `rootMargin ~1200px`, defaults `near=true` when IO/SSR missing so
+  it degrades to "always render", never blank.
+- Put the observer ref on the **fixed-aspect media box** (`.photo-card-media` 4/5,
+  `.v-thumb` 16/10), never on a zero-size wrapper, so it always has height to observe
+  and the placeholder holds the slot (no scroll jump). Reuse existing placeholder
+  markup (`lux-img-wrap`/`lux-img-placeholder`, `v-thumb-fallback`).
+- Applied in `Photos.tsx` (extracted `SpecialCard`+`AlbumCard`) and `Videos.tsx`
+  (`Thumb`). Initial `near=false` only costs a one-frame placeholder flash for
+  above-the-fold images — acceptable, and required (init `true` would mass-mount on
+  first paint and re-OOM).
+- Also halve video poster decodes on phones: render only ONE poster `<img>` per card
+  (drop the blurred `.v-thumb-bg` duplicate) gated on `max-width:820px`.
+
+**If it STILL reloads on very low-memory devices:** the only lever left is shrinking
+the bytes — deliver downscaled/thumbnail grid images and keep full-res for the
+lightbox/modal only. There are currently no resized variants (`r2.ts` builds plain
+URLs with no width params).

@@ -13,6 +13,7 @@ import { privateImage } from "@/lib/privateAssets";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
 import LuxImage from "@/components/LuxImage";
 import useReveal from "@/hooks/useReveal";
+import useNearViewport from "@/hooks/useNearViewport";
 import { prefetchImages } from "@/lib/prefetch";
 
 function RevealArticle({
@@ -81,6 +82,130 @@ const SPECIAL_PHOTO_TEXT_KEYS = [
   "photo28_text",
   "photo29_text",
 ] as const;
+
+const GATE_MARGIN = "1200px 0px";
+
+function MediaPlaceholder() {
+  return (
+    <span className="lux-img-wrap is-loading" aria-hidden="true">
+      <span className="lux-img-placeholder" />
+    </span>
+  );
+}
+
+function SpecialCard({
+  src,
+  text,
+  index,
+  priority,
+  nextSrc,
+  onOpen,
+}: {
+  src: string;
+  text?: string;
+  index: number;
+  priority?: "high" | "auto";
+  nextSrc?: string | string[];
+  onOpen: (src: string) => void;
+}) {
+  const { ref, near } = useNearViewport<HTMLDivElement>({
+    rootMargin: GATE_MARGIN,
+  });
+  return (
+    <RevealArticle className="photo-card glass" index={index}>
+      <div
+        className="photo-card-media"
+        ref={ref}
+        onClick={() => onOpen(src)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onOpen(src);
+          }
+        }}
+      >
+        {near ? (
+          <LuxImage
+            src={src}
+            alt={text ?? ""}
+            className="photo-img"
+            priority={priority}
+            nextSrc={nextSrc}
+          />
+        ) : (
+          <MediaPlaceholder />
+        )}
+        <span className="photo-card-badge">{pad2(index + 1)}</span>
+        {text && (
+          <div className="photo-card-overlay">
+            <p className="photo-card-overlay-text">{text}</p>
+          </div>
+        )}
+      </div>
+    </RevealArticle>
+  );
+}
+
+function AlbumCard({
+  src,
+  title,
+  text,
+  index,
+  nextSrc,
+  onOpen,
+}: {
+  src: string;
+  title?: string | null;
+  text?: string | null;
+  index: number;
+  nextSrc?: string | string[];
+  onOpen: (src: string) => void;
+}) {
+  const { ref, near } = useNearViewport<HTMLDivElement>({
+    rootMargin: GATE_MARGIN,
+  });
+  return (
+    <RevealArticle className="photo-card glass" index={index}>
+      <div
+        className="photo-card-media"
+        ref={ref}
+        onClick={() => onOpen(src)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onOpen(src);
+          }
+        }}
+      >
+        {near ? (
+          <LuxImage
+            src={src}
+            alt={title ?? ""}
+            className="photo-img"
+            nextSrc={nextSrc}
+          />
+        ) : (
+          <MediaPlaceholder />
+        )}
+        <span className="photo-card-badge">{pad2(index + 1)}</span>
+        {title && (
+          <div className="photo-card-overlay">
+            <p className="photo-card-overlay-title">{title}</p>
+          </div>
+        )}
+      </div>
+      {text && (
+        <div className="album-caption-block">
+          <p className="album-caption-text">{text}</p>
+        </div>
+      )}
+    </RevealArticle>
+  );
+}
 
 export default function Photos({ t, lang }: Props) {
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -201,34 +326,15 @@ export default function Photos({ t, lang }: Props) {
 
       <div className="photo-grid">
         {specialPhotos.map((ph, i) => (
-          <RevealArticle key={`s-${i}`} className="photo-card glass" index={i}>
-            <div
-              className="photo-card-media"
-              onClick={() => setLightbox(ph.src)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setLightbox(ph.src);
-                }
-              }}
-            >
-              <LuxImage
-                src={ph.src}
-                alt={ph.text ?? ""}
-                className="photo-img"
-                priority={i < 2 ? "high" : "auto"}
-                nextSrc={specialPhotos[i + 1]?.src}
-              />
-              <span className="photo-card-badge">{pad2(i + 1)}</span>
-              {ph.text && (
-                <div className="photo-card-overlay">
-                  <p className="photo-card-overlay-text">{ph.text}</p>
-                </div>
-              )}
-            </div>
-          </RevealArticle>
+          <SpecialCard
+            key={`s-${i}`}
+            src={ph.src}
+            text={ph.text}
+            index={i}
+            priority={i < 2 ? "high" : "auto"}
+            nextSrc={specialPhotos[i + 1]?.src}
+            onOpen={setLightbox}
+          />
         ))}
 
         {featuredPhoto &&
@@ -282,42 +388,19 @@ export default function Photos({ t, lang }: Props) {
 
       <div className="photo-grid album-grid">
         {albumPhotos.slice(0, visibleCount).map((ph, i) => (
-          <RevealArticle key={`a-${i}`} className="photo-card glass" index={i}>
-            <div
-              className="photo-card-media"
-              onClick={() => setLightbox(ph.src)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setLightbox(ph.src);
-                }
-              }}
-            >
-              <LuxImage
-                src={ph.src}
-                alt={ph.title ?? ""}
-                className="photo-img"
-                nextSrc={
-                  [albumPhotos[i + 1]?.src, albumPhotos[i + 2]?.src].filter(
-                    Boolean,
-                  ) as string[]
-                }
-              />
-              <span className="photo-card-badge">{pad2(i + 1)}</span>
-              {ph.title && (
-                <div className="photo-card-overlay">
-                  <p className="photo-card-overlay-title">{ph.title}</p>
-                </div>
-              )}
-            </div>
-            {ph.text && (
-              <div className="album-caption-block">
-                <p className="album-caption-text">{ph.text}</p>
-              </div>
-            )}
-          </RevealArticle>
+          <AlbumCard
+            key={`a-${i}`}
+            src={ph.src}
+            title={ph.title}
+            text={ph.text}
+            index={i}
+            nextSrc={
+              [albumPhotos[i + 1]?.src, albumPhotos[i + 2]?.src].filter(
+                Boolean,
+              ) as string[]
+            }
+            onOpen={setLightbox}
+          />
         ))}
       </div>
 
