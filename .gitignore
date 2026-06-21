@@ -24,3 +24,6 @@ attached_assets/
 # Log files
 *.log
 .local/state/replit/workflow-logs/
+
+# Cloudflare Wrangler local dev cache / miniflare state (R2 blobs, sqlite)
+.wrangler/

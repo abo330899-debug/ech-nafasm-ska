@@ -1,7 +1,0 @@
-{
-  "version": 2,
-  "framework": "vite",
-  "installCommand": "cd ../.. && npm install -g pnpm@latest && pnpm install",
-  "buildCommand": "cd ../.. && pnpm --filter @workspace/nafsam run build",
-  "outputDirectory": "dist"
-}

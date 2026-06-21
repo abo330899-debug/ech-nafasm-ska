@@ -1,8 +1,0 @@
-uploads = []
-generated = []
-
-[[outputs]]
-id = "XEUTRVQvQwy3YEA8hkBVL"
-uri = "file://artifacts/nafsam/public/icon-512.png"
-type = "image"
-title = "أيقونة Nafsam — حرف E"
