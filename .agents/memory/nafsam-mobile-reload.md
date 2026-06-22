@@ -78,7 +78,29 @@ node lets the browser reclaim the decoded bitmap, capping memory to ~a viewport'
 - Also halve video poster decodes on phones: render only ONE poster `<img>` per card
   (drop the blurred `.v-thumb-bg` duplicate) gated on `max-width:820px`.
 
-**If it STILL reloads on very low-memory devices:** the only lever left is shrinking
-the bytes — deliver downscaled/thumbnail grid images and keep full-res for the
-lightbox/modal only. There are currently no resized variants (`r2.ts` builds plain
-URLs with no width params).
+## The decisive byte-shrink: downscaled grid thumbnails (DEPLOYED)
+
+When unmount-off-screen STILL reloaded on low-memory iPhones, the lever that finally
+held was cutting decoded-bitmap *bytes*: the Photos album loaded ~168 full-res webp
+(avg 1.8MP, ~23MB) into the grid. Now the grid renders downscaled thumbnails
+(max 800px long-edge, q72 ≈ 14MB total) and full-res loads **only** in the lightbox.
+
+- Generate with `pnpm --filter @workspace/scripts run gen-thumbnails` (sharp; walks
+  `api-server/private/images`, writes `private/images/_thumbs/<rel>` same name/ext,
+  skips `_thumbs`). `private/` is gitignored, so thumbs are NOT committed — they must
+  be uploaded to R2 for the static/Cloudflare site.
+- Upload with `pnpm --filter @workspace/scripts run upload-thumbs-to-r2` (needs
+  `CLOUDFLARE_API_TOKEN`; PUTs to bucket `media` key prefix `images/_thumbs`). The
+  static site then serves `${VITE_R2_BASE}/images/_thumbs/<rel>`. For VM/dev the same
+  files serve via the authed `/api/private/images/_thumbs/...` route automatically.
+- Wiring: `r2.ts imageThumbUrl(rel)=imageUrl('_thumbs/'+rel)`, `privateAssets.ts
+  privateImageThumb`, `LuxImage` gained a `fallbackSrc` prop (onError swaps thumb→full
+  once, no loop). Cards display `src={thumb} fallbackSrc={full}`; `onOpen`/lightbox keep
+  full `src`; prefetch + `nextSrc` use thumbs.
+
+**Why:** windowing + unmount cap how many bitmaps live at once, but on the lowest-memory
+iPhones even one viewport of multi-MP webp can exceed budget; shrinking per-image bytes
+is the last independent lever and it stacks with the others.
+**How to apply:** any new heavy media grid must show thumbnails, never full-res. After
+adding/replacing private images, re-run gen-thumbnails AND upload-thumbs-to-r2 or the
+static site 404s the thumb (LuxImage will fall back to full-res, re-introducing the OOM).
