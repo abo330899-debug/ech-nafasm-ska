@@ -4,10 +4,12 @@ import { extname, join } from "path";
 /**
  * Upload generated grid thumbnails to Cloudflare R2.
  *
- * Mirrors artifacts/api-server/private/images/_thumbs -> R2 key prefix
- * "images/_thumbs", so the static (Cloudflare Pages) deployment can serve the
- * lightweight grid thumbnails at ${VITE_R2_BASE}/images/_thumbs/<rel> while the
- * lightbox keeps loading the full-resolution image. Run gen-thumbnails first.
+ * Mirrors each local _thumbs tree to its matching R2 key prefix so the static
+ * (Cloudflare Pages) deployment can serve lightweight grid thumbnails while the
+ * lightbox/modal keeps loading the full-resolution asset:
+ *   artifacts/api-server/private/images/_thumbs  -> R2 "images/_thumbs"
+ *   artifacts/api-server/private/posters/_thumbs -> R2 "posters/_thumbs"
+ * Run gen-thumbnails first.
  *
  * Required env var:
  *   CLOUDFLARE_API_TOKEN  - Cloudflare API token (from Replit secrets)
@@ -25,14 +27,28 @@ const CONCURRENCY = 12;
 const PROJECT_ROOT = process.cwd().includes("scripts")
   ? join(process.cwd(), "..")
   : process.cwd();
-const THUMBS_ROOT = join(
+const PRIVATE_ROOT = join(
   PROJECT_ROOT,
   "artifacts",
   "api-server",
   "private",
-  "images",
-  "_thumbs",
 );
+
+interface UploadTarget {
+  localRoot: string;
+  keyPrefix: string;
+}
+
+const TARGETS: UploadTarget[] = [
+  {
+    localRoot: join(PRIVATE_ROOT, "images", "_thumbs"),
+    keyPrefix: "images/_thumbs",
+  },
+  {
+    localRoot: join(PRIVATE_ROOT, "posters", "_thumbs"),
+    keyPrefix: "posters/_thumbs",
+  },
+];
 
 const CF_TOKEN = process.env.CLOUDFLARE_API_TOKEN || "";
 
@@ -83,14 +99,26 @@ async function main() {
     console.error("Error: CLOUDFLARE_API_TOKEN env var is required.");
     process.exit(1);
   }
-  if (!existsSync(THUMBS_ROOT)) {
-    console.error(`Thumbnails not found: ${THUMBS_ROOT}\nRun: pnpm --filter @workspace/scripts run gen-thumbnails`);
+
+  const files: { localPath: string; key: string }[] = [];
+  for (const target of TARGETS) {
+    if (!existsSync(target.localRoot)) {
+      console.log(`Skipping ${target.keyPrefix}: ${target.localRoot} not found`);
+      continue;
+    }
+    walk(target.localRoot, target.keyPrefix, files);
+  }
+
+  if (files.length === 0) {
+    console.error(
+      `No thumbnails found. Run: pnpm --filter @workspace/scripts run gen-thumbnails`,
+    );
     process.exit(1);
   }
 
-  const files: { localPath: string; key: string }[] = [];
-  walk(THUMBS_ROOT, "images/_thumbs", files);
-  console.log(`Uploading ${files.length} thumbnails -> ${R2_PUBLIC_BASE}/images/_thumbs/ (concurrency ${CONCURRENCY})`);
+  console.log(
+    `Uploading ${files.length} thumbnails -> ${R2_PUBLIC_BASE}/ (concurrency ${CONCURRENCY})`,
+  );
 
   let uploaded = 0;
   let failed = 0;

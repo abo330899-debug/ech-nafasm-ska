@@ -51,9 +51,9 @@ router.get("/private/media/:file", requireAuth, (req, res) => {
   const f = req.params.file;
   sendPrivate(res, "media", typeof f === "string" ? f : "");
 });
-router.get("/private/posters/:file", requireAuth, (req, res) => {
-  const f = req.params.file;
-  sendPrivate(res, "posters", typeof f === "string" ? f : "");
+router.get(/^\/private\/posters\/(.+)$/, requireAuth, (req, res) => {
+  const rel = (req.params as unknown as string[])[0] ?? "";
+  sendPrivate(res, "posters", rel);
 });
 router.get(/^\/private\/images\/(.+)$/, requireAuth, (req, res) => {
   const rel = (req.params as unknown as string[])[0] ?? "";

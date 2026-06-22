@@ -15,7 +15,7 @@ import {
 } from "@/hooks/usePrivateContent";
 import useReveal from "@/hooks/useReveal";
 import useNearViewport from "@/hooks/useNearViewport";
-import { mediaUrl, posterUrl } from "@/lib/r2";
+import { mediaUrl, posterUrl, posterThumbUrl } from "@/lib/r2";
 
 function RevealVideoCard({
   className = "",
@@ -79,6 +79,11 @@ function buildSrc(file: string) {
 function buildPoster(file: string): string {
   if (/^https?:\/\//i.test(file)) return "";
   return posterUrl(file);
+}
+
+function buildPosterThumb(file: string): string {
+  if (/^https?:\/\//i.test(file)) return "";
+  return posterThumbUrl(file);
 }
 
 function getYouTubeId(url: string): string {
@@ -188,6 +193,11 @@ function CompressIcon() {
 
 function Thumb({ file, kind }: { file: string; kind: VideoKind }) {
   const [imgFailed, setImgFailed] = useState(false);
+  // Grids only need a small bitmap, so they load a downscaled poster thumbnail
+  // (max 600px). A full poster (e.g. 720x1280) decodes to ~3.7MB while a thumb
+  // is ~0.8MB — the difference is what keeps iOS Safari from OOM-reloading the
+  // gallery. If a thumb is missing we fall back to the full poster once.
+  const [useFullPoster, setUseFullPoster] = useState(false);
   // Mount the poster only while the card is near the viewport so off-screen
   // posters are unmounted and their decoded bitmaps reclaimed — without this,
   // scrolling the gallery accumulates posters until iOS Safari OOM-reloads.
@@ -205,7 +215,17 @@ function Thumb({ file, kind }: { file: string; kind: VideoKind }) {
     );
   }
   const poster = buildPoster(file);
-  const showPoster = near && !!poster && !imgFailed;
+  const thumb = buildPosterThumb(file);
+  const src = useFullPoster ? poster : thumb || poster;
+  const showPoster = near && !!src && !imgFailed;
+  const onPosterError = () => {
+    // First failure on the thumbnail → retry once with the full poster.
+    if (!useFullPoster && thumb && poster && poster !== thumb) {
+      setUseFullPoster(true);
+    } else {
+      setImgFailed(true);
+    }
+  };
   return (
     <div className="v-thumb" ref={ref}>
       {showPoster ? (
@@ -213,7 +233,7 @@ function Thumb({ file, kind }: { file: string; kind: VideoKind }) {
           {!PHONE && (
             <img
               className="v-thumb-bg"
-              src={poster}
+              src={src}
               alt=""
               aria-hidden="true"
               loading="lazy"
@@ -223,12 +243,12 @@ function Thumb({ file, kind }: { file: string; kind: VideoKind }) {
           )}
           <img
             className="v-thumb-fg"
-            src={poster}
+            src={src}
             alt=""
             loading="lazy"
             decoding="async"
             draggable={false}
-            onError={() => setImgFailed(true)}
+            onError={onPosterError}
           />
         </>
       ) : (
@@ -545,6 +565,7 @@ export default function Videos({ t, lang }: Props) {
                   className="v-modal-video"
                   src={buildSrc(active.file)}
                   poster={buildPoster(active.file)}
+                  preload="metadata"
                   controls
                   autoPlay
                   playsInline
