@@ -5,7 +5,7 @@
    - Network-only : /api/* (private/auth/session) — never cache
    - Network-first w/ fallback to cached shell : HTML navigation
 */
-const VERSION = "v3";
+const VERSION = "v4";
 const STATIC_CACHE = `nafsam-static-${VERSION}`;
 const RUNTIME_CACHE = `nafsam-runtime-${VERSION}`;
 const FONT_CACHE = `nafsam-fonts-${VERSION}`;
