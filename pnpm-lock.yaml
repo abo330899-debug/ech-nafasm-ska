@@ -779,6 +779,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 25.3.5
+      sharp:
+        specifier: ^0.34.5
+        version: 0.34.5
       tsx:
         specifier: 'catalog:'
         version: 4.21.0

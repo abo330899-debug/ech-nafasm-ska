@@ -9,7 +9,7 @@ import { type Translations, type Lang } from "@/i18n/translations";
 import Footer from "@/components/Footer";
 import PhotoBackdrop from "@/components/PhotoBackdrop";
 import usePageAudio from "@/hooks/usePageAudio";
-import { privateImage } from "@/lib/privateAssets";
+import { privateImage, privateImageThumb } from "@/lib/privateAssets";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
 import LuxImage from "@/components/LuxImage";
 import useReveal from "@/hooks/useReveal";
@@ -95,6 +95,7 @@ function MediaPlaceholder() {
 
 function SpecialCard({
   src,
+  thumb,
   text,
   index,
   priority,
@@ -102,6 +103,7 @@ function SpecialCard({
   onOpen,
 }: {
   src: string;
+  thumb: string;
   text?: string;
   index: number;
   priority?: "high" | "auto";
@@ -128,7 +130,8 @@ function SpecialCard({
       >
         {near ? (
           <LuxImage
-            src={src}
+            src={thumb}
+            fallbackSrc={src}
             alt={text ?? ""}
             className="photo-img"
             priority={priority}
@@ -150,6 +153,7 @@ function SpecialCard({
 
 function AlbumCard({
   src,
+  thumb,
   title,
   text,
   index,
@@ -157,6 +161,7 @@ function AlbumCard({
   onOpen,
 }: {
   src: string;
+  thumb: string;
   title?: string | null;
   text?: string | null;
   index: number;
@@ -183,7 +188,8 @@ function AlbumCard({
       >
         {near ? (
           <LuxImage
-            src={src}
+            src={thumb}
+            fallbackSrc={src}
             alt={title ?? ""}
             className="photo-img"
             nextSrc={nextSrc}
@@ -237,9 +243,11 @@ export default function Photos({ t, lang }: Props) {
 
   useEffect(() => {
     if (!data || !photosDir) return;
+    // Warm only the lightweight thumbnails; full-res is fetched on demand in
+    // the lightbox. Prefetching full-res here piled up decoded bitmaps.
     const all = (data.photos ?? [])
       .slice(0, 6)
-      .map((n) => privateImage(`${photosDir}/${n}`));
+      .map((n) => privateImageThumb(`${photosDir}/${n}`));
     prefetchImages(all);
   }, [data, photosDir]);
 
@@ -252,6 +260,7 @@ export default function Photos({ t, lang }: Props) {
 
   const specialPhotos = nonFeaturedPhotos.map((ph, i) => ({
     src: privateImage(ph.file),
+    thumb: privateImageThumb(ph.file),
     text: p[SPECIAL_PHOTO_TEXT_KEYS[i]] ?? undefined,
   }));
 
@@ -259,6 +268,7 @@ export default function Photos({ t, lang }: Props) {
     const story = i < captions.length ? captions[i] : null;
     return {
       src: photosDir ? privateImage(`${photosDir}/${name}`) : "",
+      thumb: photosDir ? privateImageThumb(`${photosDir}/${name}`) : "",
       title: story?.title ?? null,
       text: story?.text ?? t.photos_fallback_caption,
     };
@@ -329,10 +339,11 @@ export default function Photos({ t, lang }: Props) {
           <SpecialCard
             key={`s-${i}`}
             src={ph.src}
+            thumb={ph.thumb}
             text={ph.text}
             index={i}
             priority={i < 2 ? "high" : "auto"}
-            nextSrc={specialPhotos[i + 1]?.src}
+            nextSrc={specialPhotos[i + 1]?.thumb}
             onOpen={setLightbox}
           />
         ))}
@@ -340,6 +351,7 @@ export default function Photos({ t, lang }: Props) {
         {featuredPhoto &&
           (() => {
             const featuredSrc = privateImage(featuredPhoto.file);
+            const featuredThumb = privateImageThumb(featuredPhoto.file);
             return (
               <RevealArticle
                 className="photo-card glass photo-card-featured"
@@ -358,10 +370,11 @@ export default function Photos({ t, lang }: Props) {
                   }}
                 >
                   <LuxImage
-                    src={featuredSrc}
+                    src={featuredThumb}
+                    fallbackSrc={featuredSrc}
                     alt={p.photo7_text ?? ""}
                     className="photo-img"
-                    nextSrc={albumPhotos.slice(0, 2).map((x) => x.src)}
+                    nextSrc={albumPhotos.slice(0, 2).map((x) => x.thumb)}
                   />
                   <span className="photo-card-badge photo-card-badge-featured">
                     ★
@@ -391,11 +404,12 @@ export default function Photos({ t, lang }: Props) {
           <AlbumCard
             key={`a-${i}`}
             src={ph.src}
+            thumb={ph.thumb}
             title={ph.title}
             text={ph.text}
             index={i}
             nextSrc={
-              [albumPhotos[i + 1]?.src, albumPhotos[i + 2]?.src].filter(
+              [albumPhotos[i + 1]?.thumb, albumPhotos[i + 2]?.thumb].filter(
                 Boolean,
               ) as string[]
             }

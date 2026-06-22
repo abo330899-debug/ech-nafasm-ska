@@ -7,11 +7,14 @@
     "hello": "tsx ./src/hello.ts",
     "upload-to-r2": "tsx ./src/upload-to-r2.ts",
     "upload-frontend-to-r2": "tsx ./src/upload-frontend-to-r2.ts",
+    "gen-thumbnails": "tsx ./src/gen-thumbnails.ts",
+    "upload-thumbs-to-r2": "tsx ./src/upload-thumbs-to-r2.ts",
     "gen-auth-tokens": "tsx ./src/gen-auth-tokens.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "sharp": "^0.34.5",
     "tsx": "catalog:"
   }
 }

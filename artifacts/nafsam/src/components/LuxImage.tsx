@@ -10,6 +10,8 @@ type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "loading"> & {
   priority?: "high" | "auto";
   /** When this image finishes loading, warm the browser cache for these next URLs. */
   nextSrc?: string | string[];
+  /** If `src` fails to load (e.g. a missing thumbnail), swap to this URL once. */
+  fallbackSrc?: string;
 };
 
 export default function LuxImage({
@@ -19,19 +21,26 @@ export default function LuxImage({
   wrapClassName = "",
   priority = "auto",
   nextSrc,
+  fallbackSrc,
   onLoad,
   ...rest
 }: Props) {
   const imgRef = useRef<HTMLImageElement | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [curSrc, setCurSrc] = useState(src);
   const isPriority = priority === "high";
+
+  useEffect(() => {
+    setCurSrc(src);
+    setLoaded(false);
+  }, [src]);
 
   useEffect(() => {
     const el = imgRef.current;
     if (el && el.complete && el.naturalWidth > 0) {
       setLoaded(true);
     }
-  }, [src]);
+  }, [curSrc]);
 
   useEffect(() => {
     if (!loaded || !nextSrc) return;
@@ -57,7 +66,7 @@ export default function LuxImage({
       <span className="lux-img-placeholder" aria-hidden="true" />
       <img
         ref={imgRef}
-        src={src}
+        src={curSrc}
         alt={alt}
         loading={isPriority ? "eager" : "lazy"}
         decoding="async"
@@ -67,7 +76,10 @@ export default function LuxImage({
           setLoaded(true);
           onLoad?.(e);
         }}
-        onError={() => setLoaded(true)}
+        onError={() => {
+          if (fallbackSrc && curSrc !== fallbackSrc) setCurSrc(fallbackSrc);
+          else setLoaded(true);
+        }}
         {...rest}
       />
     </span>

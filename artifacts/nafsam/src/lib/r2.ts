@@ -19,3 +19,14 @@ export function imageUrl(rel: string): string {
   if (STATIC_MODE) return `${R2_BASE}/images/${encoded}`;
   return `/api/private/images/${encoded}`;
 }
+
+/**
+ * URL for a small grid thumbnail of an image. These are pre-generated
+ * (max 800px long edge) under images/_thumbs/<rel> by the gen-thumbnails
+ * script and uploaded to R2 / served from disk. Grids use this; the lightbox
+ * keeps the full-resolution `imageUrl`. Falls back to full-res automatically
+ * in the UI (LuxImage `fallbackSrc`) if a thumbnail is missing.
+ */
+export function imageThumbUrl(rel: string): string {
+  return imageUrl(`_thumbs/${rel}`);
+}
