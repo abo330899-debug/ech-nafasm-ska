@@ -1,5 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 
+const MOBILE_MEDIA_QUERY = "(max-width: 820px), (pointer: coarse)";
+const DESKTOP_DEFAULT_MARGIN = "1000px 0px";
+const MOBILE_SAFE_MARGIN = "250px 0px";
+
+function getSafeRootMargin(requested?: string) {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return requested ?? DESKTOP_DEFAULT_MARGIN;
+  }
+
+  // Mobile Safari/Chrome can evict and reload the tab when too many off-screen
+  // thumbnails are decoded at once. Keep only media very close to the viewport
+  // mounted on phones/tablets, even if a page asks for a large preload margin.
+  const isMobileLike = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+  return isMobileLike ? MOBILE_SAFE_MARGIN : requested ?? DESKTOP_DEFAULT_MARGIN;
+}
+
 /**
  * Tracks whether an element is near the viewport so callers can mount heavy
  * media only while it is close, and UNMOUNT it once it scrolls far away.
@@ -38,11 +54,12 @@ export default function useNearViewport<T extends HTMLElement = HTMLElement>(
       return;
     }
 
+    const rootMargin = getSafeRootMargin(options?.rootMargin);
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) setNear(e.isIntersecting);
       },
-      { root: null, rootMargin: options?.rootMargin ?? "1000px 0px" },
+      { root: null, rootMargin },
     );
 
     io.observe(el);
