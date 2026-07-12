@@ -73,3 +73,9 @@ externalPort = 6800
 
 [agent]
 expertMode = true
+
+[userenv]
+
+[userenv.production]
+PORT = "8080"
+NODE_ENV = "production"
