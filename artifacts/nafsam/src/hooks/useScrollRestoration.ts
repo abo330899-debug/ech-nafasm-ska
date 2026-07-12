@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 const KEY_PREFIX = "nafsam_scroll_";
-const RESTORE_TIMEOUT_MS = 4000;
+const RESTORE_TIMEOUT_MS = 8000;
 
 function readScroll(key: string): number {
   try {

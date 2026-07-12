@@ -55,8 +55,6 @@ interface Props {
 
 type VideoKind = "mp4" | "youtube" | "mega";
 
-const BATCH = 9;
-
 // On phones, skip the duplicate blurred-fill poster <img>. The card already
 // renders a contained foreground poster; rendering a second full poster per
 // card doubles decoded bitmaps and is a primary driver of the iOS OOM reload.
@@ -64,6 +62,8 @@ const PHONE =
   typeof window !== "undefined" && typeof window.matchMedia === "function"
     ? window.matchMedia("(max-width: 820px)").matches
     : false;
+
+const BATCH = PHONE ? 6 : 9;
 
 function detectKind(file: string): VideoKind {
   if (/youtube\.com|youtu\.be/i.test(file)) return "youtube";
@@ -202,7 +202,7 @@ function Thumb({ file, kind }: { file: string; kind: VideoKind }) {
   // posters are unmounted and their decoded bitmaps reclaimed — without this,
   // scrolling the gallery accumulates posters until iOS Safari OOM-reloads.
   const { ref, near } = useNearViewport<HTMLDivElement>({
-    rootMargin: "1200px 0px",
+    rootMargin: PHONE ? "600px 0px" : "1200px 0px",
   });
   if (kind !== "mp4") {
     return (

@@ -50,7 +50,12 @@ function pad2(n: number) {
   return n < 10 ? `0${n}` : String(n);
 }
 
-const ALBUM_BATCH = 8;
+const PHONE =
+  typeof window !== "undefined" && typeof window.matchMedia === "function"
+    ? window.matchMedia("(max-width: 820px)").matches
+    : false;
+
+const ALBUM_BATCH = PHONE ? 6 : 8;
 
 const SPECIAL_PHOTO_TEXT_KEYS = [
   "photo1_text",
@@ -83,7 +88,7 @@ const SPECIAL_PHOTO_TEXT_KEYS = [
   "photo29_text",
 ] as const;
 
-const GATE_MARGIN = "1200px 0px";
+const GATE_MARGIN = PHONE ? "600px 0px" : "1200px 0px";
 
 function MediaPlaceholder() {
   return (

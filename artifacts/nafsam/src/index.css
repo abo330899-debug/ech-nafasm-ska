@@ -1836,9 +1836,10 @@ audio,video{filter:none}
 /* Skip rendering & decoding off-screen cards to cut mobile memory use,
    which prevents the browser from evicting and reloading the tab while
    scrolling through the heavy photo album. */
+.photos-luxe .photo-grid .photo-card,
 .photos-luxe .album-grid .photo-card{
   content-visibility:auto;
-  contain-intrinsic-size:auto 560px;
+  contain-intrinsic-size:auto 520px;
 }
 .album-load-sentinel{
   width:100%;
