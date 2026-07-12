@@ -6,3 +6,4 @@
 - [Nafsam mobile gallery windowing](nafsam-mobile-gallery-windowing.md) — large galleries (245 videos) must render a windowed slice + IO sentinel or iOS Safari OOM-reloads.
 - [GitHub push (ECHandSKA-1)](github-push.md) — push via GitHub connector token + credential helper, git-lfs needs bash PATH; remote was force-overwritten to match Replit copy (backup branch saved).
 - [Telegram Call workflow fix](telegram-call-workflow.md) — telegram-call standalone workflow SIGKILL-fails always; serve its dist via api-server static route + add /telegram-call to api-server paths instead.
+- [Workspace wipe recovery](workspace-wipe-recovery.md) — if tracked files vanish but git history is intact: restore via `git archive HEAD | tar -x -T list` (exclude .replit*/replit.nix/.gitattributes), then cp artifact.toml + verifyAndReplaceArtifactToml to re-register artifacts/workflows.

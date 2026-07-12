@@ -1,68 +1,4 @@
-modules = ["nodejs-24", "python-3.11"]
-run = ["pnpm", "start"]
-
-[deployment]
-  router = "application"
-deploymentTarget = "gce"
-  run = ["pnpm", "start"]
-
-[deployment.env]
-  PORT = "8080"
-  NODE_ENV = "production"
-
-[deployment.build]
-  args = ["sh", "-c", "pnpm install && pnpm --filter @workspace/nafsam run build && pnpm --filter @workspace/api-server run build"]
-
-[deployment.postBuild]
-  args = ["pnpm", "store", "prune"]
-  env = { "CI" = "true" }
-
-[workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "test"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "typecheck"
-
-[[workflows.workflow]]
-name = "test"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm -r --if-present run test"
-
-[workflows.workflow.metadata]
-isValidation = true
-
-[[workflows.workflow]]
-name = "typecheck"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm run typecheck"
-
-[workflows.workflow.metadata]
-isValidation = true
-
-[agent]
-  stack = "PNPM_WORKSPACE"
-expertMode = true
-integrations = ["github:1.0.0"]
-
-[postMerge]
-  path = "scripts/post-merge.sh"
-  timeoutMs = 20000
+modules = ["nodejs-20"]
 
 [[ports]]
 localPort = 8080
@@ -135,13 +71,5 @@ externalPort = 8081
 localPort = 19586
 externalPort = 6800
 
-[userenv]
-
-[userenv.shared]
-nafsam-chat = "1wfI0kHaittPhyC5"
-
-[userenv.production]
-
-[nix]
-channel = "stable-25_05"
-  
+[agent]
+expertMode = true
