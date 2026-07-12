@@ -104,11 +104,11 @@ export function useMagneticButtons() {
 
     collect();
     raf = requestAnimationFrame(tick);
+    const onResize = () => collect();
+
     window.addEventListener("mousemove", onMove, { passive: true });
     window.addEventListener("scroll", measure, { passive: true });
-    window.addEventListener("resize", () => {
-      collect();
-    });
+    window.addEventListener("resize", onResize, { passive: true });
 
     const mo = new MutationObserver(() => {
       collect();
@@ -119,6 +119,7 @@ export function useMagneticButtons() {
       cancelAnimationFrame(raf);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("scroll", measure);
+      window.removeEventListener("resize", onResize);
       mo.disconnect();
       tracked.forEach((t) => {
         t.el.classList.remove("is-magnetic");
