@@ -485,11 +485,13 @@ export default function Chat({ lang }: Props) {
     );
   }
 
+  // Privacy: Star's "last seen" time is never shown — only Ilham's is.
+  const showLastSeen = them === "ilham";
   const statusText = otherTyping
     ? s.typing_name.replace("{name}", themName)
     : otherOnline
       ? s.online
-      : otherLastSeen
+      : showLastSeen && otherLastSeen
         ? s.last_seen.replace("{time}", lastSeenTime(otherLastSeen))
         : s.offline;
 

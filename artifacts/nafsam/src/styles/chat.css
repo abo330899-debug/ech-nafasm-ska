@@ -869,9 +869,10 @@
 }
 
 .chat-ticks.is-seen {
-  color: #a5b4fc;
+  /* Telegram-style blue double check for read messages */
+  color: #3ea6ff;
   opacity: 1;
-  filter: drop-shadow(0 0 4px rgba(165, 180, 252, 0.6));
+  filter: drop-shadow(0 0 4px rgba(62, 166, 255, 0.65));
 }
 
 .chat-image-btn {
