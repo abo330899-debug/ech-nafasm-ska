@@ -79,3 +79,6 @@ expertMode = true
 [userenv.production]
 PORT = "8080"
 NODE_ENV = "production"
+
+[deployment]
+deploymentTarget = "gce"

@@ -6,5 +6,6 @@
 - [Nafsam mobile gallery windowing](nafsam-mobile-gallery-windowing.md) — large galleries (245 videos) must render a windowed slice + IO sentinel or iOS Safari OOM-reloads.
 - [GitHub push (ECHandSKA-1)](github-push.md) — push via GitHub connector token + credential helper, git-lfs needs bash PATH; remote was force-overwritten to match Replit copy (backup branch saved).
 - [Nafsam CF Pages deploy](nafsam-cloudflare-deploy.md) — env CF tokens can't upload (test upload-token endpoint first); run wrangler from /tmp or it git-locks the repo; verify live bundle hash, not wrangler output.
+- [Replit publish image size](replit-publish-image-size.md) — publish hanging ~20min on "Pushing Repl layer" then failing = near 8GB limit; prune pnpm store in .local/share/pnpm + .cache first (.git not counted).
 - [Telegram Call workflow fix](telegram-call-workflow.md) — telegram-call standalone workflow SIGKILL-fails always; serve its dist via api-server static route + add /telegram-call to api-server paths instead.
 - [Workspace wipe recovery](workspace-wipe-recovery.md) — tracked files vanished but git intact: restore via `git archive HEAD | tar -x`, then re-register artifacts (recipe in topic file).
