@@ -89,22 +89,27 @@
     content-visibility: auto;
   }
 
+  /* 2-up grids → cards are ~half as wide, so the offscreen size estimate for
+     content-visibility must shrink too or scroll anchoring jumps around. */
   .photos-luxe .album-grid .photo-card {
-    contain-intrinsic-size: 520px;
+    contain-intrinsic-size: 320px;
   }
 
   .videos-luxe .v-card {
-    contain-intrinsic-size: 500px;
+    contain-intrinsic-size: 360px;
   }
 
   .photo-grid,
   .videos-luxe .v-gallery {
-    gap: 14px !important;
+    gap: 12px !important;
   }
 
+  /* Height comes from the 4/5 aspect ratio (2-col cards are narrow); fixed
+     min/max heights here would distort the 2×2 grid. */
   .photos-luxe .photo-card-media {
-    min-height: 220px !important;
-    max-height: 330px !important;
+    aspect-ratio: 4 / 5;
+    min-height: 0 !important;
+    max-height: none !important;
   }
 
   .album-grid .photo-img,
@@ -120,6 +125,18 @@
   .v-modal-video,
   .lightbox-img {
     max-height: 86vh !important;
+  }
+
+  /* Swiping between photos: let vertical pans still close-scroll naturally,
+     but keep horizontal gestures for prev/next navigation. */
+  .lightbox-overlay {
+    touch-action: pan-y;
+  }
+
+  .lightbox-nav {
+    width: 42px;
+    height: 42px;
+    font-size: 1.5rem;
   }
 }
 

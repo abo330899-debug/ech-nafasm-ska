@@ -117,8 +117,10 @@ on the static Pages deploy (root `functions/` dir is never uploaded by our
 wrangler direct-upload from /tmp, and its cookie flow is incompatible with
 localStorage login anyway). Result: 7 of 9 passwords rejected, chat sign-in dead.
 **How to apply:** after ANY merge from GitHub, diff `src/lib/auth.ts` (static
-branch must hash against AUTH_TOKENS_BUILTIN — 9 words as of 2026-07-13:
-ska,star,kas,ilham,ech,nafas,nafasm,nafsam,kaar, case-insensitive) and
+branch must hash against AUTH_TOKENS_BUILTIN — 9 accepted words as of
+2026-07-13; the canonical list lives in `NAFSAM_PASSWORDS` (env secret) and
+their sha256 hashes in `AUTH_TOKENS_BUILTIN` in `src/lib/auth.ts` — never write
+the plaintext words in memory/docs) and
 `src/chat/chatAuth.ts` (must use direct `supabase.auth.signInWithPassword`,
 never `/api/chat/session`). `artifacts/nafsam/.env` is gitignored/untracked —
 it exists only locally; don't assume a merge restores it.

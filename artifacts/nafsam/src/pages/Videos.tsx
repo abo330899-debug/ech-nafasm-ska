@@ -402,8 +402,17 @@ export default function Videos({ t, lang }: Props) {
   const featuredKind: VideoKind = featured ? detectKind(featured.file) : "mp4";
   const featuredCaption = featured ? pickLocalized(featured.caption, lang) : "";
   const featuredQuote = featured ? pickLocalized(featured.quote, lang) : "";
-  const featuredPoster =
+  // Spotlight card: thumb-first like the grid (a full 720p+ poster decodes to
+  // several MB on iPhone); fall back to the full poster only if the thumb 404s.
+  const featuredPosterFull =
     featured && featuredKind === "mp4" ? buildPoster(featured.file) : "";
+  const featuredPosterThumb =
+    featured && featuredKind === "mp4" ? buildPosterThumb(featured.file) : "";
+  const [spotlightUseFull, setSpotlightUseFull] = useState(false);
+  const featuredPoster =
+    spotlightUseFull || !featuredPosterThumb
+      ? featuredPosterFull
+      : featuredPosterThumb;
 
   return (
     <div className="videos-page videos-luxe">
@@ -439,6 +448,15 @@ export default function Videos({ t, lang }: Props) {
                   loading="eager"
                   decoding="async"
                   draggable={false}
+                  onError={() => {
+                    if (
+                      !spotlightUseFull &&
+                      featuredPosterFull &&
+                      featuredPosterFull !== featuredPosterThumb
+                    ) {
+                      setSpotlightUseFull(true);
+                    }
+                  }}
                 />
               ) : (
                 <div className="v-thumb-fallback" aria-hidden="true" />

@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -113,7 +114,7 @@ function SpecialCard({
   index: number;
   priority?: "high" | "auto";
   nextSrc?: string | string[];
-  onOpen: (src: string) => void;
+  onOpen: () => void;
 }) {
   const { ref, near } = useNearViewport<HTMLDivElement>({
     rootMargin: GATE_MARGIN,
@@ -123,13 +124,13 @@ function SpecialCard({
       <div
         className="photo-card-media"
         ref={ref}
-        onClick={() => onOpen(src)}
+        onClick={onOpen}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            onOpen(src);
+            onOpen();
           }
         }}
       >
@@ -171,7 +172,7 @@ function AlbumCard({
   text?: string | null;
   index: number;
   nextSrc?: string | string[];
-  onOpen: (src: string) => void;
+  onOpen: () => void;
 }) {
   const { ref, near } = useNearViewport<HTMLDivElement>({
     rootMargin: GATE_MARGIN,
@@ -181,13 +182,13 @@ function AlbumCard({
       <div
         className="photo-card-media"
         ref={ref}
-        onClick={() => onOpen(src)}
+        onClick={onOpen}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            onOpen(src);
+            onOpen();
           }
         }}
       >
@@ -218,31 +219,44 @@ function AlbumCard({
   );
 }
 
+/** Shows the (usually cached) grid thumbnail instantly, then swaps in the
+ *  full-resolution image once it has downloaded+decoded off-screen. Keeps only
+ *  ONE full-res bitmap alive at a time, which matters on iPhone. */
+function LightboxImage({ src, thumb }: { src: string; thumb: string }) {
+  const [shown, setShown] = useState(thumb || src);
+  useEffect(() => {
+    setShown(thumb || src);
+    if (!src || src === thumb) return;
+    let alive = true;
+    const im = new Image();
+    im.onload = () => {
+      if (alive) setShown(src);
+    };
+    im.src = src;
+    return () => {
+      alive = false;
+    };
+  }, [src, thumb]);
+  return (
+    <img
+      src={shown}
+      alt=""
+      className="lightbox-img"
+      decoding="async"
+      draggable={false}
+      onClick={(e) => e.stopPropagation()}
+    />
+  );
+}
+
 export default function Photos({ t, lang }: Props) {
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const lightboxCloseRef = useRef<HTMLButtonElement>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const data = usePrivateContent();
   usePageAudio(data?.pageAudio?.photos ?? "");
   const p = pickLangPages(data, lang);
-
-  useEffect(() => {
-    if (!lightbox) return;
-    lastFocusedRef.current = document.activeElement as HTMLElement | null;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const t1 = window.setTimeout(() => lightboxCloseRef.current?.focus(), 30);
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightbox(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.clearTimeout(t1);
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = originalOverflow;
-      lastFocusedRef.current?.focus?.();
-    };
-  }, [lightbox]);
 
   const photosDir = data?.mediaConfig?.photosDir ?? "";
 
@@ -278,6 +292,93 @@ export default function Photos({ t, lang }: Props) {
       text: story?.text ?? t.photos_fallback_caption,
     };
   });
+
+  // Flat, stable-order list backing the lightbox: specials, then featured,
+  // then the album. Card indices below MUST follow this exact layout.
+  const featuredLightbox = featuredPhoto
+    ? [
+        {
+          src: privateImage(featuredPhoto.file),
+          thumb: privateImageThumb(featuredPhoto.file),
+        },
+      ]
+    : [];
+  const lightboxItems = [
+    ...specialPhotos.map((ph) => ({ src: ph.src, thumb: ph.thumb })),
+    ...featuredLightbox,
+    ...albumPhotos.map((ph) => ({ src: ph.src, thumb: ph.thumb })),
+  ];
+  const albumIndexBase = specialPhotos.length + featuredLightbox.length;
+  const lightboxCount = lightboxItems.length;
+  const lightboxItemsRef = useRef(lightboxItems);
+  lightboxItemsRef.current = lightboxItems;
+
+  const stepLightbox = useCallback(
+    (delta: number) => {
+      setLightboxIndex((i) => {
+        if (i === null || lightboxCount === 0) return i;
+        return (i + delta + lightboxCount) % lightboxCount;
+      });
+    },
+    [lightboxCount],
+  );
+
+  const lightboxOpen = lightboxIndex !== null;
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    lastFocusedRef.current = document.activeElement as HTMLElement | null;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const t1 = window.setTimeout(() => lightboxCloseRef.current?.focus(), 30);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxIndex(null);
+      else if (e.key === "ArrowLeft") stepLightbox(-1);
+      else if (e.key === "ArrowRight") stepLightbox(1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.clearTimeout(t1);
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = originalOverflow;
+      lastFocusedRef.current?.focus?.();
+    };
+  }, [lightboxOpen, stepLightbox]);
+
+  // Warm only the NEIGHBOR THUMBNAILS while the lightbox is open, so a swipe
+  // shows something instantly. Never prefetch neighbor full-res on phones —
+  // decoded full-res bitmaps are what OOM-reloads iOS Safari.
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const items = lightboxItemsRef.current;
+    const n = items.length;
+    if (n < 2) return;
+    const next = items[(lightboxIndex + 1) % n];
+    const prev = items[(lightboxIndex - 1 + n) % n];
+    prefetchImages(
+      [next?.thumb || next?.src, prev?.thumb || prev?.src].filter(
+        Boolean,
+      ) as string[],
+    );
+  }, [lightboxIndex]);
+
+  const onLightboxTouchStart = (e: React.TouchEvent) => {
+    const t0 = e.touches[0];
+    if (t0) touchStartRef.current = { x: t0.clientX, y: t0.clientY };
+  };
+
+  const onLightboxTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start) return;
+    const t0 = e.changedTouches[0];
+    if (!t0) return;
+    const dx = t0.clientX - start.x;
+    const dy = t0.clientY - start.y;
+    // Horizontal swipe only (ignore vertical scroll-ish gestures).
+    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+    stepLightbox(dx < 0 ? 1 : -1);
+  };
 
   // Window the album grid: render a prefix and grow it via an IntersectionObserver
   // sentinel. Rendering all cards (each mounts its own observer + <img>) at once
@@ -349,7 +450,7 @@ export default function Photos({ t, lang }: Props) {
             index={i}
             priority={i < 2 ? "high" : "auto"}
             nextSrc={specialPhotos[i + 1]?.thumb}
-            onOpen={setLightbox}
+            onOpen={() => setLightboxIndex(i)}
           />
         ))}
 
@@ -364,13 +465,13 @@ export default function Photos({ t, lang }: Props) {
               >
                 <div
                   className="photo-card-media"
-                  onClick={() => setLightbox(featuredSrc)}
+                  onClick={() => setLightboxIndex(specialPhotos.length)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      setLightbox(featuredSrc);
+                      setLightboxIndex(specialPhotos.length);
                     }
                   }}
                 >
@@ -418,7 +519,7 @@ export default function Photos({ t, lang }: Props) {
                 Boolean,
               ) as string[]
             }
-            onOpen={setLightbox}
+            onOpen={() => setLightboxIndex(albumIndexBase + i)}
           />
         ))}
       </div>
@@ -431,31 +532,64 @@ export default function Photos({ t, lang }: Props) {
         />
       )}
 
-      {lightbox && (
+      {lightboxIndex !== null && lightboxItems[lightboxIndex] && (
         <div
           className="lightbox-overlay"
           role="dialog"
           aria-modal="true"
-          onClick={() => setLightbox(null)}
+          onClick={() => setLightboxIndex(null)}
+          onTouchStart={onLightboxTouchStart}
+          onTouchEnd={onLightboxTouchEnd}
         >
           <button
             ref={lightboxCloseRef}
             className="lightbox-close"
             onClick={(e) => {
               e.stopPropagation();
-              setLightbox(null);
+              setLightboxIndex(null);
             }}
             aria-label={t.common_close}
           >
             &times;
           </button>
-          <img
-            src={lightbox}
-            alt=""
-            className="lightbox-img"
-            decoding="async"
-            onClick={(e) => e.stopPropagation()}
+
+          {lightboxCount > 1 && (
+            <>
+              <button
+                type="button"
+                className="lightbox-nav lightbox-nav-prev"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  stepLightbox(-1);
+                }}
+                aria-label={t.common_prev}
+              >
+                &#8249;
+              </button>
+              <button
+                type="button"
+                className="lightbox-nav lightbox-nav-next"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  stepLightbox(1);
+                }}
+                aria-label={t.common_next}
+              >
+                &#8250;
+              </button>
+            </>
+          )}
+
+          <LightboxImage
+            src={lightboxItems[lightboxIndex].src}
+            thumb={lightboxItems[lightboxIndex].thumb}
           />
+
+          {lightboxCount > 1 && (
+            <span className="lightbox-counter" dir="ltr" aria-hidden="true">
+              {lightboxIndex + 1} / {lightboxCount}
+            </span>
+          )}
         </div>
       )}
 
