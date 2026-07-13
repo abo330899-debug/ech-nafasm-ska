@@ -411,10 +411,12 @@ export default function Videos({ t, lang }: Props) {
   // from the video's native aspect ratio so a portrait clip stands tall and a
   // landscape clip spreads wide — the video always shows FULL, no bars.
   const isPortrait = videoAR !== null && videoAR < 0.95;
+  // Portrait reserves less vertical budget for the info strip (it scrolls),
+  // so tall clips open noticeably wider on phones — near full width on iPhone.
   const fitBoxStyle: CSSProperties | undefined =
     activeKind === "mp4" && videoAR !== null
       ? {
-          width: `min(${theaterMode ? 1280 : isPortrait ? 560 : 900}px, calc(100vw - 24px), calc((100dvh - 230px) * ${videoAR.toFixed(4)}))`,
+          width: `min(${theaterMode ? 1280 : isPortrait ? 600 : 900}px, calc(100vw - 24px), calc((100dvh - ${isPortrait ? 130 : 230}px) * ${videoAR.toFixed(4)}))`,
           maxWidth: "none",
         }
       : undefined;
