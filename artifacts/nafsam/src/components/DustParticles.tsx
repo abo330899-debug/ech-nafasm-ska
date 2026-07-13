@@ -1,22 +1,22 @@
 import { useEffect, useMemo, useRef } from "react";
 
-const COUNT = 36;
+const COUNT = 14;
 
 export default function DustParticles() {
   const particles = useMemo(() => {
     return Array.from({ length: COUNT }, (_, i) => {
-      const size = 1.2 + Math.random() * 2.4;
-      const isGlow = Math.random() > 0.7;
+      const size = 1.2 + Math.random() * 2.2;
+      const isGlow = Math.random() > 0.78;
       return {
         id: i,
         left: `${Math.random() * 100}vw`,
         top: `${Math.random() * 100}vh`,
         size,
-        duration: `${28 + Math.random() * 32}s`,
+        duration: `${34 + Math.random() * 34}s`,
         delay: `${Math.random() * 24}s`,
-        driftX: `${(Math.random() * 90 - 45).toFixed(1)}px`,
-        driftY: `${(-30 - Math.random() * 60).toFixed(1)}px`,
-        opacity: 0.18 + Math.random() * 0.35,
+        driftX: `${(Math.random() * 60 - 30).toFixed(1)}px`,
+        driftY: `${(-24 - Math.random() * 46).toFixed(1)}px`,
+        opacity: 0.14 + Math.random() * 0.24,
         glow: isGlow,
       };
     });

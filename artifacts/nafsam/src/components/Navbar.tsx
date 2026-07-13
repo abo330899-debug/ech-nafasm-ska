@@ -1,4 +1,15 @@
 import { Link, useLocation } from "wouter";
+import {
+  BookHeart,
+  Camera,
+  Film,
+  HeartPulse,
+  Home,
+  LogOut,
+  Map,
+  MessageCircleHeart,
+  Music2,
+} from "lucide-react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import { useChat } from "@/chat/chatContext";
 
@@ -13,40 +24,51 @@ export default function Navbar({ t, onLogout }: Props) {
   const { unread, configured } = useChat();
 
   const links = [
-    { href: "/home", label: t.nav_home },
-    { href: "/photos", label: t.nav_photos },
-    { href: "/journey", label: t.nav_journey },
-    { href: "/songs", label: t.nav_songs },
-    { href: "/videos", label: t.nav_videos },
-    { href: "/writings", label: t.nav_writings },
-    { href: "/feelings", label: t.nav_feelings },
-    ...(configured ? [{ href: "/chat", label: t.nav_chat, chat: true }] : []),
+    { href: "/home", label: t.nav_home, icon: Home },
+    { href: "/photos", label: t.nav_photos, icon: Camera },
+    { href: "/journey", label: t.nav_journey, icon: Map },
+    { href: "/songs", label: t.nav_songs, icon: Music2 },
+    { href: "/videos", label: t.nav_videos, icon: Film },
+    { href: "/writings", label: t.nav_writings, icon: BookHeart },
+    { href: "/feelings", label: t.nav_feelings, icon: HeartPulse },
+    ...(configured
+      ? [{ href: "/chat", label: t.nav_chat, icon: MessageCircleHeart, chat: true }]
+      : []),
   ];
 
   return (
-    <nav className="nav glass">
-      <div className="nav-top">
-        <div className="brand">{t.brand}</div>
+    <nav className="memory-dock" aria-label="Primary">
+      <div className="memory-dock__brand" aria-label={t.brand}>
+        <span className="memory-dock__mark">N</span>
+        <span className="memory-dock__word">{t.brand}</span>
       </div>
-      <div className="links">
-        {links.map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            className={location === l.href ? "active" : ""}
-          >
-            {l.label}
-            {"chat" in l && l.chat && unread > 0 && location !== "/chat" && (
-              <span className="nav-chat-badge">
-                {unread > 99 ? "99+" : unread}
-              </span>
-            )}
-          </Link>
-        ))}
-        <button className="nav-logout" onClick={onLogout}>
-          {t.nav_logout}
-        </button>
+
+      <div className="memory-dock__links">
+        {links.map((item) => {
+          const Icon = item.icon;
+          const active = location === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`memory-dock__item${active ? " is-active" : ""}`}
+              aria-current={active ? "page" : undefined}
+              title={item.label}
+            >
+              <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
+              <span>{item.label}</span>
+              {"chat" in item && item.chat && unread > 0 && location !== "/chat" && (
+                <b className="memory-dock__badge">{unread > 99 ? "99+" : unread}</b>
+              )}
+            </Link>
+          );
+        })}
       </div>
+
+      <button className="memory-dock__logout" onClick={onLogout} title={t.nav_logout}>
+        <LogOut size={18} strokeWidth={1.8} aria-hidden="true" />
+        <span>{t.nav_logout}</span>
+      </button>
     </nav>
   );
 }

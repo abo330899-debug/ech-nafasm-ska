@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useRef } from "react";
 
-const HEART_COUNT = 14;
+const HEART_COUNT = 7;
 
 export default function FloatingHearts() {
   const hearts = useMemo(() => {
     return Array.from({ length: HEART_COUNT }, (_, i) => {
-      const size = 10 + Math.random() * 18;
+      const size = 9 + Math.random() * 14;
       return {
         id: i,
         left: `${Math.random() * 100}vw`,
         size,
-        duration: `${22 + Math.random() * 22}s`,
+        duration: `${28 + Math.random() * 24}s`,
         delay: `${Math.random() * 18}s`,
-        drift: `${(Math.random() * 60 - 30).toFixed(1)}px`,
-        opacity: 0.10 + Math.random() * 0.18,
+        drift: `${(Math.random() * 45 - 22).toFixed(1)}px`,
+        opacity: 0.08 + Math.random() * 0.14,
         hue: Math.random() > 0.5 ? "rose" : "soft",
       };
     });

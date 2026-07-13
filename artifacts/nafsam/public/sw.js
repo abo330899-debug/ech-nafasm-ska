@@ -1,11 +1,17 @@
-/* Nafsam Service Worker — instant navigation cache
+/* Nafsam Service Worker — stable navigation cache
    Strategies:
    - Cache-first  : hashed build assets (/assets/*), favicon, fonts files
    - Stale-while-revalidate : Google Fonts CSS, opengraph image
    - Network-only : /api/* (private/auth/session) — never cache
    - Network-first w/ fallback to cached shell : HTML navigation
+
+   Important mobile note:
+   Do NOT call skipWaiting()/clients.claim() automatically. On iPhone/Android,
+   a new service worker taking control while the user is scrolling heavy media can
+   look like a sudden refresh. The new worker activates naturally after the page
+   is closed/reopened, which is safer for this gallery-style app.
 */
-const VERSION = "v5";
+const VERSION = "v5-stable";
 const STATIC_CACHE = `nafsam-static-${VERSION}`;
 const RUNTIME_CACHE = `nafsam-runtime-${VERSION}`;
 const FONT_CACHE = `nafsam-fonts-${VERSION}`;
@@ -28,8 +34,7 @@ self.addEventListener("install", (event) => {
             cache.add(new Request(u, { cache: "reload" })).catch(() => {}),
           ),
         ),
-      )
-      .then(() => self.skipWaiting()),
+      ),
   );
 });
 
@@ -42,7 +47,6 @@ self.addEventListener("activate", (event) => {
           .filter((k) => ![STATIC_CACHE, RUNTIME_CACHE, FONT_CACHE].includes(k))
           .map((k) => caches.delete(k)),
       );
-      await self.clients.claim();
     })(),
   );
 });
