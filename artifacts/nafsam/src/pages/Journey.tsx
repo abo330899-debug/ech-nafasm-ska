@@ -6,6 +6,7 @@ import { usePrivateContent, pickLocalized } from "@/hooks/usePrivateContent";
 import LuxImage from "@/components/LuxImage";
 import useReveal from "@/hooks/useReveal";
 import { type Translations, type Lang } from "@/i18n/translations";
+import "@/styles/luxe-journey-feelings.css";
 
 function RevealChapter({
   index,
@@ -49,6 +50,11 @@ export default function Journey({ t, lang }: Props) {
 
   return (
     <div className="page-content journey-page">
+      <div className="star-shimmer star-1" aria-hidden="true" />
+      <div className="star-shimmer star-2" aria-hidden="true" />
+      <div className="star-shimmer star-3" aria-hidden="true" />
+      <div className="star-shimmer star-4" aria-hidden="true" />
+      <div className="star-shimmer star-5" aria-hidden="true" />
       <PhotoBackdrop />
 
       <div className="page-header journey-header">
@@ -72,6 +78,10 @@ export default function Journey({ t, lang }: Props) {
                 <span className="journey-node-dot" />
               </div>
               <figure className="journey-card glass">
+                <div className="corner-flourish corner-tl" aria-hidden="true" />
+                <div className="corner-flourish corner-tr" aria-hidden="true" />
+                <div className="corner-flourish corner-bl" aria-hidden="true" />
+                <div className="corner-flourish corner-br" aria-hidden="true" />
                 <div className="journey-media">
                   <LuxImage
                     src={src}

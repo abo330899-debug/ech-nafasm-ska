@@ -4,6 +4,7 @@ import SmokeVeil from "@/components/SmokeVeil";
 import PhotoBackdrop from "@/components/PhotoBackdrop";
 import { type Translations, type Lang } from "@/i18n/translations";
 import { usePrivateContent, pickLangFeelings } from "@/hooks/usePrivateContent";
+import "@/styles/luxe-journey-feelings.css";
 
 interface Props {
   t: Translations;
@@ -62,6 +63,11 @@ export default function Feelings({ t, lang }: Props) {
 
   return (
     <div className="feelings-page" ref={rootRef}>
+      <div className="star-shimmer star-1" aria-hidden="true" />
+      <div className="star-shimmer star-2" aria-hidden="true" />
+      <div className="star-shimmer star-3" aria-hidden="true" />
+      <div className="star-shimmer star-4" aria-hidden="true" />
+      <div className="star-shimmer star-5" aria-hidden="true" />
       <PhotoBackdrop />
       {/* ===== HERO ===== */}
       <section className="fl-hero">
@@ -128,6 +134,10 @@ export default function Feelings({ t, lang }: Props) {
           <div className="fl-memory-grid">
             {memoryFragments.map((m, i) => (
               <article className="fl-memory-card" key={m.label ?? i} data-reveal>
+                <div className="corner-flourish corner-tl" aria-hidden="true" />
+                <div className="corner-flourish corner-tr" aria-hidden="true" />
+                <div className="corner-flourish corner-bl" aria-hidden="true" />
+                <div className="corner-flourish corner-br" aria-hidden="true" />
                 <div className="fl-memory-glow" aria-hidden="true" />
                 <div className="fl-memory-label">{m.label}</div>
                 <p className="fl-memory-text">{m.body}</p>

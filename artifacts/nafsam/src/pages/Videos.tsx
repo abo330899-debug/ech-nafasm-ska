@@ -6,6 +6,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
+import "@/styles/luxe-videos.css";
 import { type Translations, type Lang } from "@/i18n/translations";
 import PhotoBackdrop from "@/components/PhotoBackdrop";
 import {
@@ -418,6 +419,9 @@ export default function Videos({ t, lang }: Props) {
     <div className="videos-page videos-luxe">
       <PhotoBackdrop />
       <section className="v-hero" dir="ltr">
+        <span className="v-sparkle s1" aria-hidden="true" />
+        <span className="v-sparkle s2" aria-hidden="true" />
+        <span className="v-sparkle s3" aria-hidden="true" />
         <h1 className="v-hero-title">{t.videos_title}</h1>
         {p.videos_text && <p className="v-hero-sub">{p.videos_text}</p>}
         <div className="v-hero-line" />

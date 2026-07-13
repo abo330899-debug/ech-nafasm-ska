@@ -9,6 +9,8 @@ import PhotoBackdrop from "@/components/PhotoBackdrop";
 import usePageAudio from "@/hooks/usePageAudio";
 import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
 
+import "@/styles/luxe-home-login.css";
+
 const START = new Date("2025-08-20T04:04:00");
 
 function elapsed(now: Date) {
@@ -61,7 +63,15 @@ export default function Home({ t, lang }: Props) {
   }, [heroImage]);
 
   return (
-    <div className="page-content">
+    <div className="page-content home-page celestial-luxe-theme">
+      <div className="luxe-ambient-glow" aria-hidden="true" />
+      <div className="luxe-stars" aria-hidden="true">
+        <div className="star star-1"></div>
+        <div className="star star-2"></div>
+        <div className="star star-3"></div>
+        <div className="star star-4"></div>
+        <div className="star star-5"></div>
+      </div>
       <PhotoBackdrop />
       <section className="hero">
         <div
@@ -70,7 +80,7 @@ export default function Home({ t, lang }: Props) {
         />
         <div className="hero-overlay" />
         <div className="hero-body">
-          <span className="eyebrow">{t.hero_eyebrow}</span>
+          <span className="eyebrow luxe-eyebrow">{t.hero_eyebrow}</span>
           <TypewriterTitle text={t.hero_title} />
 
           {p.farewell_title && (
@@ -123,21 +133,25 @@ export default function Home({ t, lang }: Props) {
         />
       )}
 
+      <div className="luxe-divider" aria-hidden="true">
+        <div className="luxe-diamond"></div>
+      </div>
+
       <section className="cards-section">
         <div className="cards-grid">
-          <Link href="/journey" className="card glass">
+          <Link href="/journey" className="card glass luxe-glass-card">
             <h3>{t.card_moments_title}</h3>
             {p.card_moments_text && <p>{p.card_moments_text}</p>}
           </Link>
-          <Link href="/photos" className="card glass">
+          <Link href="/photos" className="card glass luxe-glass-card">
             <h3>{t.card_photos_title}</h3>
             {p.card_photos_text && <p>{p.card_photos_text}</p>}
           </Link>
-          <Link href="/songs" className="card glass">
+          <Link href="/songs" className="card glass luxe-glass-card">
             <h3>{t.card_songs_title}</h3>
             {p.card_songs_text && <p>{p.card_songs_text}</p>}
           </Link>
-          <Link href="/writings" className="card glass">
+          <Link href="/writings" className="card glass luxe-glass-card">
             <h3>{t.card_writings_title}</h3>
             {p.card_writings_text && <p>{p.card_writings_text}</p>}
           </Link>

@@ -1,0 +1,195 @@
+.celestial-luxe-theme {
+  --luxe-gold: #d8a57c;
+  --luxe-gold-glow: rgba(216, 165, 124, 0.3);
+  --luxe-indigo: rgba(75, 0, 130, 0.12);
+  --luxe-violet: rgba(138, 43, 226, 0.08);
+  --luxe-amber: rgba(255, 191, 0, 0.04);
+}
+
+.luxe-ambient-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, var(--luxe-indigo) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, var(--luxe-violet) 0%, transparent 50%),
+    radial-gradient(circle at 50% 100%, var(--luxe-amber) 0%, transparent 60%);
+}
+
+.luxe-stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.luxe-stars .star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: var(--luxe-gold);
+  border-radius: 50%;
+  box-shadow: 0 0 6px 1px var(--luxe-gold);
+  animation: luxe-twinkle 4s infinite ease-in-out alternate;
+  opacity: 0.4;
+}
+
+.luxe-stars .star-1 { top: 15%; left: 10%; animation-delay: 0s; }
+.luxe-stars .star-2 { top: 25%; right: 15%; animation-delay: 1s; }
+.luxe-stars .star-3 { top: 60%; left: 8%; animation-delay: 2s; }
+.luxe-stars .star-4 { top: 75%; right: 12%; animation-delay: 1.5s; }
+.luxe-stars .star-5 { top: 40%; left: 50%; animation-delay: 0.5s; }
+
+@keyframes luxe-twinkle {
+  0% { opacity: 0.1; transform: scale(0.8); }
+  100% { opacity: 0.7; transform: scale(1.4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luxe-stars .star { animation: none; opacity: 0.4; }
+  .luxe-glass-card { transition: none; }
+}
+
+.home-page .luxe-glass-card,
+.login-page .luxe-glass-card {
+  position: relative;
+  border: none;
+  border-radius: calc(var(--radius) + 4px);
+  background: linear-gradient(135deg, rgba(255, 250, 240, 0.04) 0%, rgba(216, 165, 124, 0.01) 100%);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(216, 165, 124, 0.05);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease;
+}
+
+.home-page .luxe-glass-card::before,
+.login-page .luxe-glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(216, 165, 124, 0.6) 0%, rgba(216, 165, 124, 0.1) 50%, rgba(216, 165, 124, 0.4) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.home-page .luxe-glass-card:hover,
+.login-page .luxe-glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(216, 165, 124, 0.08);
+}
+
+.luxe-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 24px auto;
+  width: 80%;
+  max-width: 300px;
+}
+
+.luxe-divider::before,
+.luxe-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--luxe-gold) 50%, var(--luxe-gold) 100%);
+  opacity: 0.5;
+}
+
+[dir="rtl"] .luxe-divider::before {
+  background: linear-gradient(to left, transparent, var(--luxe-gold) 50%, var(--luxe-gold) 100%);
+}
+
+.luxe-divider::after {
+  background: linear-gradient(to left, transparent, var(--luxe-gold) 50%, var(--luxe-gold) 100%);
+}
+
+[dir="rtl"] .luxe-divider::after {
+  background: linear-gradient(to right, transparent, var(--luxe-gold) 50%, var(--luxe-gold) 100%);
+}
+
+.luxe-diamond {
+  width: 6px;
+  height: 6px;
+  background: var(--luxe-gold);
+  transform: rotate(45deg);
+  margin: 0 12px;
+  box-shadow: 0 0 8px var(--luxe-gold-glow);
+}
+
+.home-page .luxe-title,
+.login-page .luxe-title {
+  background: linear-gradient(135deg, #fff 0%, var(--luxe-gold) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-family: "Noto Naskh Arabic", "Tajawal", "IBM Plex Sans Arabic", serif;
+  text-shadow: 0 4px 20px rgba(216, 165, 124, 0.15);
+}
+
+.home-page .luxe-eyebrow {
+  color: var(--luxe-gold);
+  letter-spacing: 0.25em;
+  font-family: "Tajawal", sans-serif;
+  text-shadow: 0 0 10px var(--luxe-gold-glow);
+  font-weight: 500;
+}
+
+.login-page .luxe-text {
+  font-family: "Tajawal", sans-serif;
+  color: rgba(247, 239, 231, 0.9);
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+/* Corner ornaments for login container */
+.luxe-login-container {
+  padding: 48px 40px;
+}
+
+.luxe-login-container .luxe-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--luxe-gold);
+  opacity: 0.3;
+  pointer-events: none;
+}
+.luxe-login-container .luxe-corner.top-left {
+  top: 12px;
+  inset-inline-start: 12px;
+  border-inline-end-color: transparent;
+  border-block-end-color: transparent;
+}
+.luxe-login-container .luxe-corner.top-right {
+  top: 12px;
+  inset-inline-end: 12px;
+  border-inline-start-color: transparent;
+  border-block-end-color: transparent;
+}
+.luxe-login-container .luxe-corner.bottom-left {
+  bottom: 12px;
+  inset-inline-start: 12px;
+  border-inline-end-color: transparent;
+  border-block-start-color: transparent;
+}
+.luxe-login-container .luxe-corner.bottom-right {
+  bottom: 12px;
+  inset-inline-end: 12px;
+  border-inline-start-color: transparent;
+  border-block-start-color: transparent;
+}
+
+.login-page .login-btn {
+  box-shadow: 0 0 15px rgba(216, 165, 124, 0.15);
+  transition: all 0.3s ease;
+}
+.login-page .login-btn:hover:not(:disabled) {
+  box-shadow: 0 0 25px rgba(216, 165, 124, 0.35);
+  transform: translateY(-1px);
+}

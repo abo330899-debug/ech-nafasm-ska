@@ -8,28 +8,28 @@
    ============================================================ */
 
 .chat-app {
-  /* Accents — royal purple / indigo / soft violet (no bright pink) */
-  --c-accent: #a78bfa;        /* soft violet — primary accent text + glow */
-  --c-accent-2: #7c3aed;      /* royal purple */
-  --c-silver: #cdd3ea;        /* silver highlight */
+  /* Accents — gold / amber / celestial */
+  --c-accent: #d8a57c;        /* gold/amber */
+  --c-accent-2: #c48b5d;      /* deeper gold */
+  --c-silver: #e8dbce;        /* warm silver/cream */
 
-  /* My messages — dark violet gradient */
-  --c-mine-1: #7c3aed;
-  --c-mine-2: #4f46e5;
-  --c-mine-text: #f3f1ff;
-  --c-mine-dim: rgba(243, 241, 255, 0.74);
+  /* My messages — luxurious glass */
+  --c-mine-1: rgba(124, 58, 237, 0.2);
+  --c-mine-2: rgba(216, 165, 124, 0.15);
+  --c-mine-text: #fdfaf6;
+  --c-mine-dim: rgba(253, 250, 246, 0.74);
 
-  /* Frosted dark glass (midnight / navy) */
-  --c-glass: rgba(17, 24, 39, 0.66);
-  --c-glass-strong: rgba(11, 15, 25, 0.92);
-  --c-bubble-them: rgba(148, 163, 184, 0.09); /* dark glass gray */
+  /* Frosted dark glass (midnight base) */
+  --c-glass: rgba(5, 8, 20, 0.66);
+  --c-glass-strong: rgba(5, 8, 20, 0.92);
+  --c-bubble-them: rgba(255, 255, 255, 0.04);
 
-  /* Scope-local overrides of the site lux tokens so chat reads cool/violet */
-  --lux-text: #eef0fb;
-  --lux-text-dim: #98a0bd;
-  --lux-rose-hi: #c4b5fd;     /* soft violet (quote + subtle accents) */
-  --lux-border-soft: rgba(167, 139, 250, 0.16);
-  --lux-shadow: 0 24px 60px rgba(4, 6, 12, 0.62), 0 8px 24px rgba(4, 6, 12, 0.5);
+  /* Scope-local overrides of the site lux tokens */
+  --lux-text: #f7efe7;
+  --lux-text-dim: #c5b8ad;
+  --lux-rose-hi: #d8a57c;     
+  --lux-border-soft: rgba(216, 165, 124, 0.2);
+  --lux-shadow: 0 24px 60px rgba(5, 8, 20, 0.8), 0 8px 24px rgba(5, 8, 20, 0.6);
 
   position: fixed;
   top: var(--chat-top, 0px);
@@ -45,15 +45,15 @@
   background:
     radial-gradient(
       120% 90% at 80% -10%,
-      rgba(124, 58, 237, 0.18),
+      rgba(124, 58, 237, 0.15),
       transparent 55%
     ),
     radial-gradient(
       100% 80% at 0% 110%,
-      rgba(79, 70, 229, 0.16),
+      rgba(216, 165, 124, 0.12),
       transparent 55%
     ),
-    linear-gradient(160deg, #0b0f19 0%, #0d1322 45%, #111827 100%);
+    linear-gradient(160deg, #050814 0%, #080c1a 45%, #050814 100%);
 }
 
 .chat-app--state {
@@ -70,15 +70,15 @@
   background:
     radial-gradient(
       40% 36% at 30% 30%,
-      rgba(167, 139, 250, 0.14),
+      rgba(124, 58, 237, 0.1),
       transparent 70%
     ),
     radial-gradient(
       44% 40% at 75% 70%,
-      rgba(99, 102, 241, 0.12),
+      rgba(216, 165, 124, 0.08),
       transparent 70%
     );
-  filter: blur(20px);
+  filter: blur(24px);
   animation: chat-aurora 22s var(--ease) infinite alternate;
 }
 
@@ -105,11 +105,11 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(226, 228, 246, 0.9),
-    rgba(167, 139, 250, 0.35) 60%,
+    rgba(253, 250, 246, 0.9),
+    rgba(216, 165, 124, 0.4) 60%,
     transparent 72%
   );
-  box-shadow: 0 0 6px rgba(167, 139, 250, 0.4);
+  box-shadow: 0 0 8px rgba(216, 165, 124, 0.5);
   animation-name: chat-float;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
@@ -783,10 +783,24 @@
 }
 
 .chat-row.mine .chat-bubble {
-  background: linear-gradient(135deg, var(--c-mine-1), var(--c-mine-2));
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(216, 165, 124, 0.15));
   color: var(--c-mine-text);
   border-bottom-right-radius: 6px;
-  box-shadow: 0 6px 22px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 6px 22px rgba(5, 8, 20, 0.4);
+  position: relative;
+}
+
+.chat-row.mine .chat-bubble::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(216, 165, 124, 0.4), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .chat-bubble.is-deleted {

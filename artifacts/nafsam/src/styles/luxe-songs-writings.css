@@ -1,0 +1,203 @@
+/* Luxe Songs & Writings */
+
+.page-content.luxe-songs,
+.page-content.luxe-writings {
+  --luxe-gold: #d8a57c;
+  --luxe-gold-dim: rgba(216, 165, 124, 0.3);
+  --luxe-indigo: rgba(75, 54, 124, 0.15);
+  --luxe-mauve: rgba(138, 79, 107, 0.15);
+}
+
+.luxe-page-header h1 {
+  background: linear-gradient(135deg, #f7efe7 0%, var(--luxe-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  font-family: "Noto Naskh Arabic", var(--serif);
+  text-shadow: 0 4px 20px rgba(216, 165, 124, 0.2);
+}
+
+/* Floating specks */
+.luxe-specks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.luxe-speck {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: var(--luxe-gold);
+  border-radius: 50%;
+  opacity: 0.4;
+  box-shadow: 0 0 4px var(--luxe-gold);
+  animation: float-speck 10s infinite ease-in-out alternate;
+}
+.luxe-speck:nth-child(1) { top: 10%; left: 20%; animation-delay: 0s; }
+.luxe-speck:nth-child(2) { top: 30%; left: 80%; animation-delay: -2s; }
+.luxe-speck:nth-child(3) { top: 60%; left: 10%; animation-delay: -4s; }
+.luxe-speck:nth-child(4) { top: 80%; left: 70%; animation-delay: -6s; }
+.luxe-speck:nth-child(5) { top: 50%; left: 50%; animation-delay: -8s; }
+
+@keyframes float-speck {
+  0% { transform: translateY(0) scale(1); opacity: 0.2; }
+  50% { transform: translateY(-20px) scale(1.5); opacity: 0.6; }
+  100% { transform: translateY(0) scale(1); opacity: 0.2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luxe-speck { animation: none; }
+}
+
+/* Songs */
+.luxe-song-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(21, 23, 43, 0.8) 0%, rgba(10, 12, 26, 0.9) 100%);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+
+.luxe-song-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--luxe-gold-dim), transparent, rgba(75, 54, 124, 0.3));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.luxe-song-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(216, 165, 124, 0.1);
+}
+
+.luxe-vinyl-accent {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #111 30%, #222 35%, #050505 70%);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+  opacity: 0.6;
+  z-index: 0;
+}
+.luxe-vinyl-accent::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  background: repeating-radial-gradient(#111, #111 2px, #1a1a1a 3px, #1a1a1a 4px);
+  opacity: 0.5;
+}
+[dir="rtl"] .luxe-vinyl-accent {
+  right: auto;
+  left: -40px;
+}
+
+.luxe-song-content {
+  position: relative;
+  z-index: 1;
+}
+
+.luxe-song-card h3 {
+  font-family: "Noto Naskh Arabic", var(--serif);
+  font-size: 1.2rem;
+  color: var(--luxe-gold);
+}
+
+/* Writings */
+.luxe-writing-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(21, 23, 43, 0.7) 0%, rgba(10, 12, 26, 0.8) 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  padding: 30px 40px;
+}
+
+.luxe-writing-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  padding: 1px;
+  background: linear-gradient(to bottom, var(--luxe-gold-dim), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.luxe-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px auto;
+  width: 100%;
+  max-width: 150px;
+  gap: 10px;
+  opacity: 0.6;
+}
+.luxe-ornament::before,
+.luxe-ornament::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--luxe-gold));
+}
+.luxe-ornament::after {
+  background: linear-gradient(to left, transparent, var(--luxe-gold));
+}
+.luxe-ornament-diamond {
+  width: 6px;
+  height: 6px;
+  background: var(--luxe-gold);
+  transform: rotate(45deg);
+}
+
+.luxe-writing-card p {
+  font-family: "Noto Naskh Arabic", var(--serif);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #f7efe7;
+  text-align: justify;
+}
+.luxe-writing-card p::first-letter {
+  font-size: 2.5rem;
+  float: left;
+  margin-right: 8px;
+  margin-top: 4px;
+  color: var(--luxe-gold);
+  line-height: 1;
+  text-shadow: 0 2px 10px rgba(216, 165, 124, 0.3);
+}
+[dir="rtl"] .luxe-writing-card p::first-letter {
+  float: right;
+  margin-right: 0;
+  margin-left: 8px;
+}
+
+.luxe-writing-card .luxe-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--luxe-gold-dim);
+  pointer-events: none;
+}
+.luxe-writing-card .luxe-corner-tl { top: 10px; left: 10px; border-right: none; border-bottom: none; border-top-left-radius: 8px; }
+.luxe-writing-card .luxe-corner-tr { top: 10px; right: 10px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
+.luxe-writing-card .luxe-corner-bl { bottom: 10px; left: 10px; border-right: none; border-top: none; border-bottom-left-radius: 8px; }
+.luxe-writing-card .luxe-corner-br { bottom: 10px; right: 10px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }

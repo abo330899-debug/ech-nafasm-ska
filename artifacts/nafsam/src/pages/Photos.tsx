@@ -16,6 +16,7 @@ import LuxImage from "@/components/LuxImage";
 import useReveal from "@/hooks/useReveal";
 import useNearViewport from "@/hooks/useNearViewport";
 import { prefetchImages } from "@/lib/prefetch";
+import "@/styles/luxe-photos.css";
 
 function RevealArticle({
   className = "",
@@ -120,7 +121,11 @@ function SpecialCard({
     rootMargin: GATE_MARGIN,
   });
   return (
-    <RevealArticle className="photo-card glass" index={index}>
+    <RevealArticle className="photo-card glass luxe-photo-card" index={index}>
+      <div className="luxe-corner luxe-tl" aria-hidden="true" />
+      <div className="luxe-corner luxe-tr" aria-hidden="true" />
+      <div className="luxe-corner luxe-bl" aria-hidden="true" />
+      <div className="luxe-corner luxe-br" aria-hidden="true" />
       <div
         className="photo-card-media"
         ref={ref}
@@ -178,7 +183,11 @@ function AlbumCard({
     rootMargin: GATE_MARGIN,
   });
   return (
-    <RevealArticle className="photo-card glass" index={index}>
+    <RevealArticle className="photo-card glass luxe-photo-card" index={index}>
+      <div className="luxe-corner luxe-tl" aria-hidden="true" />
+      <div className="luxe-corner luxe-tr" aria-hidden="true" />
+      <div className="luxe-corner luxe-bl" aria-hidden="true" />
+      <div className="luxe-corner luxe-br" aria-hidden="true" />
       <div
         className="photo-card-media"
         ref={ref}
@@ -433,6 +442,11 @@ export default function Photos({ t, lang }: Props) {
   return (
     <div className="page-content photos-luxe">
       <PhotoBackdrop />
+      <div className="luxe-star" style={{ top: '15%', left: '10%', animationDelay: '0s' }} aria-hidden="true" />
+      <div className="luxe-star" style={{ top: '25%', right: '15%', animationDelay: '1.2s' }} aria-hidden="true" />
+      <div className="luxe-star" style={{ top: '45%', left: '8%', animationDelay: '0.5s' }} aria-hidden="true" />
+      <div className="luxe-star" style={{ top: '70%', right: '5%', animationDelay: '2.1s' }} aria-hidden="true" />
+      <div className="luxe-star" style={{ top: '85%', left: '20%', animationDelay: '0.8s' }} aria-hidden="true" />
       <div className="page-header">
         <h1>{t.photos_title}</h1>
         {p.photos_header_sub && (
@@ -460,9 +474,13 @@ export default function Photos({ t, lang }: Props) {
             const featuredThumb = privateImageThumb(featuredPhoto.file);
             return (
               <RevealArticle
-                className="photo-card glass photo-card-featured"
+                className="photo-card glass photo-card-featured luxe-photo-card"
                 index={nonFeaturedPhotos.length}
               >
+                <div className="luxe-corner luxe-tl" aria-hidden="true" />
+                <div className="luxe-corner luxe-tr" aria-hidden="true" />
+                <div className="luxe-corner luxe-bl" aria-hidden="true" />
+                <div className="luxe-corner luxe-br" aria-hidden="true" />
                 <div
                   className="photo-card-media"
                   onClick={() => setLightboxIndex(specialPhotos.length)}

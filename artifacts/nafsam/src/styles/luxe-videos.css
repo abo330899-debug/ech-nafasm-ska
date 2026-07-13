@@ -1,0 +1,227 @@
+.videos-luxe {
+  --lux-gold: #d8a57c;
+  --lux-gold-dim: rgba(216, 165, 124, 0.3);
+  --lux-gold-glow: rgba(216, 165, 124, 0.15);
+  --lux-violet: rgba(90, 60, 120, 0.2);
+  --lux-indigo: rgba(40, 45, 90, 0.25);
+  --lux-bg: #050814;
+  --lux-radius: 20px;
+}
+
+/* Background Aurora */
+.videos-luxe::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle at 15% 25%, var(--lux-indigo), transparent 45%),
+    radial-gradient(circle at 85% 65%, var(--lux-violet), transparent 45%),
+    radial-gradient(circle at 50% 50%, var(--lux-gold-glow), transparent 60%);
+  opacity: 0.65;
+}
+
+/* Hero Typography & Lines */
+.videos-luxe .v-hero-title {
+  background: linear-gradient(135deg, #ffffff 20%, var(--lux-gold) 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Noto Naskh Arabic', 'Playfair Display', serif;
+  text-shadow: 0 4px 24px rgba(216, 165, 124, 0.25);
+  letter-spacing: 0.02em;
+}
+
+.videos-luxe .v-hero-sub {
+  color: #e2d5c8;
+  font-family: 'Tajawal', sans-serif;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+}
+
+.videos-luxe .v-hero-line {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--lux-gold-dim), transparent);
+  margin: 2rem auto;
+  width: 60%;
+}
+.videos-luxe .v-hero-line::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 6px;
+  height: 6px;
+  background: var(--lux-gold);
+  box-shadow: 0 0 12px var(--lux-gold);
+}
+
+/* Spotlight Card Luxe Treatment */
+.videos-luxe .v-spotlight-card {
+  position: relative;
+  background: rgba(10, 12, 20, 0.65);
+  border-radius: var(--lux-radius);
+  border: 1px solid transparent;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease;
+}
+
+.videos-luxe .v-spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--lux-radius);
+  padding: 1px;
+  background: linear-gradient(135deg, var(--lux-gold-dim), transparent 40%, var(--lux-violet) 80%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.videos-luxe .v-spotlight-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7), 0 0 40px var(--lux-gold-glow);
+}
+
+.videos-luxe .v-spotlight-eyebrow {
+  color: var(--lux-gold);
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  letter-spacing: 0.1em;
+}
+.videos-luxe .v-spotlight-eyebrow .v-spotlight-dot {
+  background: var(--lux-gold);
+  box-shadow: 0 0 8px var(--lux-gold);
+}
+
+/* Regular Grid Cards */
+.videos-luxe .v-card {
+  position: relative;
+  background: rgba(15, 18, 30, 0.45);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+}
+
+.videos-luxe .v-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  padding: 1px;
+  background: linear-gradient(to bottom, var(--lux-gold-dim), transparent 70%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.4s ease;
+}
+
+.videos-luxe .v-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 25px rgba(216, 165, 124, 0.12);
+}
+
+.videos-luxe .v-card:hover::after {
+  opacity: 1;
+  background: linear-gradient(to bottom right, var(--lux-gold-dim), transparent 40%, var(--lux-violet) 90%);
+}
+
+.videos-luxe .v-card-body .v-title {
+  font-family: 'Tajawal', sans-serif;
+  color: #f7efe7;
+}
+
+/* Glowing Play Buttons */
+.videos-luxe .v-play {
+  background: rgba(10, 12, 20, 0.5);
+  border: 1px solid var(--lux-gold-dim);
+  box-shadow: 0 0 20px rgba(0,0,0,0.6), inset 0 0 15px rgba(216, 165, 124, 0.1);
+  color: var(--lux-gold);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Using simple mobile media query rather than backdrop-filter */
+@media (min-width: 821px) {
+  .videos-luxe .v-play {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+.videos-luxe .v-spotlight-card:hover .v-play,
+.videos-luxe .v-card:hover .v-play {
+  background: var(--lux-gold);
+  color: #050814;
+  box-shadow: 0 0 30px var(--lux-gold-glow), 0 0 15px rgba(216, 165, 124, 0.4);
+  transform: scale(1.08);
+  border-color: var(--lux-gold);
+}
+
+/* Modal Luxe Polish */
+.videos-luxe .v-modal-box {
+  background: #050814;
+  border-radius: calc(var(--lux-radius) + 4px);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9), 0 0 0 1px var(--lux-gold-dim);
+  position: relative;
+  overflow: hidden;
+}
+
+.videos-luxe .v-modal-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, var(--lux-indigo), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.videos-luxe .v-modal-info {
+  position: relative;
+  z-index: 1;
+}
+
+.videos-luxe .v-modal-title {
+  font-family: 'Noto Naskh Arabic', serif;
+  background: linear-gradient(135deg, #fff 30%, var(--lux-gold) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Ornaments - Floating Specks */
+.v-sparkle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: var(--lux-gold);
+  border-radius: 50%;
+  box-shadow: 0 0 10px 2px var(--lux-gold);
+  animation: v-breathe 4s infinite alternate ease-in-out;
+  pointer-events: none;
+}
+
+.v-sparkle.s1 { top: 15%; left: 15%; animation-delay: 0s; }
+.v-sparkle.s2 { top: 40%; right: 10%; animation-delay: 1.2s; width: 2px; height: 2px; }
+.v-sparkle.s3 { bottom: 25%; left: 25%; animation-delay: 2.5s; width: 4px; height: 4px; opacity: 0.6; }
+
+@keyframes v-breathe {
+  0% { opacity: 0.2; transform: scale(0.8); }
+  100% { opacity: 0.9; transform: scale(1.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v-sparkle { animation: none; opacity: 0.5; }
+  .videos-luxe .v-spotlight-card,
+  .videos-luxe .v-card,
+  .videos-luxe .v-play {
+    transition: none;
+  }
+}

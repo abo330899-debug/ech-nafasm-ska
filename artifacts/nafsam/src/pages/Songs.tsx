@@ -6,6 +6,7 @@ import { usePrivateContent, pickLangPages } from "@/hooks/usePrivateContent";
 import RevealCard from "@/components/RevealCard";
 import { PAGE_AUDIO_PAUSE_EVENT, PAGE_AUDIO_RESUME_EVENT } from "@/hooks/usePageAudio";
 import { mediaUrl } from "@/lib/r2";
+import "@/styles/luxe-songs-writings.css";
 
 interface Props {
   t: Translations;
@@ -79,26 +80,36 @@ export default function Songs({ t, lang }: Props) {
   const songs = data?.songs ?? [];
 
   return (
-    <div className="page-content">
+    <div className="page-content luxe-songs">
       <PhotoBackdrop />
-      <div className="page-header">
+      <div className="luxe-specks" aria-hidden="true">
+        <div className="luxe-speck"></div>
+        <div className="luxe-speck"></div>
+        <div className="luxe-speck"></div>
+        <div className="luxe-speck"></div>
+        <div className="luxe-speck"></div>
+      </div>
+      <div className="page-header luxe-page-header">
         <h1>{t.songs_title}</h1>
         <p>{t.songs_text}</p>
       </div>
 
       <div className="songs-list" ref={listRef}>
         {songs.map((s, i) => (
-          <RevealCard key={i} className="song-card glass" index={i}>
-            <h3>{s.title}</h3>
-            {songTextKeys[i] && <p>{songTextKeys[i]}</p>}
-            <audio
-              controls
-              preload="none"
-              src={mediaUrl(s.src)}
-              className="audio-player"
-            >
-              {t.audio_unsupported}
-            </audio>
+          <RevealCard key={i} className="song-card glass luxe-song-card" index={i}>
+            <div className="luxe-vinyl-accent" aria-hidden="true"></div>
+            <div className="luxe-song-content">
+              <h3>{s.title}</h3>
+              {songTextKeys[i] && <p>{songTextKeys[i]}</p>}
+              <audio
+                controls
+                preload="none"
+                src={mediaUrl(s.src)}
+                className="audio-player"
+              >
+                {t.audio_unsupported}
+              </audio>
+            </div>
           </RevealCard>
         ))}
       </div>

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import { useChat } from "@/chat/chatContext";
+import "@/styles/luxe-chrome.css";
 
 interface Props {
   t: Translations;
@@ -37,7 +38,10 @@ export default function Navbar({ t, onLogout }: Props) {
   ];
 
   return (
-    <nav className="memory-dock" aria-label="Primary">
+    <nav className="memory-dock luxe-nav" aria-label="Primary">
+      <div className="luxe-nav-glow" aria-hidden="true" />
+      <div className="luxe-nav-hairline" aria-hidden="true" />
+      
       <div className="memory-dock__brand" aria-label={t.brand}>
         <span className="memory-dock__mark">N</span>
         <span className="memory-dock__word">{t.brand}</span>

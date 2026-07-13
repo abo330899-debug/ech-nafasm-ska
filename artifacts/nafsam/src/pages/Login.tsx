@@ -5,6 +5,8 @@ import usePageAudio from "@/hooks/usePageAudio";
 import PhotoBackdrop from "@/components/PhotoBackdrop";
 import { fetchSession, login, type SessionCard } from "@/lib/auth";
 
+import "@/styles/luxe-home-login.css";
+
 // The login UI intentionally does NOT ship any answer identifiers to the client.
 // All validation is server-side via the NAFSAM_PASSWORDS env var.
 
@@ -132,11 +134,23 @@ export default function Login({ t, lang, onAuth }: Props) {
   }
 
   return (
-    <div className="page-content login-page">
+    <div className="page-content login-page celestial-luxe-theme">
+      <div className="luxe-ambient-glow" aria-hidden="true" />
+      <div className="luxe-stars" aria-hidden="true">
+        <div className="star star-1"></div>
+        <div className="star star-2"></div>
+        <div className="star star-3"></div>
+        <div className="star star-4"></div>
+        <div className="star star-5"></div>
+      </div>
       <PhotoBackdrop />
-      <div className="login-container glass">
-        <h1 className="login-title">{t.login_title}</h1>
-        <p className="login-text">{t.login_text}</p>
+      <div className="login-container glass luxe-glass-card luxe-login-container">
+        <div className="luxe-corner top-left" aria-hidden="true"></div>
+        <div className="luxe-corner top-right" aria-hidden="true"></div>
+        <div className="luxe-corner bottom-left" aria-hidden="true"></div>
+        <div className="luxe-corner bottom-right" aria-hidden="true"></div>
+        <h1 className="login-title luxe-title">{t.login_title}</h1>
+        <p className="login-text luxe-text">{t.login_text}</p>
 
         {isOpen && elapsed && (
           <div className="elapsed-block">
@@ -168,7 +182,7 @@ export default function Login({ t, lang, onAuth }: Props) {
         <div className="user-cards-grid">
           {cards.length > 0
             ? cards.map((card, i) => (
-                <div key={`card-${i}`} className="user-card glass">
+                <div key={`card-${i}`} className="user-card glass luxe-glass-card">
                   <div className="riddle-hint">
                     <span className="riddle-icon">🔓</span>
                     <p>{card.hints[lang] ?? card.hints.tr ?? card.hints.en}</p>
@@ -177,7 +191,7 @@ export default function Login({ t, lang, onAuth }: Props) {
               ))
             : countdown !== null && cardCount > 0
               ? Array.from({ length: cardCount }, (_, i) => (
-                  <div key={i} className="user-card glass">
+                  <div key={i} className="user-card glass luxe-glass-card">
                     <div className="countdown-mini">
                       <span>
                         {countdown.days}{t.countdown_day} {countdown.hrs}
