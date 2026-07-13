@@ -649,6 +649,20 @@ main{flex:1}
   user-select:none;
   -webkit-user-select:none;
 }
+/* pinch-zoom wrapper: fills the overlay, hosts the transformed image */
+.lightbox-zoom{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  touch-action:none;
+  overflow:hidden;
+}
+.lightbox-zoom .lightbox-img{
+  will-change:transform;
+  transform-origin:center center;
+}
 .lightbox-nav{
   position:fixed;
   top:50%;
@@ -2642,6 +2656,32 @@ audio,video{filter:none}
   height:auto;
   background:#000;
   object-fit:contain;
+}
+/* orientation-fitted mode: the media box carries the video's exact native
+   aspect-ratio (inline style), so the video fills it completely — portrait
+   clips stand full-height, landscape clips spread full-width, zero bars. */
+.videos-luxe .v-modal-media.v-fit{
+  width:100%;
+  max-height:none;
+}
+.videos-luxe .v-modal-media-mp4.v-fit .v-modal-video{
+  width:100%;
+  height:100%;
+  max-height:none;
+  object-fit:cover;
+}
+/* portrait clips: keep the info strip compact so the tall video is the hero */
+.videos-luxe .v-box-portrait{
+  overflow-y:auto;
+}
+.videos-luxe .v-box-portrait .v-modal-info{
+  padding:14px 18px 16px;
+}
+.videos-luxe .v-box-portrait .v-modal-quote{
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
 }
 .videos-luxe .v-modal-media-youtube{
   aspect-ratio:16 / 9;

@@ -230,9 +230,20 @@ function AlbumCard({
 
 /** Shows the (usually cached) grid thumbnail instantly, then swaps in the
  *  full-resolution image once it has downloaded+decoded off-screen. Keeps only
- *  ONE full-res bitmap alive at a time, which matters on iPhone. */
+ *  ONE full-res bitmap alive at a time, which matters on iPhone.
+ *
+ *  Supports pinch-to-zoom (two fingers), one-finger pan while zoomed, and
+ *  double-tap / double-click to toggle zoom. While zoomed, touch events are
+ *  stopped from reaching the overlay so swipe-navigation doesn't fire. */
+const ZOOM_MAX = 4;
+const ZOOM_DOUBLE_TAP = 2.5;
+
 function LightboxImage({ src, thumb }: { src: string; thumb: string }) {
   const [shown, setShown] = useState(thumb || src);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const zoomRef = useRef({ scale: 1, tx: 0, ty: 0 });
+
   useEffect(() => {
     setShown(thumb || src);
     if (!src || src === thumb) return;
@@ -246,15 +257,219 @@ function LightboxImage({ src, thumb }: { src: string; thumb: string }) {
       alive = false;
     };
   }, [src, thumb]);
+
+  // Reset zoom whenever the photo changes.
+  useEffect(() => {
+    zoomRef.current = { scale: 1, tx: 0, ty: 0 };
+    const img = imgRef.current;
+    if (img) {
+      img.style.transition = "";
+      img.style.transform = "";
+    }
+  }, [src]);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    const z = zoomRef;
+    if (!el) return;
+
+    let pinch: {
+      dist: number;
+      scale: number;
+      tx: number;
+      ty: number;
+      midX: number;
+      midY: number;
+    } | null = null;
+    let pan: { x: number; y: number; tx: number; ty: number } | null = null;
+    let lastTap = 0;
+    // True while the current touch sequence was a zoom gesture — keeps the
+    // overlay's swipe-nav from firing on the trailing touchend.
+    let consumed = false;
+
+    const apply = (animate = false) => {
+      const img = imgRef.current;
+      if (!img) return;
+      img.style.transition = animate ? "transform 0.25s ease" : "";
+      const { scale, tx, ty } = z.current;
+      img.style.transform =
+        scale === 1 && tx === 0 && ty === 0
+          ? ""
+          : `translate(${tx}px, ${ty}px) scale(${scale})`;
+    };
+
+    const clampPan = () => {
+      const img = imgRef.current;
+      if (!img) return;
+      const { scale } = z.current;
+      // offsetWidth/Height ignore transforms → untransformed layout size.
+      const maxX = Math.max(0, ((scale - 1) * img.offsetWidth) / 2);
+      const maxY = Math.max(0, ((scale - 1) * img.offsetHeight) / 2);
+      z.current.tx = Math.min(maxX, Math.max(-maxX, z.current.tx));
+      z.current.ty = Math.min(maxY, Math.max(-maxY, z.current.ty));
+    };
+
+    const center = () => {
+      const r = el.getBoundingClientRect();
+      return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+    };
+
+    const toggleZoomAt = (px: number, py: number) => {
+      const { cx, cy } = center();
+      if (z.current.scale > 1.05) {
+        z.current = { scale: 1, tx: 0, ty: 0 };
+      } else {
+        const s = ZOOM_DOUBLE_TAP;
+        z.current = {
+          scale: s,
+          tx: (cx - px) * (s - 1),
+          ty: (cy - py) * (s - 1),
+        };
+        clampPan();
+      }
+      apply(true);
+    };
+
+    const touchDist = (t: TouchList) =>
+      Math.hypot(
+        t[0].clientX - t[1].clientX,
+        t[0].clientY - t[1].clientY,
+      );
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        // Pinch begins: never let the overlay treat this as a swipe.
+        e.stopPropagation();
+        consumed = true;
+        pan = null;
+        pinch = {
+          dist: touchDist(e.touches),
+          scale: z.current.scale,
+          tx: z.current.tx,
+          ty: z.current.ty,
+          midX: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+          midY: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+        };
+      } else if (e.touches.length === 1) {
+        const t0 = e.touches[0];
+        const now = Date.now();
+        if (now - lastTap < 300) {
+          lastTap = 0;
+          e.stopPropagation();
+          if (e.cancelable) e.preventDefault();
+          consumed = true;
+          toggleZoomAt(t0.clientX, t0.clientY);
+          return;
+        }
+        lastTap = now;
+        if (z.current.scale > 1.01) {
+          e.stopPropagation();
+          consumed = true;
+          pan = {
+            x: t0.clientX,
+            y: t0.clientY,
+            tx: z.current.tx,
+            ty: z.current.ty,
+          };
+        }
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (pinch && e.touches.length === 2) {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+        const { cx, cy } = center();
+        const ratio = touchDist(e.touches) / pinch.dist;
+        const next = Math.min(ZOOM_MAX, Math.max(1, pinch.scale * ratio));
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const k = next / pinch.scale;
+        // Keep the image point under the fingers stable, follow the midpoint.
+        z.current.scale = next;
+        z.current.tx = midX - cx - (pinch.midX - cx - pinch.tx) * k;
+        z.current.ty = midY - cy - (pinch.midY - cy - pinch.ty) * k;
+        clampPan();
+        apply();
+      } else if (pan && e.touches.length === 1 && z.current.scale > 1.01) {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+        const t0 = e.touches[0];
+        z.current.tx = pan.tx + (t0.clientX - pan.x);
+        z.current.ty = pan.ty + (t0.clientY - pan.y);
+        clampPan();
+        apply();
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (z.current.scale > 1.01 || pinch || consumed) e.stopPropagation();
+      if (e.touches.length < 2) pinch = null;
+      if (e.touches.length === 0) {
+        pan = null;
+        consumed = false;
+        if (z.current.scale < 1.05) {
+          z.current = { scale: 1, tx: 0, ty: 0 };
+          apply(true);
+        }
+      }
+    };
+
+    // Native non-passive listeners: React's root touch listeners are passive,
+    // so preventDefault (needed to stop iOS page-zoom/scroll) must live here.
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: false });
+    el.addEventListener("touchcancel", onTouchEnd, { passive: false });
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, []);
+
   return (
-    <img
-      src={shown}
-      alt=""
-      className="lightbox-img"
-      decoding="async"
-      draggable={false}
-      onClick={(e) => e.stopPropagation()}
-    />
+    <div
+      ref={wrapRef}
+      className="lightbox-zoom"
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        const z = zoomRef.current;
+        const el = wrapRef.current;
+        const img = imgRef.current;
+        if (!el || !img) return;
+        const r = el.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        if (z.scale > 1.05) {
+          zoomRef.current = { scale: 1, tx: 0, ty: 0 };
+        } else {
+          const s = ZOOM_DOUBLE_TAP;
+          zoomRef.current = {
+            scale: s,
+            tx: (cx - e.clientX) * (s - 1),
+            ty: (cy - e.clientY) * (s - 1),
+          };
+        }
+        img.style.transition = "transform 0.25s ease";
+        const nz = zoomRef.current;
+        img.style.transform =
+          nz.scale === 1
+            ? ""
+            : `translate(${nz.tx}px, ${nz.ty}px) scale(${nz.scale})`;
+      }}
+    >
+      <img
+        ref={imgRef}
+        src={shown}
+        alt=""
+        className="lightbox-img"
+        decoding="async"
+        draggable={false}
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
   );
 }
 

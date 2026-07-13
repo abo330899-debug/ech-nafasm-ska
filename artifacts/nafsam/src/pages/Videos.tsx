@@ -265,6 +265,10 @@ function Thumb({ file, kind }: { file: string; kind: VideoKind }) {
 export default function Videos({ t, lang }: Props) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [theaterMode, setTheaterMode] = useState(false);
+  // Native aspect ratio (w/h) of the active mp4, read from loadedmetadata.
+  // Drives orientation-aware modal sizing: portrait fills height, landscape
+  // fills width — no letterbox bars either way.
+  const [videoAR, setVideoAR] = useState<number | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const videoElRef = useRef<HTMLVideoElement>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
@@ -318,12 +322,14 @@ export default function Videos({ t, lang }: Props) {
   }, [visibleCount, videosData.length]);
 
   const openModal = useCallback((index: number) => {
+    setVideoAR(null);
     setActiveIndex(index);
   }, []);
 
   const closeModal = useCallback(() => {
     setActiveIndex(null);
     setTheaterMode(false);
+    setVideoAR(null);
   }, []);
 
   const toggleFullscreen = useCallback(() => {
@@ -357,6 +363,7 @@ export default function Videos({ t, lang }: Props) {
   }, []);
 
   const prevVideo = useCallback(() => {
+    setVideoAR(null);
     setActiveIndex((i) => {
       if (i === null || videosData.length === 0) return i;
       return (i - 1 + videosData.length) % videosData.length;
@@ -364,6 +371,7 @@ export default function Videos({ t, lang }: Props) {
   }, [videosData.length]);
 
   const nextVideo = useCallback(() => {
+    setVideoAR(null);
     setActiveIndex((i) => {
       if (i === null || videosData.length === 0) return i;
       return (i + 1) % videosData.length;
@@ -398,6 +406,22 @@ export default function Videos({ t, lang }: Props) {
   const activeKind: VideoKind = active ? detectKind(active.file) : "mp4";
   const activeCaption = active ? pickLocalized(active.caption, lang) : "";
   const activeQuote = active ? pickLocalized(active.quote, lang) : "";
+
+  // Orientation-aware modal sizing (mp4 only): the modal box width is derived
+  // from the video's native aspect ratio so a portrait clip stands tall and a
+  // landscape clip spreads wide — the video always shows FULL, no bars.
+  const isPortrait = videoAR !== null && videoAR < 0.95;
+  const fitBoxStyle: CSSProperties | undefined =
+    activeKind === "mp4" && videoAR !== null
+      ? {
+          width: `min(${theaterMode ? 1280 : isPortrait ? 560 : 900}px, calc(100vw - 24px), calc((100dvh - 230px) * ${videoAR.toFixed(4)}))`,
+          maxWidth: "none",
+        }
+      : undefined;
+  const fitMediaStyle: CSSProperties | undefined =
+    activeKind === "mp4" && videoAR !== null
+      ? { aspectRatio: `${videoAR.toFixed(4)}` }
+      : undefined;
 
   const featured = videosData[0] ?? null;
   const featuredKind: VideoKind = featured ? detectKind(featured.file) : "mp4";
@@ -568,7 +592,10 @@ export default function Videos({ t, lang }: Props) {
             </>
           )}
 
-          <div className="v-modal-box">
+          <div
+            className={`v-modal-box${videoAR !== null && activeKind === "mp4" ? (isPortrait ? " v-box-portrait" : " v-box-landscape") : ""}`}
+            style={fitBoxStyle}
+          >
             <button
               ref={closeBtnRef}
               type="button"
@@ -579,7 +606,10 @@ export default function Videos({ t, lang }: Props) {
               <CloseIcon />
             </button>
 
-            <div className={`v-modal-media v-modal-media-${activeKind}`}>
+            <div
+              className={`v-modal-media v-modal-media-${activeKind}${fitMediaStyle ? " v-fit" : ""}`}
+              style={fitMediaStyle}
+            >
               {activeKind === "mp4" && (
                 <video
                   ref={videoElRef}
@@ -591,6 +621,12 @@ export default function Videos({ t, lang }: Props) {
                   controls
                   autoPlay
                   playsInline
+                  onLoadedMetadata={(e) => {
+                    const v = e.currentTarget;
+                    if (v.videoWidth > 0 && v.videoHeight > 0) {
+                      setVideoAR(v.videoWidth / v.videoHeight);
+                    }
+                  }}
                 />
               )}
               {activeKind === "youtube" && (
