@@ -109,6 +109,20 @@ key the page shows just the hero title + empty section bodies. To fill it: add
 `feelings.ar` (+ `feelings.tr` as the cross-lang fallback) then PUT content.json
 to R2 (same flow as all content). No git push — `private/` is gitignored.
 
+**GitHub merges can silently revert auth (footgun, bit 2026-07-13):** the
+external repo (`abo330899-debug/ech-nafasm-ska`) carried an old `auth.ts` whose
+static login hardcoded only `ska`/`ilham` (no sha256/AUTH_TOKENS_BUILTIN) and a
+`chatAuth.ts` that fetched `/api/chat/session` — an endpoint that does NOT exist
+on the static Pages deploy (root `functions/` dir is never uploaded by our
+wrangler direct-upload from /tmp, and its cookie flow is incompatible with
+localStorage login anyway). Result: 7 of 9 passwords rejected, chat sign-in dead.
+**How to apply:** after ANY merge from GitHub, diff `src/lib/auth.ts` (static
+branch must hash against AUTH_TOKENS_BUILTIN — 9 words as of 2026-07-13:
+ska,star,kas,ilham,ech,nafas,nafasm,nafsam,kaar, case-insensitive) and
+`src/chat/chatAuth.ts` (must use direct `supabase.auth.signInWithPassword`,
+never `/api/chat/session`). `artifacts/nafsam/.env` is gitignored/untracked —
+it exists only locally; don't assume a merge restores it.
+
 **Static `openAt`:** static `fetchSession()` returns a real `openAt` from
 `VITE_OPEN_AT` (fallback `2026-05-29T17:00:00`, mirrors server `DEFAULT_OPEN_AT`),
 not `0`. Returning `0` made the login "elapsed since" counter show ~20609 days

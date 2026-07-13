@@ -1,9 +1,9 @@
 - [Nafsam static (R2) mode](nafsam-static-mode.md) — static serving needs branches in r2.ts+auth.ts+usePrivateContent.ts; VITE_AUTH_TOKENS = sha256 of NAFSAM_PASSWORDS, regenerate on change.
 - [Nafsam content i18n](nafsam-content-i18n.md) — videos/journey caption/quote now 4-lang objects via pickLocalized; bulk-translate with gpt-5-mini in FOREGROUND resumable script (bg procs die).
-- [Nafsam chat (/chat, Supabase)](nafsam-chat.md) — login word→fixed Supabase account (NOT word-derived); needs confirmed users + messages table GRANTs or every query 403s.
+- [Nafsam chat (/chat, Supabase)](nafsam-chat.md) — login word→fixed Supabase account via direct signInWithPassword (never /api/chat/session); needs confirmed users + table GRANTs or 403s.
 - [Nafsam mobile reload-on-scroll](nafsam-mobile-reload.md) — heavy media → mobile tab eviction jumps to top; fix = scroll restoration hook + content-visibility on off-screen cards.
 - [Nafsam photos↔captions](nafsam-photos-captions.md) — album pairs data.photos[i] with captions[lang][i] by index; reorder photos (not captions) to fix; dupes/non-anchored photos make perfect match impossible.
 - [Nafsam mobile gallery windowing](nafsam-mobile-gallery-windowing.md) — large galleries (245 videos) must render a windowed slice + IO sentinel or iOS Safari OOM-reloads.
 - [GitHub push (ECHandSKA-1)](github-push.md) — push via GitHub connector token + credential helper, git-lfs needs bash PATH; remote was force-overwritten to match Replit copy (backup branch saved).
 - [Telegram Call workflow fix](telegram-call-workflow.md) — telegram-call standalone workflow SIGKILL-fails always; serve its dist via api-server static route + add /telegram-call to api-server paths instead.
-- [Workspace wipe recovery](workspace-wipe-recovery.md) — if tracked files vanish but git history is intact: restore via `git archive HEAD | tar -x -T list` (exclude .replit*/replit.nix/.gitattributes), then cp artifact.toml + verifyAndReplaceArtifactToml to re-register artifacts/workflows.
+- [Workspace wipe recovery](workspace-wipe-recovery.md) — tracked files vanished but git intact: restore via `git archive HEAD | tar -x`, then re-register artifacts (recipe in topic file).

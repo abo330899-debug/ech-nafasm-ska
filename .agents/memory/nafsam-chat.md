@@ -10,7 +10,8 @@ A private real-time two-person chat at `/chat`, built on Supabase
 build as the rest of Nafsam — no app server involved.
 
 **Identity → fixed Supabase account (NOT word-derived).**
-Login word `ska` → Star; every other valid Nafsam word → Ilham. The Supabase
+Login words `ska`/`star`/`kas` → Star; every other valid Nafsam word → Ilham
+(STAR_WORDS set in both `lib/auth.ts` and `chat/chatAuth.ts`). The Supabase
 sign-in password depends ONLY on the identity, not on the exact word (one fixed
 password per identity; the literal values live in `chatAuth.ts`, not here).
 **Why:** Ilham can open Nafsam with several different valid words. An earlier
