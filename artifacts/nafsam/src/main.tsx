@@ -4,6 +4,7 @@ import App from "./App";
 import LoadingVeil from "./components/LoadingVeil";
 import "./index.css";
 import "./mobile-performance.css";
+import "./luxury-memory.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
