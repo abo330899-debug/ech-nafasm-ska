@@ -283,6 +283,9 @@ function LightboxImage({ src, thumb }: { src: string; thumb: string }) {
     } | null = null;
     let pan: { x: number; y: number; tx: number; ty: number } | null = null;
     let lastTap = 0;
+    let lastTapX = 0;
+    let lastTapY = 0;
+    let tapStart: { x: number; y: number } | null = null;
     // True while the current touch sequence was a zoom gesture — keeps the
     // overlay's swipe-nav from firing on the trailing touchend.
     let consumed = false;
@@ -341,6 +344,7 @@ function LightboxImage({ src, thumb }: { src: string; thumb: string }) {
         // Pinch begins: never let the overlay treat this as a swipe.
         e.stopPropagation();
         consumed = true;
+        lastTap = 0;
         pan = null;
         pinch = {
           dist: touchDist(e.touches),
@@ -353,7 +357,12 @@ function LightboxImage({ src, thumb }: { src: string; thumb: string }) {
       } else if (e.touches.length === 1) {
         const t0 = e.touches[0];
         const now = Date.now();
-        if (now - lastTap < 300) {
+        // Double-tap only counts if the previous tap was recent, close by,
+        // and didn't turn into a swipe/pan (movement clears lastTap below).
+        const isDoubleTap =
+          now - lastTap < 300 &&
+          Math.hypot(t0.clientX - lastTapX, t0.clientY - lastTapY) < 30;
+        if (isDoubleTap) {
           lastTap = 0;
           e.stopPropagation();
           if (e.cancelable) e.preventDefault();
@@ -362,6 +371,9 @@ function LightboxImage({ src, thumb }: { src: string; thumb: string }) {
           return;
         }
         lastTap = now;
+        lastTapX = t0.clientX;
+        lastTapY = t0.clientY;
+        tapStart = { x: t0.clientX, y: t0.clientY };
         if (z.current.scale > 1.01) {
           e.stopPropagation();
           consumed = true;
@@ -376,6 +388,16 @@ function LightboxImage({ src, thumb }: { src: string; thumb: string }) {
     };
 
     const onTouchMove = (e: TouchEvent) => {
+      // A moving finger is a swipe/pan, not a tap: cancel double-tap arming
+      // so two quick swipes never zoom instead of navigating.
+      if (e.touches.length === 1 && tapStart) {
+        const t0 = e.touches[0];
+        if (
+          Math.hypot(t0.clientX - tapStart.x, t0.clientY - tapStart.y) > 10
+        ) {
+          lastTap = 0;
+        }
+      }
       if (pinch && e.touches.length === 2) {
         e.stopPropagation();
         if (e.cancelable) e.preventDefault();

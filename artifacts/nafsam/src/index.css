@@ -2668,12 +2668,16 @@ audio,video{filter:none}
   width:100%;
   height:100%;
   max-height:none;
-  object-fit:cover;
+  /* contain, not cover: pixel-identical when the container AR matches the
+     video AR, and degrades to letterbox (never crops) if flex shrinks it */
+  object-fit:contain;
 }
-/* portrait clips: keep the info strip compact so the tall video is the hero */
-.videos-luxe .v-box-portrait{
+/* fitted modals may exceed the viewport on short screens — allow scrolling */
+.videos-luxe .v-box-portrait,
+.videos-luxe .v-box-landscape{
   overflow-y:auto;
 }
+/* portrait clips: keep the info strip compact so the tall video is the hero */
 .videos-luxe .v-box-portrait .v-modal-info{
   padding:14px 18px 16px;
 }
