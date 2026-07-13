@@ -4,6 +4,40 @@ const STATIC_TOKEN_VALUE = "authenticated";
 const STATIC_DEFAULT_OPEN_AT = "2026-05-29T17:00:00";
 const IDENTITY_KEY = "nafsam_identity";
 
+// SHA-256 hashes of accepted login words (trimmed + lowercased):
+// ska, star, kas, ilham, ech, nafas, nafasm, nafsam, kaar
+const AUTH_TOKENS_BUILTIN = [
+  "15d3a52f3a69b6da3b76b5575a48c1d16ad5087dbf1cc4e33d1428f59a0bb7a1",
+  "525eca1d5089dbdcbb6700d910c5e0bc23fbaa23ee026c0e224c2b45490e5f29",
+  "04ead045b10c1a7f4a3afb07f8f19339ac98ad1bf2aa09d08df8385c4cd62498",
+  "e467a85cdae98a0cb4edb5570aad4bd093dc2b652b6677a5949bd4ae36922bb4",
+  "89332e726a92700b68820e4371347aff05cfbe5fcef459a7e9916266fbbbb6ac",
+  "470c8021ba0912f4108bffbb4fe562367912d992f7a1388850b28d34a4a25170",
+  "69f81f0d193d163268d961aae99c2e3adf6b5ebe81a97280cf0c235d2f5f3338",
+  "c30609e972999f1687758abe73a07ba12a56a009784d9c8c910a6982d55c212c",
+  "2cf4163fd3b0c3d8be020fb37c7b103cee3daaf8c5d678cff9244210d13440a5",
+];
+
+function authTokens(): Set<string> {
+  const tokens = new Set(AUTH_TOKENS_BUILTIN);
+  const extra = (import.meta.env.VITE_AUTH_TOKENS as string | undefined) || "";
+  for (const raw of extra.split(",")) {
+    const token = raw.trim().toLowerCase();
+    if (token) tokens.add(token);
+  }
+  return tokens;
+}
+
+async function sha256Hex(text: string): Promise<string> {
+  const data = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+const STAR_WORDS = new Set(["ska", "star", "kas"]);
+
 export interface CardHints { tr: string; fa: string; ar: string; en: string; }
 export interface SessionCard { hints: CardHints; }
 export interface SessionStatus {
@@ -24,7 +58,7 @@ function openAtValue(): number {
 }
 
 function saveIdentity(answer: string): void {
-  const identity = answer.trim().toLowerCase() === "ska" ? "star" : "ilham";
+  const identity = STAR_WORDS.has(answer.trim().toLowerCase()) ? "star" : "ilham";
   try { localStorage.setItem(IDENTITY_KEY, identity); } catch {}
   import("@/chat/chatAuth").then((m) => m.signInToChat(identity)).catch(() => {});
 }
@@ -59,10 +93,11 @@ export async function fetchSession(): Promise<SessionStatus> {
 export async function login(answer: string): Promise<LoginResult> {
   const normalized = answer.trim().toLowerCase();
   if (STATIC_MODE) {
-    if (normalized !== "ska" && normalized !== "ilham") {
-      return { ok: false, reason: "wrong" };
-    }
     try {
+      const hash = await sha256Hex(normalized);
+      if (!authTokens().has(hash)) {
+        return { ok: false, reason: "wrong" };
+      }
       localStorage.setItem(STATIC_TOKEN_KEY, STATIC_TOKEN_VALUE);
       saveIdentity(normalized);
       return { ok: true };

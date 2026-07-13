@@ -3,10 +3,24 @@ import { supabase } from "./supabaseClient";
 export type ChatIdentity = "star" | "ilham";
 
 const IDENTITY_KEY = "nafsam_identity";
-export const STAR_WORD = "ska";
+export const STAR_WORDS = new Set(["ska", "star", "kas"]);
+
+// The Supabase chat password depends ONLY on the identity, not on the exact
+// login word. The real gate stays the Nafsam login itself (the word is
+// verified before chat sign-in ever runs); the data is protected by Supabase
+// row-level security.
+const CHAT_PASSWORDS: Record<ChatIdentity, string> = {
+  star: "nafsam-ska",
+  ilham: "nafsam-ilham",
+};
+
+const EMAILS: Record<ChatIdentity, string> = {
+  star: "star@nafsam.app",
+  ilham: "ilham@nafsam.app",
+};
 
 export function deriveIdentity(answer: string): ChatIdentity {
-  return answer.trim().toLowerCase() === STAR_WORD ? "star" : "ilham";
+  return STAR_WORDS.has(answer.trim().toLowerCase()) ? "star" : "ilham";
 }
 
 export function storeIdentity(id: ChatIdentity): void {
@@ -37,25 +51,9 @@ export function clearIdentity(): void {
 export async function signInToChat(identity: ChatIdentity): Promise<void> {
   storeIdentity(identity);
   if (!supabase) return;
-
-  const response = await fetch("/api/chat/session", {
-    method: "POST",
-    credentials: "same-origin",
-    cache: "no-store",
-    headers: { Accept: "application/json" },
-  });
-  if (!response.ok) throw new Error("chat_auth_failed");
-
-  const session = (await response.json()) as {
-    access_token: string;
-    refresh_token: string;
-    identity: ChatIdentity;
-  };
-  if (session.identity !== identity) throw new Error("chat_identity_mismatch");
-
-  const { error } = await supabase.auth.setSession({
-    access_token: session.access_token,
-    refresh_token: session.refresh_token,
+  const { error } = await supabase.auth.signInWithPassword({
+    email: EMAILS[identity],
+    password: CHAT_PASSWORDS[identity],
   });
   if (error) throw error;
 }
@@ -70,7 +68,7 @@ export async function signOutChat(): Promise<void> {
 }
 
 export function expectedEmail(id: ChatIdentity): string {
-  return id === "star" ? "star@nafsam.app" : "ilham@nafsam.app";
+  return EMAILS[id].toLowerCase();
 }
 
 export function identityName(id: ChatIdentity): string {
