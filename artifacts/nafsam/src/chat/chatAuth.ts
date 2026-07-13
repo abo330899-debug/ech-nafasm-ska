@@ -3,32 +3,10 @@ import { supabase } from "./supabaseClient";
 export type ChatIdentity = "star" | "ilham";
 
 const IDENTITY_KEY = "nafsam_identity";
-
-// Star unlocks with the word "ska"; every other valid Nafsam word is Ilham.
 export const STAR_WORD = "ska";
-
-// The Supabase chat password depends ONLY on the identity, not on the exact
-// login word. Ilham can sign into Nafsam with several different valid words, so
-// deriving the password from the word would break the moment she used a word
-// other than the one her account was created with. The real gate stays the
-// Nafsam login itself (the word is verified before chat sign-in ever runs); the
-// data is protected by Supabase row-level security. See CHAT_SETUP.md.
-const CHAT_PASSWORDS: Record<ChatIdentity, string> = {
-  star: "nafsam-ska",
-  ilham: "nafsam-ilham",
-};
-
-const EMAILS: Record<ChatIdentity, string> = {
-  star: "star@nafsam.app",
-  ilham: "ilham@nafsam.app",
-};
 
 export function deriveIdentity(answer: string): ChatIdentity {
   return answer.trim().toLowerCase() === STAR_WORD ? "star" : "ilham";
-}
-
-export function chatPassword(identity: ChatIdentity): string {
-  return CHAT_PASSWORDS[identity];
 }
 
 export function storeIdentity(id: ChatIdentity): void {
@@ -41,8 +19,8 @@ export function storeIdentity(id: ChatIdentity): void {
 
 export function getIdentity(): ChatIdentity | null {
   try {
-    const v = localStorage.getItem(IDENTITY_KEY);
-    return v === "star" || v === "ilham" ? v : null;
+    const value = localStorage.getItem(IDENTITY_KEY);
+    return value === "star" || value === "ilham" ? value : null;
   } catch {
     return null;
   }
@@ -57,11 +35,29 @@ export function clearIdentity(): void {
 }
 
 export async function signInToChat(identity: ChatIdentity): Promise<void> {
+  storeIdentity(identity);
   if (!supabase) return;
-  await supabase.auth.signInWithPassword({
-    email: EMAILS[identity],
-    password: CHAT_PASSWORDS[identity],
+
+  const response = await fetch("/api/chat/session", {
+    method: "POST",
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: { Accept: "application/json" },
   });
+  if (!response.ok) throw new Error("chat_auth_failed");
+
+  const session = (await response.json()) as {
+    access_token: string;
+    refresh_token: string;
+    identity: ChatIdentity;
+  };
+  if (session.identity !== identity) throw new Error("chat_identity_mismatch");
+
+  const { error } = await supabase.auth.setSession({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+  });
+  if (error) throw error;
 }
 
 export async function signOutChat(): Promise<void> {
@@ -74,15 +70,13 @@ export async function signOutChat(): Promise<void> {
 }
 
 export function expectedEmail(id: ChatIdentity): string {
-  return EMAILS[id].toLowerCase();
+  return id === "star" ? "star@nafsam.app" : "ilham@nafsam.app";
 }
 
 export function identityName(id: ChatIdentity): string {
   return id === "star" ? "Star" : "إلهام";
 }
 
-// Short text marks shown in place of profile photos. The login word "ska"
-// maps to Star (see STAR_WORD), so Star is "ska." and Ilham is "ech.".
 const SHORT_LABELS: Record<ChatIdentity, string> = {
   star: "ska.",
   ilham: "ech.",
