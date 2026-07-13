@@ -9,17 +9,28 @@ Deploy recipe: build with `CF_PAGES=1 NODE_ENV=production npx vite build` in
 `artifacts/nafsam`, copy `dist/public` → `/tmp/nafsam-deploy`, then
 `wrangler pages deploy /tmp/nafsam-deploy --project-name=ech-nafasm-ska --branch=main`.
 
-**Token footgun (bit 2026-07-13):** the env secrets do NOT hold a working
-Pages-deploy token. `CLOUDFLARE_API_TOKEN` has R2/API access but no Pages
-permission, and `CLOUDFLARE_PAGES_TOKEN` contains TWO concatenated `cfut_`
-tokens (107 chars) — both verify as "active" but both fail the
-`/pages/projects/.../upload-token` endpoint with auth error 10000, so wrangler
-deploys fail. The token that actually deploys is a separate `cfut_` token used
-in earlier sessions and is NOT stored in env.
+**Token status (fixed 2026-07-13):** `CLOUDFLARE_PAGES_TOKEN` now holds a
+working custom API token with Account→Cloudflare Pages:Edit (user re-created it
+after two bad pastes — first an old `cfut_` upload token, then a truncated
+copy). `CLOUDFLARE_API_TOKEN` remains R2-only (no Pages permission).
 **How to apply:** before debugging wrangler, test the token directly:
 `curl -H "Authorization: Bearer $T" .../pages/projects/ech-nafasm-ska/upload-token`
-— success means it can deploy. If no working token is at hand, ask the user to
-update the `CLOUDFLARE_PAGES_TOKEN` secret with a token that has Pages:Edit.
+— HTTP 200 means it can deploy. If it fails, ask the user for a fresh custom
+token (Pages:Edit), and warn them `cfut_`-prefixed strings are NOT API tokens.
+
+**Wrangler version:** `wrangler@latest` (v4+) requires Node 22 and the default
+shell node is v20 — use `npx wrangler@3 pages deploy ...` (works fine). Pass the
+token as `CLOUDFLARE_API_TOKEN=$CLOUDFLARE_PAGES_TOKEN` plus
+`CLOUDFLARE_ACCOUNT_ID=d2680f7c5ff39f8d9177a51dbf7fec75`.
+
+**/tmp staging vanishes between sessions** — always re-copy
+`artifacts/nafsam/dist/public` → `/tmp/nafsam-deploy` in the same command as the
+deploy, or wrangler fails with ENOENT.
+
+**Service worker cache:** after any redeploy that must reach returning visitors,
+bump `VERSION` in `artifacts/nafsam/public/sw.js` BEFORE building (e.g.
+"v6-luxe", 2026-07-13) — the SW serves cached assets cache-first, so without a
+bump users keep seeing the old design.
 
 **Run wrangler from /tmp, not the workspace.** From the repo root, wrangler
 shells out to git and the sandbox blocks it as a destructive git op; the
