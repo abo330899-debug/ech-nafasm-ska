@@ -1,5 +1,46 @@
 uploads = []
-generated = []
+
+[[generated]]
+id = "-t5s2cna6ggMheZiseg3u"
+uri = "file://artifacts/mockup-sandbox/public/images/nafsam-videos/mem1.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "lpUJAHtiLTHiwPjJSJ6S6"
+uri = "file://artifacts/mockup-sandbox/public/images/nafsam-videos/mem2.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "egeYpnrD1nCs8Oi6B8OFY"
+uri = "file://artifacts/mockup-sandbox/public/images/nafsam-videos/mem3.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "JImJT0kT_Qwc8-ytR-8Wm"
+uri = "file://artifacts/mockup-sandbox/public/images/nafsam-videos/mem4.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "qNZqYxHxfRfGalZNx2_D9"
+uri = "file://artifacts/mockup-sandbox/public/images/nafsam-videos/mem5.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "8n8aI5f6B2WWT1P8VQZbT"
+uri = "file://artifacts/mockup-sandbox/public/images/nafsam-videos/mem6.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "91-V5mKIddQIge0qzB9aW"
+uri = "file://artifacts/mockup-sandbox/public/images/nafsam-videos/hero.png"
+type = "image"
+title = "generated_image"
 
 [[outputs]]
 id = "XEUTRVQvQwy3YEA8hkBVL"
