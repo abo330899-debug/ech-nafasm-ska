@@ -706,7 +706,17 @@ html, body, #root {
 .tg-bubble--in .tg-bubble-meta { color: var(--tg-subtext); opacity: 1; }
 .tg-bubble--out .tg-bubble-meta { color: rgba(255,255,255,0.85); }
 
-.tg-read-icon { color: #cde7ff; margin-left: 1px; }
+.tg-read-icon { color: rgba(255, 255, 255, 0.85); margin-left: 1px; }
+.tg-read-icon--seen {
+  color: #1c4b8f;
+  filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.55));
+}
+@media (prefers-color-scheme: dark) {
+  .tg-read-icon--seen {
+    color: #9fe0ff;
+    filter: none;
+  }
+}
 
 /* Typing indicator */
 .tg-bubble--typing {

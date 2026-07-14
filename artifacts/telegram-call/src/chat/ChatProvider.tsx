@@ -24,6 +24,12 @@ import {
 const LAST_READ_KEY = "nafsam_chat_lastread";
 const LAST_SEEN_KEY = "nafsam_chat_lastseen";
 
+// Scoped per identity so switching accounts on a shared device never shows a
+// stale last-seen time carried over from the previous peer.
+function lastSeenKey(id: ChatIdentity | null): string {
+  return id ? `${LAST_SEEN_KEY}_${id}` : LAST_SEEN_KEY;
+}
+
 function getLastRead(): number {
   try {
     const v = localStorage.getItem(LAST_READ_KEY);
@@ -41,18 +47,18 @@ function setLastRead(ts: number): void {
   }
 }
 
-function getStoredLastSeen(): number | null {
+function getStoredLastSeen(id: ChatIdentity | null): number | null {
   try {
-    const v = localStorage.getItem(LAST_SEEN_KEY);
+    const v = localStorage.getItem(lastSeenKey(id));
     return v ? Number(v) || null : null;
   } catch {
     return null;
   }
 }
 
-function setStoredLastSeen(ts: number): void {
+function setStoredLastSeen(id: ChatIdentity | null, ts: number): void {
   try {
-    localStorage.setItem(LAST_SEEN_KEY, String(ts));
+    localStorage.setItem(lastSeenKey(id), String(ts));
   } catch {
     /* ignore */
   }
@@ -97,7 +103,7 @@ export function ChatProvider({
   const [otherOnline, setOtherOnline] = useState(false);
   const [otherTyping, setOtherTyping] = useState(false);
   const [otherLastSeen, setOtherLastSeen] = useState<number | null>(() =>
-    getStoredLastSeen(),
+    getStoredLastSeen(getIdentity()),
   );
   const [otherLastRead, setOtherLastRead] = useState<number | null>(() =>
     getStoredOtherRead(getIdentity()),
@@ -193,7 +199,7 @@ export function ChatProvider({
           setOtherOnline(online);
           if (online) {
             const now = Date.now();
-            setStoredLastSeen(now);
+            setStoredLastSeen(getIdentity(), now);
             setOtherLastSeen(now);
           }
           let theirRead = 0;
@@ -339,7 +345,7 @@ export function ChatProvider({
       // real last-seen time instead of a stale/blank one.
       setOtherLastSeen((prev) => {
         const next = Math.max(prev ?? 0, ms);
-        setStoredLastSeen(next);
+        setStoredLastSeen(getIdentity(), next);
         return next;
       });
     };

@@ -390,13 +390,12 @@ function ChatScreen({
     return "sent";
   }
 
-  // Privacy: Star's "last seen" time is never shown — only Ilham's is.
-  const showLastSeen = them === "ilham";
+  // Symmetric presence: both sides see each other's real online / last-seen.
   const statusText = otherTyping
     ? "typing…"
     : otherOnline
       ? "online"
-      : showLastSeen && otherLastSeen
+      : otherLastSeen
         ? `last seen ${lastSeenTime(otherLastSeen)}`
         : "last seen recently";
 
@@ -1254,9 +1253,9 @@ function ControlButton({
 function TickIcon({ seen }: { seen: boolean }) {
   if (seen) {
     return (
-      <svg className="tg-read-icon" width="16" height="11" viewBox="0 0 16 11" fill="none">
-        <path d="M1 5.5L4.2 8.7L10.5 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M5.5 8.5L6.2 9.2L12.5 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <svg className="tg-read-icon tg-read-icon--seen" width="16" height="11" viewBox="0 0 16 11" fill="none">
+        <path d="M1 5.5L4.2 8.7L10.5 1.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M5.5 8.5L6.2 9.2L12.5 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
