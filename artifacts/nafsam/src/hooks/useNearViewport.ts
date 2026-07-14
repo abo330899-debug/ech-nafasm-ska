@@ -36,6 +36,17 @@ function getSafeRootMargin(requested?: string) {
  * fixed `aspect-ratio` box) so the placeholder holds the slot and the page does
  * not jump while scrolling.
  */
+/**
+ * On phones, a fast fling up/down makes dozens of cards cross the (small)
+ * mount margin in under a second. Mounting each one kicks off a fetch+decode,
+ * and even though the card is unmounted moments later, the burst of decoded
+ * bitmaps spikes memory faster than the browser reclaims it — which is exactly
+ * the "scroll fast → page refreshes" eviction. So on mobile we only flip a
+ * card to "near" after it has stayed near the viewport for a short settle
+ * window; cards that merely fly past never mount their image at all.
+ */
+const MOBILE_MOUNT_SETTLE_MS = 160;
+
 export default function useNearViewport<T extends HTMLElement = HTMLElement>(
   options?: { rootMargin?: string },
 ) {
@@ -54,16 +65,44 @@ export default function useNearViewport<T extends HTMLElement = HTMLElement>(
       return;
     }
 
+    const isMobileLike =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+
     const rootMargin = getSafeRootMargin(options?.rootMargin);
+    let settleTimer: number | null = null;
+
     const io = new IntersectionObserver(
       (entries) => {
-        for (const e of entries) setNear(e.isIntersecting);
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            if (!isMobileLike) {
+              setNear(true);
+              continue;
+            }
+            if (settleTimer === null) {
+              settleTimer = window.setTimeout(() => {
+                settleTimer = null;
+                setNear(true);
+              }, MOBILE_MOUNT_SETTLE_MS);
+            }
+          } else {
+            if (settleTimer !== null) {
+              window.clearTimeout(settleTimer);
+              settleTimer = null;
+            }
+            setNear(false);
+          }
+        }
       },
       { root: null, rootMargin },
     );
 
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      if (settleTimer !== null) window.clearTimeout(settleTimer);
+      io.disconnect();
+    };
   }, [options?.rootMargin]);
 
   return { ref, near };
