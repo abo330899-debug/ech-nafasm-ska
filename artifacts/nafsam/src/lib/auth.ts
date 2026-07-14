@@ -60,12 +60,13 @@ function openAtValue(): number {
 function saveIdentity(answer: string): void {
   const identity = STAR_WORDS.has(answer.trim().toLowerCase()) ? "star" : "ilham";
   try { localStorage.setItem(IDENTITY_KEY, identity); } catch {}
-  import("@/chat/chatAuth").then((m) => m.signInToChat(identity)).catch(() => {});
 }
 
 function clearIdentity(): void {
   try { localStorage.removeItem(IDENTITY_KEY); } catch {}
-  import("@/chat/chatAuth").then((m) => m.signOutChat()).catch(() => {});
+  // The Telegram chat app (served under /telegram-call/ on this same origin)
+  // stores its Supabase session under this key; drop it on logout too.
+  try { localStorage.removeItem("nafsam-chat-auth"); } catch {}
 }
 
 export async function fetchSession(): Promise<SessionStatus> {

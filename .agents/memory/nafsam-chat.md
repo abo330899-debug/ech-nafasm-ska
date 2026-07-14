@@ -1,18 +1,25 @@
 ---
-name: Nafsam private chat (/chat, Supabase)
-description: How the two-person chat maps Nafsam login words to fixed Supabase accounts, and the gotchas that break sending.
+name: Nafsam private chat (telegram-call app, Supabase)
+description: How the two-person chat maps login words to fixed Supabase accounts, and the gotchas that break sending.
 ---
 
 # Nafsam private chat
 
-A private real-time two-person chat at `/chat`, built on Supabase
-(Realtime + Postgres + Storage). Works inside the same static Cloudflare Pages
-build as the rest of Nafsam — no app server involved.
+A private real-time two-person chat built on Supabase (Realtime + Postgres +
+Storage). It now lives in the standalone Telegram-style app at
+`/telegram-call/` (`artifacts/telegram-call/src/chat/` + `App.tsx`), deployed
+in the same static Cloudflare Pages build — no app server involved. Nafsam's
+old `/chat` page and its `src/chat` modules were removed; the Telegram app has
+its own word-login screen (`wordAuth.ts`) because an installed iOS PWA has
+ISOLATED storage and cannot see Nafsam's stored identity. `/telegram-call/*`
+gets `Permissions-Policy: microphone=(self)` via a `! Permissions-Policy`
+detach block in `_headers` (root keeps microphone denied) — voice recording
+breaks without it.
 
 **Identity → fixed Supabase account (NOT word-derived).**
-The Star identity's login words are the STAR_WORDS set (defined in both
-`lib/auth.ts` and `chat/chatAuth.ts` — do not list the words here); every other
-valid Nafsam word → Ilham. The Supabase
+The Star identity's login words are the STAR_WORDS set (defined in
+`chat/chatAuth.ts` — do not list the words here); every other
+valid word → Ilham. The Supabase
 sign-in password depends ONLY on the identity, not on the exact word (one fixed
 password per identity; the literal values live in `chatAuth.ts`, not here).
 **Why:** Ilham can open Nafsam with several different valid words. An earlier
@@ -20,10 +27,10 @@ design derived the password as `nafsam-<word>`, so the moment she used any word
 other than the one her single Supabase account was created with, chat sign-in
 failed with "تعذّر الدخول للمحادثة". One account can only hold one password.
 **How to apply:** if these constants change, update both
-`artifacts/nafsam/src/chat/chatAuth.ts` AND the Supabase user's password
+`artifacts/telegram-call/src/chat/chatAuth.ts` AND the Supabase user's password
 (Authentication → Users) so they stay in sync, then redeploy. The chat
 passwords are public (baked into the static bundle); the real gate is the
-Nafsam word login (verified before chat sign-in) plus Supabase row-level
+word login (verified before chat sign-in) plus Supabase row-level
 security keyed on the signed-in email.
 
 **Two non-code setup steps that silently block messaging (must be done in the
@@ -105,7 +112,7 @@ exposes nothing beyond what the realtime presence channel + `read_state` already
 carried for the two authorized identities.
 
 **Header status reflects REAL presence: "online" while the peer is on the page,
-"last seen <time>" once they leave.** `statusText` in `Chat.tsx` = typing → else
+"last seen <time>" once they leave.** `statusText` in the chat screen = typing → else
 `otherOnline ? online : otherLastSeen ? last_seen : offline`, and avatars carry
 `is-online` only when `otherOnline`. **History/footgun:** an "always online"
 variant (statusText hardcoded to `s.online`, avatars always `is-online`,

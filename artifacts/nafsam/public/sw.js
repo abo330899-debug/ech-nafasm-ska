@@ -11,7 +11,7 @@
    look like a sudden refresh. The new worker activates naturally after the page
    is closed/reopened, which is safer for this gallery-style app.
 */
-const VERSION = "v21-new-icon";
+const VERSION = "v22-telegram-chat";
 const STATIC_CACHE = `nafsam-static-${VERSION}`;
 const RUNTIME_CACHE = `nafsam-runtime-${VERSION}`;
 const FONT_CACHE = `nafsam-fonts-${VERSION}`;

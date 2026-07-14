@@ -1,5 +1,24 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import "./tg.css";
+import { ChatProvider } from "./chat/ChatProvider";
+import { useChat, type ChatMessage } from "./chat/chatContext";
+import {
+  getIdentity,
+  signInToChat,
+  otherIdentity,
+  identityName,
+  identityAvatar,
+  type ChatIdentity,
+} from "./chat/chatAuth";
+import { verifyWord } from "./chat/wordAuth";
+import { parseVoice, REACTION_EMOJIS } from "./chat/chatMedia";
 
 type CallState = "idle" | "calling" | "ringing" | "connected" | "ended";
 
@@ -9,30 +28,13 @@ interface Contact {
   avatarUrl?: string;
   gradientFrom: string;
   gradientTo: string;
-  online: boolean;
 }
-
-interface Message {
-  id: number;
-  text: string;
-  sent: boolean;
-  time: string;
-}
-
-const CONTACT: Contact = {
-  name: "Nafsam",
-  initials: "N",
-  avatarUrl: `${import.meta.env.BASE_URL}avatar.jpg`,
-  gradientFrom: "#5BA4CF",
-  gradientTo: "#2A7EC8",
-  online: true,
-};
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-function formatTime(secs: number) {
+function formatCallTime(secs: number) {
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
   const s = secs % 60;
@@ -40,30 +42,161 @@ function formatTime(secs: number) {
   return `${pad(m)}:${pad(s)}`;
 }
 
-function nowTime() {
-  const d = new Date();
+function timeLabel(iso: string): string {
+  const d = new Date(iso);
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-const INITIAL_MESSAGES: Message[] = [
-  { id: 1, text: "هلا 🌙", sent: false, time: "21:02" },
-  { id: 2, text: "وينك؟ اشتقتلك", sent: false, time: "21:02" },
-  { id: 3, text: "هلا فيك ❤️ هنا دايماً", sent: true, time: "21:03" },
-  { id: 4, text: "تحب نتكلم صوت؟", sent: false, time: "21:04" },
-];
+function lastSeenTime(ts: number): string {
+  const d = new Date(ts);
+  const now = new Date();
+  const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  if (d.toDateString() === now.toDateString()) return `today at ${time}`;
+  const yest = new Date(now);
+  yest.setDate(now.getDate() - 1);
+  if (d.toDateString() === yest.toDateString()) return `yesterday at ${time}`;
+  const date = d.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+  });
+  return `${date} at ${time}`;
+}
 
-const AUTO_REPLIES = [
-  "تمام 😊",
-  "حلو كثير ❤️",
-  "صح كلامك",
-  "هههه دمك خفيف",
-  "وانا بعد اشتقتلك",
-  "خبرني اكثر 👀",
-  "اوكي، موجود",
-  "🌙✨",
-];
+function dayKey(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function dayLabel(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const startOf = (x: Date) =>
+    new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = startOf(now) - startOf(d);
+  if (diff === 0) return "Today";
+  if (diff === 86400000) return "Yesterday";
+  return d.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "long",
+  });
+}
+
+function pickMime(): string | undefined {
+  if (typeof MediaRecorder === "undefined") return undefined;
+  const cands = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4",
+    "audio/aac",
+    "audio/ogg;codecs=opus",
+  ];
+  for (const c of cands) {
+    try {
+      if (MediaRecorder.isTypeSupported?.(c)) return c;
+    } catch {
+      /* ignore */
+    }
+  }
+  return undefined;
+}
 
 export default function App() {
+  const [identity, setIdentity] = useState<ChatIdentity | null>(() =>
+    getIdentity(),
+  );
+
+  // Re-sign-in on every launch: the Supabase session usually survives in
+  // localStorage, but signing in again is idempotent and self-heals a stale
+  // or missing session (ChatProvider keeps listening for SIGNED_IN).
+  useEffect(() => {
+    if (identity) {
+      signInToChat(identity).catch(() => {});
+    }
+  }, [identity]);
+
+  if (!identity) {
+    return <LoginScreen onDone={setIdentity} />;
+  }
+
+  return (
+    <ChatProvider enabled>
+      <TelegramApp identity={identity} />
+    </ChatProvider>
+  );
+}
+
+function LoginScreen({ onDone }: { onDone: (id: ChatIdentity) => void }) {
+  const [word, setWord] = useState("");
+  const [error, setError] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy || !word.trim()) return;
+    setBusy(true);
+    setError(false);
+    const id = await verifyWord(word);
+    if (!id) {
+      setError(true);
+      setBusy(false);
+      return;
+    }
+    try {
+      await signInToChat(id);
+    } catch {
+      /* ChatProvider self-heals; identity is stored either way */
+    }
+    onDone(id);
+  }
+
+  return (
+    <div className="tg-root">
+      <div className="tg-login">
+        <div className="tg-login-logo">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"
+              fill="#fff"
+            />
+          </svg>
+        </div>
+        <h1 className="tg-login-title">Telegram</h1>
+        <p className="tg-login-sub" dir="rtl">
+          اكتب الكلمة حتى تفتح المحادثة
+        </p>
+        <form className="tg-login-form" onSubmit={submit}>
+          <input
+            className={`tg-login-input ${error ? "is-error" : ""}`}
+            type="password"
+            value={word}
+            dir="auto"
+            autoFocus
+            autoComplete="off"
+            placeholder="•••••"
+            onChange={(e) => {
+              setWord(e.target.value);
+              setError(false);
+            }}
+          />
+          <button
+            className="tg-login-btn"
+            type="submit"
+            disabled={busy || !word.trim()}
+          >
+            {busy ? "..." : "Next"}
+          </button>
+        </form>
+        {error && (
+          <p className="tg-login-error" dir="rtl">
+            الكلمة غلط، جرّب مرة ثانية
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TelegramApp({ identity }: { identity: ChatIdentity }) {
   const [callState, setCallState] = useState<CallState>("idle");
   const [muted, setMuted] = useState(false);
   const [speaker, setSpeaker] = useState(false);
@@ -71,15 +204,22 @@ export default function App() {
   const [elapsed, setElapsed] = useState(0);
   const [visible, setVisible] = useState(false);
 
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
-  const [draft, setDraft] = useState("");
-  const [typing, setTyping] = useState(false);
-
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sequenceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const replyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const endHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const endResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const them = otherIdentity(identity);
+  const contact: Contact = useMemo(
+    () => ({
+      name: identityName(them),
+      initials: identityName(them).slice(0, 1),
+      avatarUrl: identityAvatar(them),
+      gradientFrom: "#5BA4CF",
+      gradientTo: "#2A7EC8",
+    }),
+    [them],
+  );
 
   const clearTimers = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -128,32 +268,7 @@ export default function App() {
     }, 800);
   }, [clearTimers]);
 
-  const sendMessage = useCallback(() => {
-    const text = draft.trim();
-    if (!text) return;
-    const mine: Message = { id: Date.now(), text, sent: true, time: nowTime() };
-    setMessages((m) => [...m, mine]);
-    setDraft("");
-
-    setTyping(true);
-    if (replyRef.current) clearTimeout(replyRef.current);
-    replyRef.current = setTimeout(() => {
-      const reply = AUTO_REPLIES[Math.floor(Math.random() * AUTO_REPLIES.length)];
-      setTyping(false);
-      setMessages((m) => [
-        ...m,
-        { id: Date.now() + 1, text: reply, sent: false, time: nowTime() },
-      ]);
-    }, 1400);
-  }, [draft]);
-
-  useEffect(
-    () => () => {
-      clearTimers();
-      if (replyRef.current) clearTimeout(replyRef.current);
-    },
-    [clearTimers],
-  );
+  useEffect(() => () => clearTimers(), [clearTimers]);
 
   const statusText =
     callState === "calling"
@@ -161,7 +276,7 @@ export default function App() {
       : callState === "ringing"
         ? "Ringing…"
         : callState === "connected"
-          ? formatTime(elapsed)
+          ? formatCallTime(elapsed)
           : callState === "ended"
             ? "Call Ended"
             : "";
@@ -171,20 +286,18 @@ export default function App() {
   return (
     <div className="tg-root">
       <ChatScreen
-        contact={CONTACT}
-        messages={messages}
-        draft={draft}
-        typing={typing}
-        onDraftChange={setDraft}
-        onSend={sendMessage}
+        identity={identity}
+        contact={contact}
         onCall={startCall}
         onVideoCall={startVideoCall}
       />
 
-      <div className={`tg-overlay ${visible ? "tg-overlay--in" : "tg-overlay--out"}`}>
+      <div
+        className={`tg-overlay ${visible ? "tg-overlay--in" : "tg-overlay--out"}`}
+      >
         {visible && (
           <CallScreen
-            contact={CONTACT}
+            contact={contact}
             callState={callState}
             statusText={statusText}
             isPulsing={isPulsing}
@@ -206,60 +319,315 @@ export default function App() {
 }
 
 function ChatScreen({
+  identity,
   contact,
-  messages,
-  draft,
-  typing,
-  onDraftChange,
-  onSend,
   onCall,
   onVideoCall,
 }: {
+  identity: ChatIdentity;
   contact: Contact;
-  messages: Message[];
-  draft: string;
-  typing: boolean;
-  onDraftChange: (v: string) => void;
-  onSend: () => void;
   onCall: () => void;
   onVideoCall: () => void;
 }) {
+  const {
+    configured,
+    ready,
+    authError,
+    messages,
+    reactions,
+    otherOnline,
+    otherTyping,
+    otherLastSeen,
+    otherLastRead,
+    sendText,
+    sendImage,
+    sendVoice,
+    toggleReaction,
+    deleteMessage,
+    notifyTyping,
+    markRead,
+    imageUrl,
+  } = useChat();
+
+  const [draft, setDraft] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+
+  const [recording, setRecording] = useState(false);
+  const [recSeconds, setRecSeconds] = useState(0);
+  const [micError, setMicError] = useState(false);
+
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const nearBottomRef = useRef(true);
+
+  const mrRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const startRef = useRef(0);
+  const cancelledRef = useRef(false);
+  const processingRef = useRef(false);
+  const recTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const them = otherIdentity(identity);
+
+  const grouped = useMemo(() => {
+    const out: { key: string; label: string; items: ChatMessage[] }[] = [];
+    for (const m of messages) {
+      const k = dayKey(m.created_at);
+      const last = out[out.length - 1];
+      if (last && last.key === k) last.items.push(m);
+      else out.push({ key: k, label: dayLabel(m.created_at), items: [m] });
+    }
+    return out;
+  }, [messages]);
+
+  function tickFor(m: ChatMessage): "seen" | "sent" {
+    const t = new Date(m.created_at).getTime();
+    if (otherLastRead && t <= otherLastRead) return "seen";
+    return "sent";
+  }
+
+  // Privacy: Star's "last seen" time is never shown — only Ilham's is.
+  const showLastSeen = them === "ilham";
+  const statusText = otherTyping
+    ? "typing…"
+    : otherOnline
+      ? "online"
+      : showLastSeen && otherLastSeen
+        ? `last seen ${lastSeenTime(otherLastSeen)}`
+        : "last seen recently";
+
+  function scrollToBottom(behavior: ScrollBehavior = "smooth") {
+    const el = listRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior });
+  }
 
   useEffect(() => {
-    const el = listRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages, typing]);
+    if (ready) markRead();
+  }, [ready, messages.length, markRead]);
 
-  const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      onSend();
+  useEffect(() => {
+    if (ready) scrollToBottom("auto");
+  }, [ready]);
+
+  useEffect(() => {
+    if (nearBottomRef.current) {
+      scrollToBottom(messages.length <= 1 ? "auto" : "smooth");
     }
-  };
+  }, [messages.length, otherTyping]);
+
+  // Keep the chat sized to the *visual* viewport so the composer sits right
+  // above the on-screen keyboard on iOS instead of being hidden behind it.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const apply = () => {
+      const de = document.documentElement.style;
+      de.setProperty("--tg-vh", `${vv.height}px`);
+      de.setProperty("--tg-top", `${vv.offsetTop}px`);
+    };
+    apply();
+    const onResize = () => {
+      apply();
+      nearBottomRef.current = true;
+      window.setTimeout(() => scrollToBottom("auto"), 100);
+    };
+    vv.addEventListener("resize", onResize);
+    vv.addEventListener("scroll", apply);
+    return () => {
+      vv.removeEventListener("resize", onResize);
+      vv.removeEventListener("scroll", apply);
+      const de = document.documentElement.style;
+      de.removeProperty("--tg-vh");
+      de.removeProperty("--tg-top");
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (recTimerRef.current) clearInterval(recTimerRef.current);
+      streamRef.current?.getTracks().forEach((tr) => tr.stop());
+    };
+  }, []);
+
+  function onScroll() {
+    const el = listRef.current;
+    if (!el) return;
+    nearBottomRef.current =
+      el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+  }
+
+  function autoGrow() {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }
+
+  async function handleSend() {
+    const text = draft.trim();
+    if (!text || uploading) return;
+    setDraft("");
+    requestAnimationFrame(autoGrow);
+    nearBottomRef.current = true;
+    try {
+      await sendText(text);
+    } catch {
+      setDraft(text);
+      requestAnimationFrame(autoGrow);
+    }
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (
+      e.key === "Enter" &&
+      !e.shiftKey &&
+      !e.nativeEvent.isComposing &&
+      e.keyCode !== 229
+    ) {
+      e.preventDefault();
+      void handleSend();
+    }
+  }
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    nearBottomRef.current = true;
+    try {
+      await sendImage(file);
+    } catch {
+      /* ignore */
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function startRecording() {
+    if (recording || uploading || processingRef.current) return;
+    setMicError(false);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const mime = pickMime();
+      const mr = new MediaRecorder(
+        stream,
+        mime ? { mimeType: mime } : undefined,
+      );
+      chunksRef.current = [];
+      cancelledRef.current = false;
+      mr.ondataavailable = (e) => {
+        if (e.data && e.data.size) chunksRef.current.push(e.data);
+      };
+      mr.onstop = handleRecStop;
+      mrRef.current = mr;
+      startRef.current = Date.now();
+      setRecSeconds(0);
+      setRecording(true);
+      recTimerRef.current = setInterval(() => {
+        setRecSeconds(Math.floor((Date.now() - startRef.current) / 1000));
+      }, 250);
+      mr.start();
+    } catch {
+      setMicError(true);
+      streamRef.current?.getTracks().forEach((tr) => tr.stop());
+      streamRef.current = null;
+      window.setTimeout(() => setMicError(false), 2500);
+    }
+  }
+
+  function teardownRecording() {
+    if (recTimerRef.current) {
+      clearInterval(recTimerRef.current);
+      recTimerRef.current = null;
+    }
+    streamRef.current?.getTracks().forEach((tr) => tr.stop());
+    streamRef.current = null;
+  }
+
+  async function handleRecStop() {
+    try {
+      teardownRecording();
+      const cancelled = cancelledRef.current;
+      const chunks = chunksRef.current;
+      chunksRef.current = [];
+      if (cancelled || chunks.length === 0) return;
+      const type = chunks[0]?.type || pickMime() || "audio/webm";
+      const blob = new Blob(chunks, { type });
+      const durationMs = Date.now() - startRef.current;
+      if (durationMs < 600 || blob.size === 0) return;
+      nearBottomRef.current = true;
+      await sendVoice(blob, durationMs);
+    } catch {
+      /* ignore */
+    } finally {
+      mrRef.current = null;
+      processingRef.current = false;
+    }
+  }
+
+  function stopRecording(cancel: boolean) {
+    cancelledRef.current = cancel;
+    processingRef.current = true;
+    setRecording(false);
+    try {
+      mrRef.current?.stop();
+    } catch {
+      teardownRecording();
+      mrRef.current = null;
+      processingRef.current = false;
+    }
+  }
+
+  const hasDraft = draft.trim().length > 0;
 
   return (
     <div className="tg-chat-page">
       <div className="tg-chat-header">
         <div className="tg-chat-back">
           <svg width="11" height="19" viewBox="0 0 11 19" fill="none">
-            <path d="M10 1L2 9.5L10 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M10 1L2 9.5L10 18"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           <span>Chats</span>
         </div>
 
         <div className="tg-chat-peer">
-          <span className="tg-chat-peer-name">{contact.name}</span>
-          <span className="tg-chat-peer-status">
-            {contact.online ? "online" : "last seen recently"}
+          <span className="tg-chat-peer-name" dir="auto">
+            {contact.name}
+          </span>
+          <span
+            className={`tg-chat-peer-status ${
+              otherTyping || otherOnline ? "tg-chat-peer-status--online" : ""
+            }`}
+          >
+            {statusText}
           </span>
         </div>
 
         <div className="tg-chat-header-right">
-          <button className="tg-icon-btn" aria-label="Video call" onClick={onVideoCall}>
+          <button
+            className="tg-icon-btn"
+            aria-label="Video call"
+            onClick={onVideoCall}
+          >
             <VideoCallIcon />
           </button>
-          <button className="tg-icon-btn" aria-label="Voice call" onClick={onCall}>
+          <button
+            className="tg-icon-btn"
+            aria-label="Voice call"
+            onClick={onCall}
+          >
             <PhoneIcon />
           </button>
           <Avatar contact={contact} size={36} />
@@ -268,26 +636,55 @@ function ChatScreen({
 
       <div className="tg-chat-bg" />
 
-      <div className="tg-chat-messages" ref={listRef}>
-        <div className="tg-chat-day">Today</div>
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`tg-bubble-row ${m.sent ? "tg-bubble-row--out" : "tg-bubble-row--in"}`}
-          >
-            <div
-              className={`tg-bubble ${m.sent ? "tg-bubble--out" : "tg-bubble--in"}`}
-              dir="auto"
-            >
-              <span className="tg-bubble-text">{m.text}</span>
-              <span className="tg-bubble-meta">
-                {m.time}
-                {m.sent && <ReadIcon />}
-              </span>
-            </div>
+      <div className="tg-chat-messages" ref={listRef} onScroll={onScroll}>
+        {!configured ? (
+          <div className="tg-chat-state">Chat is not configured.</div>
+        ) : authError ? (
+          <div className="tg-chat-state" dir="rtl">
+            صار خلل بالاتصال… سكّر التطبيق وافتحه من جديد
           </div>
-        ))}
-        {typing && (
+        ) : !ready ? (
+          <div className="tg-chat-state">Loading…</div>
+        ) : grouped.length === 0 ? (
+          <div className="tg-chat-state" dir="rtl">
+            بعد ماكو رسائل… ابدأ الحجي 🌙
+          </div>
+        ) : (
+          grouped.map((g) => (
+            <Fragment key={g.key}>
+              <div className="tg-chat-day">{g.label}</div>
+              {g.items.map((m) => (
+                <TgMessage
+                  key={m.id}
+                  message={m}
+                  mine={m.sender_name === identity}
+                  status={m.sender_name === identity ? tickFor(m) : undefined}
+                  reactions={reactions[m.id]}
+                  myIdentity={identity}
+                  menuOpen={menuFor === m.id}
+                  onToggleMenu={() =>
+                    setMenuFor((v) => (v === m.id ? null : m.id))
+                  }
+                  onCloseMenu={() => setMenuFor(null)}
+                  onReact={(emoji) => {
+                    setMenuFor(null);
+                    void toggleReaction(m.id, emoji);
+                  }}
+                  onDelete={() => {
+                    setMenuFor(null);
+                    if (window.confirm("Delete this message?")) {
+                      void deleteMessage(m.id);
+                    }
+                  }}
+                  imageUrl={imageUrl}
+                  onPreview={setPreview}
+                />
+              ))}
+            </Fragment>
+          ))
+        )}
+
+        {ready && otherTyping && (
           <div className="tg-bubble-row tg-bubble-row--in">
             <div className="tg-bubble tg-bubble--in tg-bubble--typing">
               <span className="tg-typing-dot" />
@@ -298,30 +695,409 @@ function ChatScreen({
         )}
       </div>
 
-      <div className="tg-composer">
-        <button className="tg-composer-attach" aria-label="Attach">
-          <AttachIcon />
-        </button>
-        <textarea
-          className="tg-composer-input"
-          placeholder="Message"
-          rows={1}
-          value={draft}
-          dir="auto"
-          onChange={(e) => onDraftChange(e.target.value)}
-          onKeyDown={handleKey}
-        />
-        {draft.trim() ? (
-          <button className="tg-composer-send" aria-label="Send" onClick={onSend}>
+      {recording ? (
+        <div className="tg-composer tg-composer--recording">
+          <span className="tg-rec-dot" />
+          <span className="tg-rec-time">
+            {`${Math.floor(recSeconds / 60)}:${pad(recSeconds % 60)}`}
+          </span>
+          <button
+            className="tg-rec-cancel"
+            type="button"
+            onClick={() => stopRecording(true)}
+          >
+            Cancel
+          </button>
+          <button
+            className="tg-composer-send"
+            type="button"
+            aria-label="Send voice message"
+            onClick={() => stopRecording(false)}
+          >
             <SendIcon />
           </button>
-        ) : (
-          <button className="tg-composer-mic" aria-label="Voice message">
-            <MicIcon muted={false} />
+        </div>
+      ) : (
+        <div className="tg-composer">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={handleFile}
+          />
+          <button
+            className="tg-composer-attach"
+            aria-label="Attach"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+          >
+            <AttachIcon />
           </button>
+          <textarea
+            ref={inputRef}
+            className="tg-composer-input"
+            placeholder={uploading ? "Sending…" : "Message"}
+            rows={1}
+            value={draft}
+            dir="auto"
+            onChange={(e) => {
+              setDraft(e.target.value);
+              notifyTyping();
+              autoGrow();
+            }}
+            onKeyDown={onKeyDown}
+          />
+          {hasDraft ? (
+            <button
+              className="tg-composer-send"
+              aria-label="Send"
+              onClick={handleSend}
+            >
+              <SendIcon />
+            </button>
+          ) : (
+            <button
+              className={`tg-composer-mic ${micError ? "is-error" : ""}`}
+              aria-label="Voice message"
+              onClick={startRecording}
+            >
+              <MicIcon muted={false} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {preview && (
+        <div className="tg-lightbox" onClick={() => setPreview(null)}>
+          <img src={preview} alt="" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TgMessage({
+  message,
+  mine,
+  status,
+  reactions,
+  myIdentity,
+  menuOpen,
+  onToggleMenu,
+  onCloseMenu,
+  onReact,
+  onDelete,
+  imageUrl,
+  onPreview,
+}: {
+  message: ChatMessage;
+  mine: boolean;
+  status?: "seen" | "sent";
+  reactions?: Partial<Record<ChatIdentity, string>>;
+  myIdentity: ChatIdentity;
+  menuOpen: boolean;
+  onToggleMenu: () => void;
+  onCloseMenu: () => void;
+  onReact: (emoji: string) => void;
+  onDelete: () => void;
+  imageUrl: (path: string) => Promise<string | null>;
+  onPreview: (url: string) => void;
+}) {
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const voice = parseVoice(message.image_path);
+  const isImage = !!message.image_path && !voice && !message.deleted;
+
+  useEffect(() => {
+    let active = true;
+    if (isImage && message.image_path) {
+      imageUrl(message.image_path).then((url) => {
+        if (active) setImgSrc(url);
+      });
+    } else {
+      setImgSrc(null);
+    }
+    return () => {
+      active = false;
+    };
+  }, [isImage, message.image_path, imageUrl]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDocClick = (e: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        onCloseMenu();
+      }
+    };
+    document.addEventListener("pointerdown", onDocClick);
+    return () => document.removeEventListener("pointerdown", onDocClick);
+  }, [menuOpen, onCloseMenu]);
+
+  const chips: { emoji: string; count: number; mineSet: boolean }[] = [];
+  if (reactions) {
+    const order: ChatIdentity[] = ["star", "ilham"];
+    for (const reactor of order) {
+      const emoji = reactions[reactor];
+      if (!emoji) continue;
+      const existing = chips.find((c) => c.emoji === emoji);
+      if (existing) {
+        existing.count += 1;
+        if (reactor === myIdentity) existing.mineSet = true;
+      } else {
+        chips.push({ emoji, count: 1, mineSet: reactor === myIdentity });
+      }
+    }
+  }
+
+  return (
+    <div
+      className={`tg-bubble-row ${mine ? "tg-bubble-row--out" : "tg-bubble-row--in"}`}
+    >
+      <div className="tg-bubble-wrap" ref={menuRef}>
+        <div
+          className={`tg-bubble ${mine ? "tg-bubble--out" : "tg-bubble--in"} ${
+            isImage ? "tg-bubble--image" : ""
+          } ${message.deleted ? "tg-bubble--deleted" : ""}`}
+          dir="auto"
+          onClick={() => {
+            if (!message.deleted) onToggleMenu();
+          }}
+        >
+          {message.deleted ? (
+            <span className="tg-bubble-deleted" dir="rtl">
+              انحذفت الرسالة
+            </span>
+          ) : voice ? (
+            <TgVoicePlayer
+              path={message.image_path as string}
+              durationMs={voice.durationMs}
+              mine={mine}
+              imageUrl={imageUrl}
+            />
+          ) : (
+            <>
+              {isImage &&
+                (imgSrc ? (
+                  <img
+                    src={imgSrc}
+                    alt=""
+                    className="tg-bubble-img"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPreview(imgSrc);
+                    }}
+                  />
+                ) : (
+                  <span className="tg-bubble-img tg-bubble-img--loading" />
+                ))}
+              {message.body && (
+                <span className="tg-bubble-text">{message.body}</span>
+              )}
+            </>
+          )}
+          <span className="tg-bubble-meta">
+            {timeLabel(message.created_at)}
+            {mine && !message.deleted && status && (
+              <TickIcon seen={status === "seen"} />
+            )}
+          </span>
+        </div>
+
+        {menuOpen && !message.deleted && (
+          <div
+            className={`tg-msg-menu ${mine ? "tg-msg-menu--out" : ""}`}
+            role="menu"
+          >
+            {REACTION_EMOJIS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                className={`tg-msg-menu-emoji ${
+                  reactions?.[myIdentity] === emoji ? "is-active" : ""
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReact(emoji);
+                }}
+              >
+                {emoji}
+              </button>
+            ))}
+            {mine && (
+              <button
+                type="button"
+                className="tg-msg-menu-delete"
+                aria-label="Delete"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+              >
+                <TrashIcon />
+              </button>
+            )}
+          </div>
+        )}
+
+        {chips.length > 0 && (
+          <div
+            className={`tg-reactions ${mine ? "tg-reactions--out" : ""}`}
+          >
+            {chips.map((c) => (
+              <button
+                key={c.emoji}
+                type="button"
+                className={`tg-reaction-chip ${c.mineSet ? "is-mine" : ""}`}
+                onClick={() => onReact(c.emoji)}
+              >
+                <span>{c.emoji}</span>
+                {c.count > 1 && (
+                  <span className="tg-reaction-count">{c.count}</span>
+                )}
+              </button>
+            ))}
+          </div>
         )}
       </div>
     </div>
+  );
+}
+
+const VOICE_BARS = 30;
+
+function barHeights(seed: string): number[] {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const out: number[] = [];
+  for (let i = 0; i < VOICE_BARS; i++) {
+    h = (Math.imul(h, 1103515245) + 12345) >>> 0;
+    out.push(0.25 + ((h % 1000) / 1000) * 0.75);
+  }
+  return out;
+}
+
+function fmtVoice(ms: number): string {
+  const total = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(total / 60)}:${pad(total % 60)}`;
+}
+
+// Module-level guard so only one voice message plays at a time.
+let currentAudio: HTMLAudioElement | null = null;
+
+function TgVoicePlayer({
+  path,
+  durationMs,
+  mine,
+  imageUrl,
+}: {
+  path: string;
+  durationMs: number;
+  mine: boolean;
+  imageUrl: (path: string) => Promise<string | null>;
+}) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [url, setUrl] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const bars = useMemo(() => barHeights(path), [path]);
+  const totalMs =
+    durationMs ||
+    (audioRef.current && isFinite(audioRef.current.duration)
+      ? audioRef.current.duration * 1000
+      : 0);
+
+  useEffect(() => {
+    return () => {
+      const a = audioRef.current;
+      if (a) {
+        a.pause();
+        if (currentAudio === a) currentAudio = null;
+      }
+    };
+  }, []);
+
+  async function toggle(e: React.MouseEvent) {
+    e.stopPropagation();
+    let u = url;
+    if (!u) {
+      setLoading(true);
+      u = await imageUrl(path);
+      setLoading(false);
+      if (!u) return;
+      setUrl(u);
+    }
+    let a = audioRef.current;
+    if (!a) {
+      a = new Audio(u);
+      audioRef.current = a;
+      a.addEventListener("timeupdate", () => {
+        const dur = isFinite(a!.duration) && a!.duration > 0 ? a!.duration : 0;
+        setElapsed(a!.currentTime * 1000);
+        if (dur) setProgress(a!.currentTime / dur);
+      });
+      a.addEventListener("ended", () => {
+        setPlaying(false);
+        setProgress(0);
+        setElapsed(0);
+        if (currentAudio === a) currentAudio = null;
+      });
+      a.addEventListener("pause", () => setPlaying(false));
+      a.addEventListener("play", () => setPlaying(true));
+    }
+    if (a.paused) {
+      if (currentAudio && currentAudio !== a) currentAudio.pause();
+      currentAudio = a;
+      try {
+        await a.play();
+      } catch {
+        /* ignore */
+      }
+    } else {
+      a.pause();
+    }
+  }
+
+  const display = playing || elapsed > 0 ? elapsed : totalMs;
+
+  return (
+    <span className={`tg-voice ${mine ? "tg-voice--out" : ""}`}>
+      <button
+        type="button"
+        className="tg-voice-btn"
+        onClick={toggle}
+        disabled={loading}
+        aria-label={playing ? "Pause" : "Play"}
+      >
+        {playing ? (
+          <svg width="14" height="14" viewBox="0 0 14 14">
+            <rect x="2" y="1.5" width="3.4" height="11" rx="1" fill="currentColor" />
+            <rect x="8.6" y="1.5" width="3.4" height="11" rx="1" fill="currentColor" />
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 14 14">
+            <path d="M3.5 1.8v10.4c0 .8.9 1.3 1.6.9l8-5.2c.6-.4.6-1.4 0-1.8l-8-5.2c-.7-.4-1.6.1-1.6.9z" fill="currentColor" />
+          </svg>
+        )}
+      </button>
+      <span className="tg-voice-wave">
+        {bars.map((b, i) => (
+          <span
+            key={i}
+            className={`tg-voice-bar ${i / VOICE_BARS <= progress ? "is-played" : ""}`}
+            style={{ height: `${Math.round(b * 100)}%` }}
+          />
+        ))}
+      </span>
+      <span className="tg-voice-time">{fmtVoice(display)}</span>
+    </span>
   );
 }
 
@@ -353,7 +1129,9 @@ function CallScreen({
   onVideoCall: () => void;
 }) {
   return (
-    <div className={`tg-call-screen ${callState === "ended" ? "tg-call-screen--ending" : ""}`}>
+    <div
+      className={`tg-call-screen ${callState === "ended" ? "tg-call-screen--ending" : ""}`}
+    >
       <div className="tg-call-bg" />
 
       <div className="tg-call-top">
@@ -376,7 +1154,7 @@ function CallScreen({
           <div className="tg-pulse-ring tg-pulse-ring--3" />
           <Avatar contact={contact} size={120} />
         </div>
-        <h2 className="tg-call-name">{contact.name}</h2>
+        <h2 className="tg-call-name" dir="auto">{contact.name}</h2>
         <p className={`tg-call-status ${callState === "ended" ? "tg-call-status--ended" : ""}`}>
           {statusText}
         </p>
@@ -391,7 +1169,7 @@ function CallScreen({
             icon={<MicIcon muted={muted} />}
           />
           <ControlButton
-            label={speaker ? "Speaker" : "Speaker"}
+            label="Speaker"
             active={speaker}
             onClick={onSpeaker}
             icon={<SpeakerIcon on={speaker} />}
@@ -415,6 +1193,7 @@ function CallScreen({
 }
 
 function Avatar({ contact, size }: { contact: Contact; size: number }) {
+  const [failed, setFailed] = useState(false);
   return (
     <div
       className="tg-avatar"
@@ -426,11 +1205,12 @@ function Avatar({ contact, size }: { contact: Contact; size: number }) {
         overflow: "hidden",
       }}
     >
-      {contact.avatarUrl ? (
+      {contact.avatarUrl && !failed ? (
         <img
           src={contact.avatarUrl}
           alt=""
           draggable={false}
+          onError={() => setFailed(true)}
           style={{
             width: "100%",
             height: "100%",
@@ -471,6 +1251,30 @@ function ControlButton({
   );
 }
 
+function TickIcon({ seen }: { seen: boolean }) {
+  if (seen) {
+    return (
+      <svg className="tg-read-icon" width="16" height="11" viewBox="0 0 16 11" fill="none">
+        <path d="M1 5.5L4.2 8.7L10.5 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M5.5 8.5L6.2 9.2L12.5 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="tg-read-icon" width="16" height="11" viewBox="0 0 16 11" fill="none">
+      <path d="M3 5.5L6.2 8.7L12.5 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function PhoneIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -499,15 +1303,6 @@ function SendIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
       <path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function ReadIcon() {
-  return (
-    <svg className="tg-read-icon" width="16" height="11" viewBox="0 0 16 11" fill="none">
-      <path d="M1 5.5L4.2 8.7L10.5 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M5.5 8.5L6.2 9.2L12.5 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

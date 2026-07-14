@@ -36,10 +36,6 @@ const Videos = lazy(() => import("@/pages/Videos"));
 const Writings = lazy(() => import("@/pages/Writings"));
 const Feelings = lazy(() => import("@/pages/Feelings"));
 const Journey = lazy(() => import("@/pages/Journey"));
-const Chat = lazy(() => import("@/pages/Chat"));
-const ChatProvider = lazy(() =>
-  import("@/chat/ChatProvider").then((m) => ({ default: m.ChatProvider })),
-);
 
 type AuthState = "checking" | "authed" | "anon";
 
@@ -168,13 +164,9 @@ function AppContent() {
     };
   }, []);
 
-  // The chat is a dedicated full-screen experience with its own chrome, so the
-  // site navbar (and the floating language switcher) are suppressed there.
-  const isChat = location === "/chat";
-
   const body = (
     <>
-      {authState === "authed" && !isChat && (
+      {authState === "authed" && (
         <Navbar t={t} lang={lang} onLogout={handleLogout} />
       )}
       <main>
@@ -217,11 +209,6 @@ function AppContent() {
               <Feelings t={t} lang={lang} />
             </ProtectedRoute>
           </Route>
-          <Route path="/chat">
-            <ProtectedRoute state={authState}>
-              <Chat t={t} lang={lang} />
-            </ProtectedRoute>
-          </Route>
           <Route>
             <Redirect to="/" />
           </Route>
@@ -235,14 +222,8 @@ function AppContent() {
       <Rain />
       <FloatingHearts />
       <DustParticles />
-      {!isChat && <LanguageSwitcher lang={lang} setLang={setLang} />}
-      {authState === "authed" ? (
-        <Suspense fallback={body}>
-          <ChatProvider enabled>{body}</ChatProvider>
-        </Suspense>
-      ) : (
-        body
-      )}
+      <LanguageSwitcher lang={lang} setLang={setLang} />
+      {body}
     </div>
   );
 }

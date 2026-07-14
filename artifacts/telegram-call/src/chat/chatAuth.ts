@@ -1,18 +1,24 @@
 import { supabase } from "./supabaseClient";
-import { privateImage } from "@/lib/privateAssets";
 
 export type ChatIdentity = "star" | "ilham";
 
+const R2_BASE = ((import.meta.env.VITE_R2_BASE as string | undefined) ?? "").replace(
+  /\/$/,
+  "",
+);
+
 export function identityAvatar(id: ChatIdentity): string {
-  return privateImage(`chat/${id}.jpg`);
+  const rel = `chat/${id}.jpg`;
+  const encoded = rel.split("/").map(encodeURIComponent).join("/");
+  return `${R2_BASE}/images/${encoded}`;
 }
 
 const IDENTITY_KEY = "nafsam_identity";
 export const STAR_WORDS = new Set(["ska", "star", "kas"]);
 
 // The Supabase chat password depends ONLY on the identity, not on the exact
-// login word. The real gate stays the Nafsam login itself (the word is
-// verified before chat sign-in ever runs); the data is protected by Supabase
+// login word. The real gate stays the word login itself (the word is verified
+// before chat sign-in ever runs); the data is protected by Supabase
 // row-level security.
 const CHAT_PASSWORDS: Record<ChatIdentity, string> = {
   star: "nafsam-ska",
@@ -78,15 +84,6 @@ export function expectedEmail(id: ChatIdentity): string {
 
 export function identityName(id: ChatIdentity): string {
   return id === "star" ? "Star" : "إلهام";
-}
-
-const SHORT_LABELS: Record<ChatIdentity, string> = {
-  star: "ska.",
-  ilham: "ech.",
-};
-
-export function identityShort(id: ChatIdentity): string {
-  return SHORT_LABELS[id];
 }
 
 export function otherIdentity(id: ChatIdentity): ChatIdentity {
