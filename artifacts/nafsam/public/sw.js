@@ -11,7 +11,7 @@
    look like a sudden refresh. The new worker activates naturally after the page
    is closed/reopened, which is safer for this gallery-style app.
 */
-const VERSION = "v22-telegram-chat";
+const VERSION = "v23-monitor";
 const STATIC_CACHE = `nafsam-static-${VERSION}`;
 const RUNTIME_CACHE = `nafsam-runtime-${VERSION}`;
 const FONT_CACHE = `nafsam-fonts-${VERSION}`;
@@ -121,6 +121,9 @@ self.addEventListener("fetch", (event) => {
 
   // Bypass the standalone Telegram app entirely (its own files, own icons)
   if (url.pathname.startsWith("/telegram-call")) return;
+
+  // Bypass the standalone monitoring room entirely (its own bundle)
+  if (url.pathname.startsWith("/monitor")) return;
 
   // Cross-origin: only handle Google Fonts
   if (url.origin !== self.location.origin) {

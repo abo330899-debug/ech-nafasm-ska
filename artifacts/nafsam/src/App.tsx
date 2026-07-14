@@ -28,6 +28,7 @@ import {
   setUnauthorizedHandler,
   revalidatePrivateContent,
 } from "@/hooks/usePrivateContent";
+import { startActivityTracking, logActivity } from "@/lib/activity";
 
 const Home = lazy(() => import("@/pages/Home"));
 const Photos = lazy(() => import("@/pages/Photos"));
@@ -100,6 +101,15 @@ function AppContent() {
     });
     refresh(wasAuthed);
   }, [location]);
+
+  useEffect(() => {
+    // Once the viewer is authenticated, begin (idempotent) activity tracking and
+    // record which page they are looking at. Fail-silent — never blocks the UI.
+    if (authState === "authed") {
+      startActivityTracking();
+      logActivity("page_view", location);
+    }
+  }, [authState, location]);
 
   useEffect(() => {
     // Register the unauthorized handler so that a 401 from any private-content

@@ -16,6 +16,7 @@ import LuxImage from "@/components/LuxImage";
 import useReveal from "@/hooks/useReveal";
 import useNearViewport from "@/hooks/useNearViewport";
 import { prefetchImages } from "@/lib/prefetch";
+import { logActivity } from "@/lib/activity";
 import "@/styles/luxe-photos.css";
 
 function RevealArticle({
@@ -570,6 +571,14 @@ export default function Photos({ t, lang }: Props) {
   );
 
   const lightboxOpen = lightboxIndex !== null;
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const item = lightboxItemsRef.current[lightboxIndex];
+    const src = item?.src ?? "";
+    const name = src.split("/").pop()?.split("?")[0] || `photo ${lightboxIndex + 1}`;
+    logActivity("photo_open", name, { index: lightboxIndex });
+  }, [lightboxIndex]);
 
   useEffect(() => {
     if (!lightboxOpen) return;

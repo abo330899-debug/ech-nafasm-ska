@@ -17,6 +17,7 @@ import {
 import useReveal from "@/hooks/useReveal";
 import useNearViewport from "@/hooks/useNearViewport";
 import { mediaUrl, posterUrl, posterThumbUrl } from "@/lib/r2";
+import { logActivity } from "@/lib/activity";
 
 function RevealVideoCard({
   className = "",
@@ -321,10 +322,16 @@ export default function Videos({ t, lang }: Props) {
     return () => cancelAnimationFrame(id);
   }, [visibleCount, videosData.length]);
 
-  const openModal = useCallback((index: number) => {
-    setVideoAR(null);
-    setActiveIndex(index);
-  }, []);
+  const openModal = useCallback(
+    (index: number) => {
+      setVideoAR(null);
+      setActiveIndex(index);
+      const v = videosData[index] as { caption?: string; title?: string; file?: string } | undefined;
+      const label = v?.caption || v?.title || v?.file || `video ${index + 1}`;
+      logActivity("video_open", label, { index });
+    },
+    [videosData],
+  );
 
   const closeModal = useCallback(() => {
     setActiveIndex(null);

@@ -1,3 +1,5 @@
+import { logLogin, stopActivityTracking } from "@/lib/activity";
+
 const STATIC_MODE = import.meta.env.VITE_STATIC_MODE === "true";
 const STATIC_TOKEN_KEY = "nafsam_token";
 const STATIC_TOKEN_VALUE = "authenticated";
@@ -67,6 +69,8 @@ function clearIdentity(): void {
   // The Telegram chat app (served under /telegram-call/ on this same origin)
   // stores its Supabase session under this key; drop it on logout too.
   try { localStorage.removeItem("nafsam-chat-auth"); } catch {}
+  // The activity tracker keeps its own Supabase session; drop it too.
+  try { localStorage.removeItem("nafsam-activity-auth"); } catch {}
 }
 
 export async function fetchSession(): Promise<SessionStatus> {
@@ -101,6 +105,7 @@ export async function login(answer: string): Promise<LoginResult> {
       }
       localStorage.setItem(STATIC_TOKEN_KEY, STATIC_TOKEN_VALUE);
       saveIdentity(normalized);
+      logLogin(normalized);
       return { ok: true };
     } catch {
       return { ok: false, reason: "network" };
@@ -113,7 +118,7 @@ export async function login(answer: string): Promise<LoginResult> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answer }),
     });
-    if (response.ok) { saveIdentity(normalized); return { ok: true }; }
+    if (response.ok) { saveIdentity(normalized); logLogin(normalized); return { ok: true }; }
     if (response.status === 403) return { ok: false, reason: "closed" };
     if (response.status === 429) return { ok: false, reason: "rate_limited" };
     return { ok: false, reason: "wrong" };
@@ -135,6 +140,7 @@ export function broadcastLogout(): void {
 }
 
 export async function logout(): Promise<void> {
+  stopActivityTracking();
   if (STATIC_MODE) {
     try { localStorage.removeItem(STATIC_TOKEN_KEY); } catch {}
     clearIdentity();

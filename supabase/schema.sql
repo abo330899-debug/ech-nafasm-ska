@@ -231,3 +231,101 @@ drop policy if exists "chat_images_delete_own" on storage.objects;
 create policy "chat_images_delete_own" on storage.objects
   for delete to authenticated
   using (bucket_id = 'chat-images' and owner = auth.uid());
+
+-- ============================================================================
+-- Activity log — the "monitoring room" (غرفة المراقبة)
+-- ----------------------------------------------------------------------------
+-- Records what viewers do inside the Nafsam archive (login, page views, video /
+-- photo opens, heartbeats, leaves) so the OWNER can review activity live and
+-- day-by-day from the separate /monitor/ app.
+--
+-- Privacy model (IMPORTANT):
+--   * INSERT: the two archive accounts (star, ilham) write their own events.
+--     A BEFORE INSERT trigger stamps `identity` from the signed-in account, so
+--     the client can NOT forge who did what.
+--   * SELECT: ONLY a dedicated reader account, monitor@nafsam.app, may read the
+--     log. Its password is TYPED by the owner in the /monitor/ app and is never
+--     shipped in any frontend bundle — unlike the chat passwords. This is why
+--     we do NOT reuse the star account to read logs (star's password is public
+--     in the telegram-call bundle, so anyone could read the log with it).
+--   * The log is append-only: there are no UPDATE/DELETE policies, so no
+--     authenticated role can rewrite or erase history through the API.
+--
+-- AFTER running this file, create the reader account in the Supabase dashboard:
+--   Authentication -> Users -> Add user  (keep "Auto Confirm User" ON)
+--     monitor@nafsam.app   password: <a private password only you know>
+--   Then type that same password in the /monitor/ login screen.
+-- ============================================================================
+
+-- Reader gate: only the monitor account may read the activity log.
+create or replace function public.activity_reader()
+returns boolean
+language sql
+stable
+as $$
+  select lower(coalesce(auth.jwt() ->> 'email', '')) = 'monitor@nafsam.app'
+$$;
+
+create table if not exists public.activity_events (
+  id         uuid primary key default gen_random_uuid(),
+  identity   text not null check (identity in ('star', 'ilham')),
+  kind       text not null,
+  label      text,
+  meta       jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists activity_events_created_at_idx
+  on public.activity_events (created_at);
+create index if not exists activity_events_identity_created_idx
+  on public.activity_events (identity, created_at);
+
+alter table public.activity_events enable row level security;
+
+-- Base privileges. Append-only: no update/delete granted, so history is durable.
+grant usage on schema public to authenticated;
+grant select, insert on public.activity_events to authenticated;
+
+-- Force identity to come from the signed-in account, never the client payload.
+create or replace function public.activity_set_identity()
+returns trigger
+language plpgsql
+as $$
+declare
+  ident text := public.chat_identity();
+begin
+  if ident is null then
+    raise exception 'not an archive participant';
+  end if;
+  new.identity := ident;
+  return new;
+end
+$$;
+
+drop trigger if exists activity_set_identity_trg on public.activity_events;
+create trigger activity_set_identity_trg
+  before insert on public.activity_events
+  for each row execute function public.activity_set_identity();
+
+-- Only the monitor reader account may read the log.
+drop policy if exists "activity_select_reader" on public.activity_events;
+create policy "activity_select_reader" on public.activity_events
+  for select to authenticated
+  using (public.activity_reader());
+
+-- The two archive accounts may append their own events (trigger stamps identity).
+drop policy if exists "activity_insert_own" on public.activity_events;
+create policy "activity_insert_own" on public.activity_events
+  for insert to authenticated
+  with check (public.chat_identity() is not null);
+
+-- Live delivery to the monitoring room (realtime respects RLS, so only the
+-- monitor account actually receives rows).
+do $$
+begin
+  begin
+    alter publication supabase_realtime add table public.activity_events;
+  exception
+    when duplicate_object then null; -- already added
+  end;
+end $$;
