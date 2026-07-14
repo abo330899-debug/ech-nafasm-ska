@@ -1,6 +1,11 @@
 import { supabase } from "./supabaseClient";
+import { privateImage } from "@/lib/privateAssets";
 
 export type ChatIdentity = "star" | "ilham";
+
+export function identityAvatar(id: ChatIdentity): string {
+  return privateImage(`chat/${id}.jpg`);
+}
 
 const IDENTITY_KEY = "nafsam_identity";
 export const STAR_WORDS = new Set(["ska", "star", "kas"]);
