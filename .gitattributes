@@ -11,3 +11,5 @@ artifacts/nafsam/public/media/IMG_4827.MOV filter=lfs diff=lfs merge=lfs -text
 artifacts/api-server/private/media/IMG_4827.MOV filter=lfs diff=lfs merge=lfs -text
 IMG_0240.mov filter=lfs diff=lfs merge=lfs -text
 Archive[[:space:]]5.zip filter=lfs diff=lfs merge=lfs -text
+artifacts/ScreenRecording_07-12-2026[[:space:]]5.mov filter=lfs diff=lfs merge=lfs -text
+artifacts/d40e5c961b074d8496211d545cc18d28.mov filter=lfs diff=lfs merge=lfs -text
