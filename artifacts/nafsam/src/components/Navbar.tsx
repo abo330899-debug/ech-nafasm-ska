@@ -9,6 +9,7 @@ import {
   Map,
   MessageCircleHeart,
   Music2,
+  Send,
 } from "lucide-react";
 import { type Translations, type Lang } from "@/i18n/translations";
 import { useChat } from "@/chat/chatContext";
@@ -36,6 +37,8 @@ export default function Navbar({ t, onLogout }: Props) {
       ? [{ href: "/chat", label: t.nav_chat, icon: MessageCircleHeart, chat: true }]
       : []),
   ];
+
+  const telegramHref = "/telegram-call/";
 
   return (
     <nav className="memory-dock luxe-nav" aria-label="Primary">
@@ -67,6 +70,14 @@ export default function Navbar({ t, onLogout }: Props) {
             </Link>
           );
         })}
+        <a
+          href={telegramHref}
+          className="memory-dock__item"
+          title={t.nav_telegram}
+        >
+          <Send size={18} strokeWidth={1.8} aria-hidden="true" />
+          <span>{t.nav_telegram}</span>
+        </a>
       </div>
 
       <button className="memory-dock__logout" onClick={onLogout} title={t.nav_logout}>

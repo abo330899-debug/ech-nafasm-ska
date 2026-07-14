@@ -14,6 +14,7 @@ export interface Translations {
   nav_writings: string;
   nav_feelings: string;
   nav_chat: string;
+  nav_telegram: string;
   nav_logout: string;
   login_title: string;
   login_text: string;
@@ -95,6 +96,7 @@ export const translations: Record<Lang, Translations> = {
     nav_writings: "Boğulma",
     nav_feelings: "Hisler Öldüğünde",
     nav_chat: "Sohbet",
+    nav_telegram: "Telegram",
     nav_logout: "Çıkış",
     login_title: "Nafasm",
     login_text: "Bu yer geri sayım tamamlanana kadar kapalı kalır. Her isim kendi vaktini bekler. Sonunda artık sayaç kalmaz... sadece sözler kalır.",
@@ -175,6 +177,7 @@ export const translations: Record<Lang, Translations> = {
     nav_writings: "Drowning",
     nav_feelings: "When Feelings Die",
     nav_chat: "Chat",
+    nav_telegram: "Telegram",
     nav_logout: "Sign Out",
     login_title: "Nafasm",
     login_text: "This place remains closed until the countdown ends. Each name waits for its own time. In the end, no timer remains… only words.",
@@ -255,6 +258,7 @@ export const translations: Record<Lang, Translations> = {
     nav_writings: "غرق",
     nav_feelings: "حين تموت المشاعر",
     nav_chat: "المحادثة",
+    nav_telegram: "تلجرام",
     nav_logout: "خروج",
     login_title: "نفسم",
     login_text: "هذا المكان يبقى مغلقاً حتى تنتهي العدّة. كلّ اسم ينتظر وقته. في النهاية لا يبقى مؤقّت… تبقى فقط الكلمات.",
@@ -335,6 +339,7 @@ export const translations: Record<Lang, Translations> = {
     nav_writings: "غرق شدن",
     nav_feelings: "وقتی احساس‌ها می‌میرند",
     nav_chat: "گفتگو",
+    nav_telegram: "تلگرام",
     nav_logout: "خروج",
     login_title: "نفسم",
     login_text: "این مکان تا پایان شمارش معکوس بسته می‌ماند. هر اسم منتظر وقت خودش است. در پایان دیگر شمارشگری نمی‌ماند… فقط کلمات می‌مانند.",
