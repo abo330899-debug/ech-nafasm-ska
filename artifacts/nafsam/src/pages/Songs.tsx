@@ -31,16 +31,23 @@ function youTubeId(src: string): string | null {
   return null;
 }
 
+function youTubePlaylistId(src: string): string | null {
+  const m = src.match(/[?&]list=([A-Za-z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
 /* Click-to-load YouTube player: shows the video thumbnail with a play button
    and only mounts the heavy iframe after a tap. Exactly one iframe is mounted
    at a time (activeId), which keeps memory low on iPhone. */
 function YouTubeSongPlayer({
-  id,
+  embedSrc,
+  thumbSrc,
   title,
   playing,
   onPlay,
 }: {
-  id: string;
+  embedSrc: string;
+  thumbSrc: string | null;
   title: string;
   playing: boolean;
   onPlay: () => void;
@@ -49,7 +56,7 @@ function YouTubeSongPlayer({
     return (
       <div className="yt-song-embed">
         <iframe
-          src={`https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+          src={embedSrc}
           title={title}
           allow="autoplay; encrypted-media; picture-in-picture"
           allowFullScreen
@@ -64,12 +71,11 @@ function YouTubeSongPlayer({
       onClick={onPlay}
       aria-label={title}
     >
-      <img
-        src={`https://img.youtube.com/vi/${id}/hqdefault.jpg`}
-        alt=""
-        loading="lazy"
-        draggable={false}
-      />
+      {thumbSrc ? (
+        <img src={thumbSrc} alt="" loading="lazy" draggable={false} />
+      ) : (
+        <span className="yt-song-thumb-fallback" aria-hidden="true" />
+      )}
       <span className="yt-song-play" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
           <path d="M8 5.5v13l11-6.5z" />
@@ -180,15 +186,25 @@ export default function Songs({ t, lang }: Props) {
       <div className="songs-list" ref={listRef}>
         {songs.map((s, i) => {
           const ytId = isYouTube(s.src) ? youTubeId(s.src) : null;
+          const ytList = !ytId && isYouTube(s.src) ? youTubePlaylistId(s.src) : null;
+          const embedSrc = ytId
+            ? `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`
+            : ytList
+              ? `https://www.youtube.com/embed/videoseries?list=${ytList}&autoplay=1&rel=0&modestbranding=1&playsinline=1`
+              : null;
+          const thumbSrc = ytId
+            ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+            : (s.thumb ?? null);
           return (
             <RevealCard key={i} className="song-card glass luxe-song-card" index={i}>
               <div className="luxe-vinyl-accent" aria-hidden="true"></div>
               <div className="luxe-song-content">
                 <h3>{s.title}</h3>
                 {songTextKeys[i] && <p>{songTextKeys[i]}</p>}
-                {ytId ? (
+                {embedSrc ? (
                   <YouTubeSongPlayer
-                    id={ytId}
+                    embedSrc={embedSrc}
+                    thumbSrc={thumbSrc}
                     title={s.title}
                     playing={activeYt === i}
                     onPlay={() => playYt(i)}

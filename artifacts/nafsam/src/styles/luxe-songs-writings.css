@@ -275,3 +275,12 @@
   border: 0;
   display: block;
 }
+
+.yt-song-thumb-fallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(216, 165, 124, 0.18), transparent 60%),
+    linear-gradient(135deg, #0b1120, #131a2e);
+}

@@ -33,6 +33,7 @@ export interface MomentEntry {
 export interface SongItem {
   title: string;
   src: string;
+  thumb?: string;
 }
 
 export interface SpecialPhotoItem {
