@@ -1646,10 +1646,11 @@ main{flex:1}
   .videos-luxe .v-card{
     border-radius:16px;
     border-color:rgba(216,165,124,.32);
+    contain-intrinsic-size:auto 300px;
   }
   .videos-luxe .v-card-media,
   .videos-luxe .v-thumb{
-    aspect-ratio:3 / 4;
+    aspect-ratio:1 / 1;
     min-height:0;
     max-height:none;
   }
@@ -1691,6 +1692,11 @@ main{flex:1}
   .videos-luxe .v-thumb video{
     filter:saturate(1.05) brightness(1);
   }
+  /* phones skip the blurred backdrop image, so fill the square tile
+     edge-to-edge instead of pillarboxing portrait posters */
+  .videos-luxe .v-thumb .v-thumb-fg{
+    object-fit:cover;
+  }
   /* lighter overlay so thumbnails read clearly on small screens */
   .videos-luxe .v-card-overlay{
     background:linear-gradient(to top,
@@ -1705,7 +1711,7 @@ main{flex:1}
   .videos-luxe .v-hero-title{font-size:1.65rem}
   .videos-luxe .v-gallery{padding:0 8px;gap:8px}
   .videos-luxe .v-card-media,
-  .videos-luxe .v-thumb{aspect-ratio:3 / 4}
+  .videos-luxe .v-thumb{aspect-ratio:1 / 1}
   .videos-luxe .v-play{width:48px;height:48px}
 }
 
@@ -2347,7 +2353,7 @@ audio,video{filter:none}
 }
 @media (max-width:640px){
   .videos-luxe .v-spotlight{margin-bottom:24px}
-  .videos-luxe .v-spotlight-media{aspect-ratio:4 / 5;max-height:none}
+  .videos-luxe .v-spotlight-media{aspect-ratio:16 / 10;max-height:none}
   .videos-luxe .v-spotlight-body{gap:10px}
   .videos-luxe .v-play-lg{width:66px;height:66px}
   .videos-luxe .v-play-lg svg{width:24px;height:24px}
@@ -2356,7 +2362,7 @@ audio,video{filter:none}
 /* ---------- VIDEO GALLERY ---------- */
 .videos-luxe .v-gallery{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
   gap:22px;
   max-width:1280px;
   margin:0 auto;
@@ -2403,13 +2409,13 @@ audio,video{filter:none}
     0 0 50px -10px var(--lux-rose-glow);
 }
 
-/* media area: 4:5 portrait-friendly, image shown in full (no crop) */
+/* media area: 16:10 landscape — wider, shorter cards */
 .videos-luxe .v-card-media{
   position:relative;
   width:100%;
-  aspect-ratio:4 / 5;
-  min-height:240px;
-  max-height:420px;
+  aspect-ratio:16 / 10;
+  min-height:0;
+  max-height:none;
   overflow:hidden;
   background:#0e1120;
 }
@@ -2477,10 +2483,10 @@ audio,video{filter:none}
 /* big circular play button center */
 .videos-luxe .v-play{
   position:absolute;
+  inset:auto;
   top:50%;
   left:50%;
   transform:translate(-50%,-50%);
-  inset:auto;
   width:64px;
   height:64px;
   border-radius:50%;
@@ -3107,7 +3113,7 @@ audio,video{filter:none}
     color:#f7efe7;
   }
 
-  /* ----- Videos luxe — 2-up grid, tight cards, big 3/4 thumbs ----- */
+  /* ----- Videos luxe — 2-up grid, tight cards, wide square thumbs ----- */
   .videos-luxe .v-gallery{
     grid-template-columns:repeat(2,minmax(0,1fr));
     gap:9px;
@@ -3119,7 +3125,7 @@ audio,video{filter:none}
   }
   .videos-luxe .v-card-media,
   .videos-luxe .v-thumb{
-    aspect-ratio:3 / 4;
+    aspect-ratio:1 / 1;
     width:100%;
     height:auto;
     min-height:0;
@@ -3132,6 +3138,12 @@ audio,video{filter:none}
     height:100%;
     object-fit:cover;
     display:block;
+  }
+  /* phones skip the blurred backdrop image, so fill the square tile
+     edge-to-edge instead of pillarboxing portrait posters (must sit after
+     the base .v-thumb-fg contain rule to win the cascade) */
+  .videos-luxe .v-thumb .v-thumb-fg{
+    object-fit:cover;
   }
   .videos-luxe .v-play{
     width:52px;
