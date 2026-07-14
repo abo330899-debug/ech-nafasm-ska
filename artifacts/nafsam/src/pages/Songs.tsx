@@ -129,6 +129,8 @@ export default function Songs({ t, lang }: Props) {
           a.pause();
         }
       });
+      // Starting an mp3 song must also unmount any active YouTube player.
+      setActiveYt(null);
       activeAudio = target;
       updateGlobalState();
     };
