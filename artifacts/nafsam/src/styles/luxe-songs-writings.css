@@ -201,3 +201,77 @@
 .luxe-writing-card .luxe-corner-tr { top: 10px; right: 10px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
 .luxe-writing-card .luxe-corner-bl { bottom: 10px; left: 10px; border-right: none; border-top: none; border-bottom-left-radius: 8px; }
 .luxe-writing-card .luxe-corner-br { bottom: 10px; right: 10px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }
+
+/* ===== YouTube song cards (click-to-load embed) ===== */
+.yt-song-facade {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 14px;
+  padding: 0;
+  border: 1px solid rgba(216, 165, 124, 0.28);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #000;
+}
+.yt-song-facade img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0.88;
+  transition: opacity 0.3s ease, transform 0.4s ease;
+}
+.yt-song-facade:hover img,
+.yt-song-facade:focus-visible img {
+  opacity: 1;
+  transform: scale(1.02);
+}
+.yt-song-facade::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(7, 11, 22, 0.45), rgba(7, 11, 22, 0.05) 55%);
+  pointer-events: none;
+}
+.yt-song-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(7, 11, 22, 0.72);
+  border: 1px solid rgba(216, 165, 124, 0.55);
+  color: #f7efe7;
+  z-index: 1;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.yt-song-play svg { margin-left: 3px; }
+.yt-song-facade:hover .yt-song-play,
+.yt-song-facade:focus-visible .yt-song-play {
+  transform: translate(-50%, -50%) scale(1.08);
+  border-color: rgba(216, 165, 124, 0.9);
+}
+.yt-song-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 14px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(216, 165, 124, 0.28);
+  background: #000;
+}
+.yt-song-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
