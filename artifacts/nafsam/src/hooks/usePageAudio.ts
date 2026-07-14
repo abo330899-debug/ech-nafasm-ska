@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { mediaUrl } from "@/lib/r2";
+import { type PageAudioEntry } from "@/hooks/usePrivateContent";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -12,8 +13,14 @@ const START_AT_SECONDS = 35;
 export const PAGE_AUDIO_PAUSE_EVENT = "nafsam:pause-page-audio";
 export const PAGE_AUDIO_RESUME_EVENT = "nafsam:resume-page-audio";
 
-export default function usePageAudio(songFile: string) {
+export default function usePageAudio(entry: PageAudioEntry) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const songFile = typeof entry === "string" ? entry : (entry?.file ?? "");
+  const startAt =
+    typeof entry === "string"
+      ? START_AT_SECONDS
+      : (entry?.startAt ?? START_AT_SECONDS);
 
   useEffect(() => {
     if (!songFile) return;
@@ -57,7 +64,7 @@ export default function usePageAudio(songFile: string) {
     };
 
     const startPlayback = () => {
-      const seekTarget = !isLogin ? START_AT_SECONDS : 0;
+      const seekTarget = !isLogin ? startAt : 0;
       const trySeek = () => {
         try {
           if (
@@ -118,5 +125,5 @@ export default function usePageAudio(songFile: string) {
       dyingAudio.src = "";
       audioRef.current = null;
     };
-  }, [songFile]);
+  }, [songFile, startAt]);
 }
