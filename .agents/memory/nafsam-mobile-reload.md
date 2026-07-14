@@ -104,3 +104,22 @@ is the last independent lever and it stacks with the others.
 **How to apply:** any new heavy media grid must show thumbnails, never full-res. After
 adding/replacing private images, re-run gen-thumbnails AND upload-thumbs-to-r2 or the
 static site 404s the thumb (LuxImage will fall back to full-res, re-introducing the OOM).
+
+## Fast fling up/down still reloading → mobile mount settle window
+
+Even with windowing + unmount-off-screen + thumbnails deployed, a violent fling
+up-then-down made dozens of cards cross the small mobile mount margin in under a
+second; each mounted, fetched, and decoded before unmounting — the decode burst
+outran the browser's bitmap reclaim and evicted the tab.
+
+Fix in `useNearViewport`: on mobile only, "near" flips true 160ms AFTER the
+element enters the margin; leaving before the timer fires cancels it, so cards
+that merely fly past never mount their image. Leaving always unmounts immediately
+and cancels pending timers. Desktop stays immediate.
+
+**Why:** mount churn during direction-change flings re-introduces the decode
+pressure all other levers remove; a settle delay filters the fastest passes.
+**How to apply:** keep the delay ≤~200ms or slow scrollers see placeholder
+pop-in. If reloads STILL recur, next lever (per architect): a global
+scroll-velocity gate — suppress all setNear(true) while window scroll velocity
+is high, flush pending on scrollend/quiet period.

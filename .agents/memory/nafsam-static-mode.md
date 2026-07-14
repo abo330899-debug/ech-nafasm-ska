@@ -111,7 +111,7 @@ to R2 (same flow as all content). No git push — `private/` is gitignored.
 
 **GitHub merges can silently revert auth (footgun, bit 2026-07-13):** the
 external repo (`abo330899-debug/ech-nafasm-ska`) carried an old `auth.ts` whose
-static login hardcoded only `ska`/`ilham` (no sha256/AUTH_TOKENS_BUILTIN) and a
+static login hardcoded only two of the accepted words in plaintext (no sha256/AUTH_TOKENS_BUILTIN) and a
 `chatAuth.ts` that fetched `/api/chat/session` — an endpoint that does NOT exist
 on the static Pages deploy (root `functions/` dir is never uploaded by our
 wrangler direct-upload from /tmp, and its cookie flow is incompatible with
