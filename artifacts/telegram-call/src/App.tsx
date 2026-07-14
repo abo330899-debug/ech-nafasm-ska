@@ -6,6 +6,7 @@ type CallState = "idle" | "calling" | "ringing" | "connected" | "ended";
 interface Contact {
   name: string;
   initials: string;
+  avatarUrl?: string;
   gradientFrom: string;
   gradientTo: string;
   online: boolean;
@@ -21,6 +22,7 @@ interface Message {
 const CONTACT: Contact = {
   name: "Nafsam",
   initials: "N",
+  avatarUrl: `${import.meta.env.BASE_URL}avatar.jpg`,
   gradientFrom: "#5BA4CF",
   gradientTo: "#2A7EC8",
   online: true,
@@ -421,9 +423,24 @@ function Avatar({ contact, size }: { contact: Contact; size: number }) {
         height: size,
         background: `linear-gradient(135deg, ${contact.gradientFrom}, ${contact.gradientTo})`,
         fontSize: size * 0.38,
+        overflow: "hidden",
       }}
     >
-      {contact.initials}
+      {contact.avatarUrl ? (
+        <img
+          src={contact.avatarUrl}
+          alt=""
+          draggable={false}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+      ) : (
+        contact.initials
+      )}
     </div>
   );
 }

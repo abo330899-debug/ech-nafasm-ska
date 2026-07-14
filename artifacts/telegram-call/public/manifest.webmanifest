@@ -1,0 +1,21 @@
+{
+  "name": "Telegram",
+  "short_name": "Telegram",
+  "start_url": "/telegram-call/",
+  "scope": "/telegram-call/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#517da2",
+  "icons": [
+    {
+      "src": "/telegram-call/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/telegram-call/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
