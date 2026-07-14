@@ -333,6 +333,15 @@ export function ChatProvider({
         setStoredOtherRead(me, next);
         return next;
       });
+      // The durable read pointer doubles as a "last seen" signal: whenever the
+      // peer read the chat, they were online at that moment. This survives our
+      // own device being offline (presence alone can't), so the header shows a
+      // real last-seen time instead of a stale/blank one.
+      setOtherLastSeen((prev) => {
+        const next = Math.max(prev ?? 0, ms);
+        setStoredLastSeen(next);
+        return next;
+      });
     };
 
     void client
