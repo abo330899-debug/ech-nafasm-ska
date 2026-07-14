@@ -424,9 +424,14 @@ function ChatScreen({
     const vv = window.visualViewport;
     if (!vv) return;
     const apply = () => {
-      const de = document.documentElement.style;
-      de.setProperty("--tg-vh", `${vv.height}px`);
-      de.setProperty("--tg-top", `${vv.offsetTop}px`);
+      const de = document.documentElement;
+      de.style.setProperty("--tg-vh", `${vv.height}px`);
+      de.style.setProperty("--tg-top", `${vv.offsetTop}px`);
+      // Keyboard is open when the visual viewport is meaningfully shorter
+      // than the layout viewport. While open, drop the safe-area bottom
+      // padding so the composer hugs the keyboard with zero gap.
+      const kbOpen = window.innerHeight - vv.height - vv.offsetTop > 50;
+      de.classList.toggle("tg-kb-open", kbOpen);
     };
     apply();
     const onResize = () => {
@@ -436,12 +441,17 @@ function ChatScreen({
     };
     vv.addEventListener("resize", onResize);
     vv.addEventListener("scroll", apply);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
     return () => {
       vv.removeEventListener("resize", onResize);
       vv.removeEventListener("scroll", apply);
-      const de = document.documentElement.style;
-      de.removeProperty("--tg-vh");
-      de.removeProperty("--tg-top");
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+      const de = document.documentElement;
+      de.style.removeProperty("--tg-vh");
+      de.style.removeProperty("--tg-top");
+      de.classList.remove("tg-kb-open");
     };
   }, []);
 
@@ -748,37 +758,53 @@ function ChatScreen({
           />
           <button
             className="tg-composer-attach"
+            type="button"
             aria-label="Attach"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
           >
             <AttachIcon />
           </button>
-          <div
-            ref={inputRef}
-            className={`tg-composer-input${uploading ? " tg-composer-input--sending" : ""}`}
-            contentEditable="true"
-            role="textbox"
-            aria-multiline="true"
-            aria-label="Message"
-            dir="auto"
-            data-placeholder={uploading ? "Sending…" : "Message"}
-            enterKeyHint="send"
-            autoCorrect="on"
-            autoCapitalize="sentences"
-            spellCheck={true}
-            suppressContentEditableWarning={true}
-            onInput={() => {
-              const text = readDraft();
-              setDraft(text);
-              notifyTyping();
-            }}
-            onKeyDown={onKeyDown}
-            onPaste={handlePaste}
-          />
+          <div className="tg-composer-field">
+            <div
+              ref={inputRef}
+              className={`tg-composer-input${uploading ? " tg-composer-input--sending" : ""}`}
+              contentEditable="true"
+              role="textbox"
+              aria-multiline="true"
+              aria-label="Message"
+              dir="auto"
+              data-placeholder={uploading ? "Sending…" : "Message"}
+              enterKeyHint="send"
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              spellCheck={true}
+              suppressContentEditableWarning={true}
+              onInput={() => {
+                const text = readDraft();
+                setDraft(text);
+                notifyTyping();
+              }}
+              onKeyDown={onKeyDown}
+              onPaste={handlePaste}
+              onFocus={() => {
+                nearBottomRef.current = true;
+                window.setTimeout(() => scrollToBottom("auto"), 300);
+              }}
+            />
+            <span className="tg-composer-emoji" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+                <circle cx="9" cy="10" r="1.2" fill="currentColor" />
+                <circle cx="15" cy="10" r="1.2" fill="currentColor" />
+                <path d="M8.3 14c.9 1.3 2.2 2 3.7 2s2.8-.7 3.7-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </span>
+          </div>
           {hasDraft ? (
             <button
               className="tg-composer-send"
+              type="button"
               aria-label="Send"
               onClick={handleSend}
             >
@@ -787,6 +813,7 @@ function ChatScreen({
           ) : (
             <button
               className={`tg-composer-mic ${micError ? "is-error" : ""}`}
+              type="button"
               aria-label="Voice message"
               onClick={startRecording}
             >

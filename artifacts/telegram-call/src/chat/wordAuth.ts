@@ -4,8 +4,7 @@
 // own storage container on iOS and may not see the identity Nafsam stored.
 import { deriveIdentity, type ChatIdentity } from "./chatAuth";
 
-// SHA-256 hashes of accepted login words (trimmed + lowercased):
-// ska, star, kas, ilham, ech, nafas, nafasm, nafsam, kaar
+// SHA-256 hashes of accepted login words (trimmed + lowercased).
 const AUTH_TOKENS_BUILTIN = [
   "15d3a52f3a69b6da3b76b5575a48c1d16ad5087dbf1cc4e33d1428f59a0bb7a1",
   "525eca1d5089dbdcbb6700d910c5e0bc23fbaa23ee026c0e224c2b45490e5f29",

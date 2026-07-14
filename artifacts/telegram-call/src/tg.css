@@ -31,6 +31,7 @@ html, body, #root {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
   font-family: -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   background: var(--tg-bg);
   -webkit-font-smoothing: antialiased;
@@ -760,13 +761,15 @@ html, body, #root {
   border-top: 0.5px solid var(--tg-sep);
   flex-shrink: 0;
 }
+/* Keyboard open → no safe-area padding, the bar hugs the keyboard exactly. */
+.tg-kb-open .tg-composer { padding-bottom: 8px; }
 
 .tg-composer-attach,
 .tg-composer-send,
 .tg-composer-mic {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
   border: none;
   background: none;
   cursor: pointer;
@@ -790,26 +793,47 @@ html, body, #root {
 }
 .tg-composer-send:active { transform: scale(0.88); background: var(--tg-blue-deep); }
 
+.tg-composer-field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
 .tg-composer-input {
   position: relative;
   flex: 1;
-  min-height: 40px;
-  max-height: 132px; /* ~5 lines @ 16px × 1.4 */
+  min-width: 0;
+  min-height: 46px;
+  max-height: 134px; /* ~5 lines @ 22px + padding */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   word-break: break-word;
   white-space: pre-wrap;
+  unicode-bidi: plaintext;
   border: none;
   outline: none;
   background: var(--tg-card);
   color: var(--tg-text);
-  border-radius: 20px;
-  padding: 9px 14px;
-  font-size: 16px; /* ≥16px prevents iOS auto-zoom on focus */
-  line-height: 1.4;
+  caret-color: var(--tg-blue);
+  border-radius: 23px;
+  padding: 12px 40px 12px 14px;
+  font-size: 17px; /* ≥16px prevents iOS auto-zoom on focus */
+  line-height: 22px;
   font-family: inherit;
   box-shadow: 0 0 0 0.5px var(--tg-sep);
   cursor: text;
+}
+
+/* Sticker/emoji hint icon pinned inside the right edge of the field */
+.tg-composer-emoji {
+  position: absolute;
+  right: 11px;
+  bottom: 12px;
+  color: var(--tg-subtext);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
 }
 /* Placeholder via CSS attr — works for contenteditable */
 .tg-composer-input:empty::before {
