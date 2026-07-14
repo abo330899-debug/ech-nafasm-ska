@@ -359,7 +359,7 @@ function ChatScreen({
   const [micError, setMicError] = useState(false);
 
   const listRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const nearBottomRef = useRef(true);
 
@@ -459,28 +459,33 @@ function ChatScreen({
       el.scrollHeight - el.scrollTop - el.clientHeight < 120;
   }
 
-  function autoGrow() {
-    const el = inputRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  // Read the current text content from the contenteditable div.
+  function readDraft(): string {
+    return inputRef.current?.innerText ?? "";
   }
 
   async function handleSend() {
-    const text = draft.trim();
+    const text = readDraft().trim();
     if (!text || uploading) return;
+    // Clear immediately so the field empties before the network round-trip.
+    if (inputRef.current) {
+      inputRef.current.textContent = "";
+      inputRef.current.innerText = "";
+    }
     setDraft("");
-    requestAnimationFrame(autoGrow);
     nearBottomRef.current = true;
+    // Keep keyboard open by re-focusing after clear.
+    requestAnimationFrame(() => inputRef.current?.focus());
     try {
       await sendText(text);
     } catch {
+      // Restore the draft if send fails so the user doesn't lose it.
       setDraft(text);
-      requestAnimationFrame(autoGrow);
+      if (inputRef.current) inputRef.current.innerText = text;
     }
   }
 
-  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (
       e.key === "Enter" &&
       !e.shiftKey &&
@@ -490,6 +495,22 @@ function ChatScreen({
       e.preventDefault();
       void handleSend();
     }
+  }
+
+  // Paste as plain text only — prevents rich-text / HTML from being inserted.
+  function handlePaste(e: React.ClipboardEvent<HTMLDivElement>) {
+    e.preventDefault();
+    const text = e.clipboardData.getData("text/plain");
+    if (!text) return;
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    sel.deleteFromDocument();
+    sel.getRangeAt(0).insertNode(document.createTextNode(text));
+    sel.collapseToEnd();
+    // Sync draft state.
+    const next = readDraft();
+    setDraft(next);
+    notifyTyping();
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -733,19 +754,27 @@ function ChatScreen({
           >
             <AttachIcon />
           </button>
-          <textarea
+          <div
             ref={inputRef}
-            className="tg-composer-input"
-            placeholder={uploading ? "Sending…" : "Message"}
-            rows={1}
-            value={draft}
+            className={`tg-composer-input${uploading ? " tg-composer-input--sending" : ""}`}
+            contentEditable="true"
+            role="textbox"
+            aria-multiline="true"
+            aria-label="Message"
             dir="auto"
-            onChange={(e) => {
-              setDraft(e.target.value);
+            data-placeholder={uploading ? "Sending…" : "Message"}
+            enterKeyHint="send"
+            autoCorrect="on"
+            autoCapitalize="sentences"
+            spellCheck={true}
+            suppressContentEditableWarning={true}
+            onInput={() => {
+              const text = readDraft();
+              setDraft(text);
               notifyTyping();
-              autoGrow();
             }}
             onKeyDown={onKeyDown}
+            onPaste={handlePaste}
           />
           {hasDraft ? (
             <button
