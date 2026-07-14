@@ -31,3 +31,11 @@ run/build stay in each `artifact.toml`.
 `attached_assets/` (~480M) is user-uploaded originals, referenced only by a
 stale vite alias, not imported by any build — a further size lever, but ask the
 user before deleting.
+
+**Update (2026-07-14):** hit again at 6.6G workspace → image >8GiB (explicit
+error line this time). Extra levers found: `.config/npm/node_global` held
+global wrangler (198M) + vercel (172M) — safe to delete, npx re-fetches;
+`.local/share/pnpm/store` (679M) can be deleted outright — node_modules keeps
+hardlinked copies and stays functional, store just double-counts in the image.
+`pnpm store prune` removed 0 (all referenced), so full store delete is the move.
+Result: 6.6G → 5.4G, builds verified working after.
