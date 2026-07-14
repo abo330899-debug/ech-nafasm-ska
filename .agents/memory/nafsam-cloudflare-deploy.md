@@ -9,6 +9,15 @@ Deploy recipe: build with `CF_PAGES=1 NODE_ENV=production npx vite build` in
 `artifacts/nafsam`, copy `dist/public` → `/tmp/nafsam-deploy`, then
 `wrangler pages deploy /tmp/nafsam-deploy --project-name=ech-nafasm-ska --branch=main`.
 
+**CRITICAL — telegram-call rides along:** the same Pages project also serves the
+standalone Telegram app at `/telegram-call/` (PWA: avatar + home-screen icons).
+A direct-upload deploy REPLACES the whole deployment, so EVERY deploy must also
+copy `artifacts/telegram-call/dist/public` → `/tmp/nafsam-deploy/telegram-call`
+(build it first with `pnpm --filter @workspace/telegram-call run build` if its
+source changed). Forgetting this silently deletes the user's installed
+home-screen app. `_redirects` needs the `/telegram-call/*` rewrite line before
+the `/*` catch-all (kept in `artifacts/nafsam/public/_redirects`).
+
 **Token status (fixed 2026-07-13):** `CLOUDFLARE_PAGES_TOKEN` now holds a
 working custom API token with Account→Cloudflare Pages:Edit (user re-created it
 after two bad pastes — first an old `cfut_` upload token, then a truncated
