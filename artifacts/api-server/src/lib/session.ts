@@ -53,7 +53,7 @@ function ensureTable(): Promise<void> {
         throw err;
       });
   }
-  return tableReady;
+  return tableReady!;
 }
 
 if (DB_AVAILABLE) {
