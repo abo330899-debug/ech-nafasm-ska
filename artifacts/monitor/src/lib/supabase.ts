@@ -1,22 +1,72 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js';
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+const supabaseUrl = 'https://eevanqnzcrizmmtrjmnk.supabase.co';
+const supabaseAnonKey = 'sb_publishable_gwjES60DPfL4_50IZ9jgeQ_dEiVsWdA';
 
-export const isConfigured = Boolean(url && anonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// The monitoring room reads the activity log through a dedicated reader account
-// (monitor@nafsam.app). Its password is typed by the owner at login and is never
-// shipped in any bundle. We persist the session under a unique storage key so it
-// never collides with the archive or chat sessions on the same origin.
-export const supabase: SupabaseClient | null = isConfigured
-  ? createClient(url as string, anonKey as string, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        storageKey: "nafsam-monitor-auth",
-      },
-    })
-  : null;
+export type EventType =
+  | 'page_view'
+  | 'page_leave'
+  | 'heartbeat'
+  | 'click'
+  | 'dblclick'
+  | 'right_click'
+  | 'keystroke'
+  | 'scroll'
+  | 'scroll_depth'
+  | 'resize'
+  | 'focus'
+  | 'blur'
+  | 'copy'
+  | 'paste'
+  | 'cut'
+  | 'select'
+  | 'form_submit'
+  | 'form_start'
+  | 'form_abandon'
+  | 'search'
+  | 'video_play'
+  | 'video_pause'
+  | 'video_seek'
+  | 'video_end'
+  | 'video_fullscreen'
+  | 'audio_play'
+  | 'audio_pause'
+  | 'audio_seek'
+  | 'audio_end'
+  | 'photo_open'
+  | 'photo_close'
+  | 'photo_zoom'
+  | 'download'
+  | 'file_open'
+  | 'link_click'
+  | 'navigation'
+  | 'tab_visible'
+  | 'tab_hidden'
+  | 'session_end';
 
-export const READER_EMAIL = "monitor@nafsam.app";
+export interface Coordinates {
+  x: number;
+  y: number;
+  pageX: number;
+  pageY: number;
+}
+
+export interface TrackEventPayload {
+  session_id: string;
+  visitor_id: string;
+  event_type: EventType;
+  event_name: string;
+  page_url: string;
+  page_title: string;
+  referrer?: string;
+  metadata?: Record<string, unknown>;
+  element_selector?: string;
+  element_text?: string;
+  coordinates?: Coordinates;
+  scroll_position?: number;
+  value?: string;
+  duration_ms?: number;
+  timestamp?: string;
+}
