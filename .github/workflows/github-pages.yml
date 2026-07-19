@@ -36,14 +36,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build site
+      - name: Build main site
         env:
           BASE_PATH: /ech-nafasm-ska/
         run: pnpm --filter @workspace/nafsam run build
 
-      - name: Add SPA fallback
+      - name: Build Telegram app
+        env:
+          BASE_PATH: /ech-nafasm-ska/telegram-call/
+        run: pnpm --filter @workspace/telegram-call run build
+
+      - name: Assemble GitHub Pages site
         run: |
+          mkdir -p artifacts/nafsam/dist/public/telegram-call
+          cp -R artifacts/telegram-call/dist/public/. artifacts/nafsam/dist/public/telegram-call/
           cp artifacts/nafsam/dist/public/index.html artifacts/nafsam/dist/public/404.html
+          cp artifacts/telegram-call/dist/public/index.html artifacts/nafsam/dist/public/telegram-call/404.html
           touch artifacts/nafsam/dist/public/.nojekyll
 
       - name: Configure Pages
