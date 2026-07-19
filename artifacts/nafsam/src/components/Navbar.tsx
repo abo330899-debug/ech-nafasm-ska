@@ -32,7 +32,10 @@ export default function Navbar({ t, onLogout }: Props) {
     { href: "/feelings", label: t.nav_feelings, icon: HeartPulse },
   ];
 
-  const telegramHref = "/telegram-call/";
+  const appBase = import.meta.env.BASE_URL.endsWith("/")
+    ? import.meta.env.BASE_URL
+    : `${import.meta.env.BASE_URL}/`;
+  const telegramHref = `${appBase}telegram-call/`;
 
   return (
     <nav className="memory-dock luxe-nav" aria-label="Primary">
