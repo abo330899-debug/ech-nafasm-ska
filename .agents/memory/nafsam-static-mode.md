@@ -117,8 +117,8 @@ on the static Pages deploy (root `functions/` dir is never uploaded by our
 wrangler direct-upload from /tmp, and its cookie flow is incompatible with
 localStorage login anyway). Result: 7 of 9 passwords rejected, chat sign-in dead.
 **How to apply:** after ANY merge from GitHub, diff `src/lib/auth.ts` (static
-branch must hash against AUTH_TOKENS_BUILTIN — 9 accepted words as of
-2026-07-13; the canonical list lives in `NAFSAM_PASSWORDS` (env secret) and
+branch must hash against AUTH_TOKENS_BUILTIN — 5 accepted words as of
+2026-07-21; the canonical list lives in `NAFSAM_PASSWORDS` (env secret) and
 their sha256 hashes in `AUTH_TOKENS_BUILTIN` in `src/lib/auth.ts` — never write
 the plaintext words in memory/docs) and
 `src/chat/chatAuth.ts` (must use direct `supabase.auth.signInWithPassword`,
@@ -147,6 +147,18 @@ via `requestEnvVar` (Replit Secret, stored outside tracked files), NOT
 setEnvVars. **Why:** dev had NAFSAM_PASSWORDS unset entirely → server login 401s
 on every answer → all `/api/private/*` 401 → no media (the real "images/videos
 don't appear" root cause once static mode was off).
+
+**Password/identity hash lists are duplicated across FIVE spots (2026-07-21):**
+`AUTH_TOKENS_BUILTIN` (accepted-word hashes) lives in BOTH
+`artifacts/nafsam/src/lib/auth.ts` AND `artifacts/telegram-call/src/chat/wordAuth.ts`
+(the PWA has its own word login due to iOS storage isolation). The star/ilham
+identity derivation is hash-based (`STAR_WORD_HASHES`, sha256 of the identity
+words — NEVER plaintext, that shipped a live password in the public bundle once)
+in `nafsam/src/lib/auth.ts`, `nafsam/src/lib/activity.ts`, and
+`telegram-call/src/chat/chatAuth.ts`; the derive fns are async now.
+**How to apply:** on any password change, update BOTH builtin lists (+
+`.env.cloudflare-pages` via gen-auth-tokens) and re-check no plaintext word
+appears in either built bundle: `grep '"<word>"' dist/public/assets/*.js`.
 
 **Static `openAt`:** static `fetchSession()` returns a real `openAt` from
 `VITE_OPEN_AT` (fallback `2026-05-29T17:00:00`, mirrors server `DEFAULT_OPEN_AT`),
