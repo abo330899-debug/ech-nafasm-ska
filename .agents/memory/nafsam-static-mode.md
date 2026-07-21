@@ -125,18 +125,23 @@ the plaintext words in memory/docs) and
 never `/api/chat/session`). `artifacts/nafsam/.env` is gitignored/untracked —
 it exists only locally; don't assume a merge restores it.
 
-**R2 public access DEAD → dev preview switched to SERVER mode (2026-07-21):**
-The public bucket `pub-79afa43f…r2.dev` now returns HTTP 403 for EVERY object
-(content.json, media/*, images/*, posters/*) — public access was revoked. This
-breaks static mode everywhere it is used: the Replit dev preview AND the live
-Cloudflare Pages site (both fetch from that URL). Fix applied for the Replit
-preview: set `VITE_STATIC_MODE=false` in the (untracked) `artifacts/nafsam/.env`
-so dev + Replit-Autoscale go through the api-server (`/api/auth/*` +
-`/api/private/*`), serving media from local `artifacts/api-server/private/`
-(266 media, 245 posters, 31 images on disk). `.env.cloudflare-pages` left as
-`true` (untouched). **The live Cloudflare site is still broken until R2 public
-access is restored** — separate follow-up (needs CF dashboard/API to re-enable
-r2.dev public access on the `media` bucket).
+**R2 RETIRED → static media now served by the Replit deployment (2026-07-21):**
+R2 got disabled account-wide (API error 10042, dashboard-only re-enable; user
+declined). Replacement: token-gated PUBLIC routes on the api-server
+(`src/routes/pub.ts`) mirroring the old R2 URL layout —
+`/api/pub/<NAFSAM_STATIC_MEDIA_TOKEN>/{media,posters,images}/*` +
+`/content.json` (CORS `*`, Range/206 support, media `max-age=86400`,
+content.json `no-store`, fail-closed if token env unset, timingSafeEqual).
+`VITE_R2_BASE` in BOTH `.env.cloudflare-pages` files (nafsam + telegram-call)
+now points at `https://ech-memories-ska-love.replit.app/api/pub/<token>`.
+The content.json handler rewrites heroImageUrl and `/api/private/media/` song
+srcs to the token base. **The Replit deployment MUST be published with PUBLIC
+visibility** or all static-site media 404s (it was `private` before).
+The token is public-by-design (baked in public bundles + public repo) — NEVER
+reuse this pattern for real secrets; rotation = new env value + update both
+env files + push. Earlier same day the dev preview was switched to SERVER mode
+(`VITE_STATIC_MODE=false` in untracked `artifacts/nafsam/.env`), so R2-upload
+recipes above are now historical.
 
 **Auth material MUST be a Secret, never a shared env var (threat-model rule):**
 `setEnvVars({NAFSAM_PASSWORDS...}, "shared")` writes the value in PLAINTEXT into
