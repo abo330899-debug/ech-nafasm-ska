@@ -5,7 +5,20 @@ description: Which token actually deploys, and the git-lock/wrangler pitfalls wh
 
 # Cloudflare Pages deploy (ech-nafasm-ska)
 
-Deploy recipe: build with `CF_PAGES=1 NODE_ENV=production npx vite build` in
+**Git auto-deploy is the primary path (since 2026-07-21):** the Pages project is
+GitHub-connected (repo abo330899-debug/ech-nafasm-ska, production branch main)
+and rebuilds on every push. Its build command (set via API PATCH on
+build_config) builds BOTH apps and copies telegram-call into place:
+`pnpm --filter @workspace/nafsam run build && pnpm --filter @workspace/telegram-call run build && cp -r artifacts/telegram-call/dist/public artifacts/nafsam/dist/public/telegram-call`,
+destination `artifacts/nafsam/dist/public`. CF sets `CF_PAGES=1` so vite configs
+bake the committed `.env.cloudflare-pages`.
+**Why:** before this, git pushes auto-deployed nafsam only and silently WIPED
+the `/telegram-call/` PWA from pages.dev (SPA fallback made it look 200-alive —
+compare `<title>` to detect). Usually no manual wrangler deploy is needed
+anymore; just push. Manual deploys below still work but a later git push
+overwrites them.
+
+Manual deploy recipe (fallback): build with `CF_PAGES=1 NODE_ENV=production npx vite build` in
 `artifacts/nafsam`, copy `dist/public` → `/tmp/nafsam-deploy`, then
 `wrangler pages deploy /tmp/nafsam-deploy --project-name=ech-nafasm-ska --branch=main`.
 
