@@ -18,6 +18,14 @@ compare `<title>` to detect). Usually no manual wrangler deploy is needed
 anymore; just push. Manual deploys below still work but a later git push
 overwrites them.
 
+**Monitor has its own separate Pages project (since 2026-07-21):**
+`nafsam-monitor.pages.dev`, direct-upload (NOT git-connected). Redeploy by
+`PORT=4173 BASE_PATH=/ NODE_ENV=production pnpm --filter @workspace/monitor run build`,
+copy `artifacts/monitor/dist/public` → `/tmp/monitor-deploy`, then wrangler@3
+pages deploy from /tmp with `--project-name=nafsam-monitor`. Supabase URL/anon
+key are hardcoded in `artifacts/monitor/src/lib/supabase.ts` (no env needed).
+Git pushes do NOT update it — manual redeploy only.
+
 Manual deploy recipe (fallback): build with `CF_PAGES=1 NODE_ENV=production npx vite build` in
 `artifacts/nafsam`, copy `dist/public` → `/tmp/nafsam-deploy`, then
 `wrangler pages deploy /tmp/nafsam-deploy --project-name=ech-nafasm-ska --branch=main`.
