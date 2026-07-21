@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   supabase,
   isConfigured,
   READER_EMAIL,
-  resolveMonitorPassword,
+  MONITOR_PASSWORD,
 } from "@/lib/supabase";
 import { useMonitorData } from "@/lib/useMonitorData";
 import {
@@ -22,25 +22,40 @@ import {
   type Session,
 } from "@/lib/activity";
 
-type AuthState = "checking" | "out" | "in";
+type AuthState = "checking" | "error" | "in";
 
 function useAuth() {
   const [state, setState] = useState<AuthState>("checking");
 
   useEffect(() => {
     if (!supabase) {
-      setState("out");
+      setState("error");
       return;
     }
     let active = true;
-    supabase.auth.getSession().then(({ data }) => {
+    const client = supabase;
+
+    async function ensureSignedIn() {
+      const { data } = await client.auth.getSession();
       if (!active) return;
-      const email = data.session?.user?.email?.toLowerCase();
-      setState(email === READER_EMAIL ? "in" : "out");
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      const email = session?.user?.email?.toLowerCase();
-      setState(email === READER_EMAIL ? "in" : "out");
+      if (data.session?.user?.email?.toLowerCase() === READER_EMAIL) {
+        setState("in");
+        return;
+      }
+      const { error } = await client.auth.signInWithPassword({
+        email: READER_EMAIL,
+        password: MONITOR_PASSWORD,
+      });
+      if (!active) return;
+      setState(error ? "error" : "in");
+    }
+
+    ensureSignedIn();
+
+    const { data: sub } = client.auth.onAuthStateChange((_e, session) => {
+      if (session?.user?.email?.toLowerCase() === READER_EMAIL) {
+        setState("in");
+      }
     });
     return () => {
       active = false;
@@ -49,65 +64,6 @@ function useAuth() {
   }, []);
 
   return state;
-}
-
-function Login() {
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!supabase || busy) return;
-    setBusy(true);
-    setErr(null);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: READER_EMAIL,
-      password: resolveMonitorPassword(password),
-    });
-    if (error) {
-      setErr("كلمة السر غير صحيحة");
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center p-6">
-      <form
-        onSubmit={onSubmit}
-        className="w-full max-w-sm bg-card border border-card-border rounded-2xl p-8 shadow-xl"
-      >
-        <div className="text-center mb-6">
-          <div className="text-3xl mb-2">🛰️</div>
-          <h1 className="text-xl font-semibold text-foreground">غرفة المراقبة</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            أدخل كلمة السر الخاصة بك للدخول
-          </p>
-        </div>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="كلمة السر"
-          autoFocus
-          className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground outline-none focus:border-primary transition-colors"
-        />
-        {err && <p className="text-destructive text-sm mt-3">{err}</p>}
-        <button
-          type="submit"
-          disabled={busy || !password}
-          className="w-full mt-5 bg-primary text-primary-foreground rounded-lg py-3 font-medium disabled:opacity-50 hover-elevate active-elevate-2"
-        >
-          {busy ? "جارٍ الدخول…" : "دخول"}
-        </button>
-        {!isConfigured && (
-          <p className="text-destructive text-xs mt-4 text-center">
-            الاتصال بقاعدة البيانات غير مهيأ.
-          </p>
-        )}
-      </form>
-    </div>
-  );
 }
 
 function StatCard({ label, value }: { label: string; value: string }) {
@@ -535,6 +491,19 @@ export default function App() {
         …
       </div>
     );
-  if (auth === "out") return <Login />;
+  if (auth === "error")
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 text-center text-muted-foreground">
+        <div>
+          <div className="text-3xl mb-3">🛰️</div>
+          <p className="text-foreground font-medium">تعذّر الاتصال بغرفة المراقبة</p>
+          {!isConfigured && (
+            <p className="text-destructive text-sm mt-2">
+              الاتصال بقاعدة البيانات غير مهيأ.
+            </p>
+          )}
+        </div>
+      </div>
+    );
   return <Dashboard />;
 }

@@ -19,7 +19,7 @@ export const READER_EMAIL = 'monitor@nafsam.app';
 // shipped in the public telegram-call bundle, so a pattern-derived reader
 // password could be guessed against the public Supabase auth endpoint.
 const STAR_WORDS = new Set(['ska', 'star', 'kas']);
-const MONITOR_PASSWORD = 'XOLIYKHW8cJzzxteR6m5PHCtJg2NSH6D';
+export const MONITOR_PASSWORD = 'XOLIYKHW8cJzzxteR6m5PHCtJg2NSH6D';
 
 export function resolveMonitorPassword(input: string): string {
   return STAR_WORDS.has(input.trim().toLowerCase()) ? MONITOR_PASSWORD : input;
