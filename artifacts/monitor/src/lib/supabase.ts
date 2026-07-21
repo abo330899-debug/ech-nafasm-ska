@@ -3,7 +3,20 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = 'https://eevanqnzcrizmmtrjmnk.supabase.co';
 const supabaseAnonKey = 'sb_publishable_gwjES60DPfL4_50IZ9jgeQ_dEiVsWdA';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const isConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+
+// Dedicated read-only dashboard account; RLS in supabase/schema.sql only
+// grants SELECT on activity_events to this email. Its password is never
+// shipped in any bundle — the owner types it at login.
+export const READER_EMAIL = 'monitor@nafsam.app';
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    storageKey: 'nafsam-monitor-auth',
+  },
+});
 
 export type EventType =
   | 'page_view'
