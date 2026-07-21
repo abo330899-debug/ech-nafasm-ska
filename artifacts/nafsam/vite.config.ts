@@ -26,7 +26,8 @@ if (process.env.CF_PAGES === "1") {
 const isBuild = process.env.NODE_ENV === "production" || process.argv.includes("build");
 
 const port = Number(process.env.PORT || 19579);
-const basePath = process.env.BASE_PATH || "/";
+const githubPagesBase = process.env.GITHUB_ACTIONS === "true" ? "/ech-nafasm-ska/" : "/";
+const basePath = process.env.BASE_PATH || githubPagesBase;
 
 if (!isBuild) {
   if (!process.env.PORT) {
