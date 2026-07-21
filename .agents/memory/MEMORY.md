@@ -7,6 +7,7 @@
 - [GitHub push (ECHandSKA-1)](github-push.md) — push via GitHub connector token + credential helper, git-lfs needs bash PATH; remote was force-overwritten to match Replit copy (backup branch saved).
 - [Nafsam CF Pages deploy](nafsam-cloudflare-deploy.md) — CLOUDFLARE_PAGES_TOKEN works now; wrangler@3 from /tmp; EVERY deploy must also copy telegram-call dist to deploy-dir/telegram-call or the installed PWA vanishes.
 - [Replit publish image size](replit-publish-image-size.md) — publish hanging ~20min on "Pushing Repl layer" then failing = near 8GB limit; prune pnpm store in .local/share/pnpm + .cache first (.git not counted).
+- [Publish dies at DB-copy step](replit-publish-frozen-prod-db.md) — silent fail after "Copying development database" = frozen prod DB; user must Unpause in Database pane (dev then prod dropdown).
 - [Telegram Call workflow fix](telegram-call-workflow.md) — standalone workflow SIGKILL-fails; serve dist via api-server static route + /telegram-call path.
 - [Telegram Call iOS composer](telegram-call-composer.md) — must stay contenteditable (no input/textarea) + tg-kb-open drops safe-area pad; wrangler pages deploy must run from /tmp.
 - [Workspace wipe recovery](workspace-wipe-recovery.md) — tracked files vanished but git intact: restore via `git archive HEAD | tar -x`, then re-register artifacts (recipe in topic file).
