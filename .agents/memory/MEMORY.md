@@ -11,4 +11,4 @@
 - [Telegram Call iOS composer](telegram-call-composer.md) — must stay contenteditable (no input/textarea) + tg-kb-open drops safe-area pad; wrangler pages deploy must run from /tmp.
 - [Workspace wipe recovery](workspace-wipe-recovery.md) — tracked files vanished but git intact: restore via `git archive HEAD | tar -x`, then re-register artifacts (recipe in topic file).
 - [Nafsam index.css cascade traps](nafsam-css-cascade.md) — duplicate ≤768px blocks: edit the LAST one or changes are dead; verify rule order in built CSS; sandbox harness trick for visual checks on auth-gated pages.
-- [Nafsam Monitor login](nafsam-monitor.md) — /monitor/ accepts star words → fixed reader password; monitor@nafsam.app must be created manually in Supabase dashboard (signup API rejects @nafsam.app).
+- [Nafsam Monitor](nafsam-monitor.md) — monitor MUST read chat project rwpgtnjpqwlddborvyrd (not analytics eevanqnzc…); auto-signs-in (no login screen) as monitor@nafsam.app.

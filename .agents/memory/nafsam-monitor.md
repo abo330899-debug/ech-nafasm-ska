@@ -1,38 +1,51 @@
 ---
-name: Nafsam Monitor login & reader account
-description: How the /monitor/ dashboard signs in, why the Supabase reader account can only be created in the dashboard, and the word-login mapping.
+name: Nafsam Monitor dashboard & reader account
+description: Which Supabase project the /monitor/ dashboard must read, how it signs in (auto, no login screen), and the reader-account constraints.
 ---
 
 # Nafsam Monitor (غرفة المراقبة)
 
-The monitor dashboard reads `activity_events` through a dedicated Supabase
-reader account `monitor@nafsam.app` (RLS in `supabase/schema.sql` only grants
-SELECT to that exact email — the email cannot be changed without re-running
-the schema, which needs the Supabase dashboard).
+## Two Supabase projects — the #1 gotcha
+There are two ACTIVE Supabase projects and it is easy to point the monitor at
+the wrong one:
+- **analytics** `eevanqnzcrizmmtrjmnk` — legacy/unused; its `activity_events`
+  has a DIFFERENT schema (session_id/visitor_id/event_type/...) and 0 rows.
+- **chat** `rwpgtnjpqwlddborvyrd` — THE REAL TARGET. The nafsam frontend writes
+  its activity log here (see `artifacts/nafsam/.env` VITE_SUPABASE_URL). The
+  monitor MUST read from this project.
+**Why:** symptom of a mismatch is "تعذّر تحميل السجل" / empty dashboard even
+though everything else looks correct. Both `supabaseUrl` and `supabaseAnonKey`
+in `artifacts/monitor/src/lib/supabase.ts` must be the chat project. The chat
+anon key is already public (shipped in the nafsam bundle) so committing it is
+fine.
+**How to apply:** the chat project needs the activity schema (table + trigger
+`activity_set_identity_trg` + policies + `activity_reader()`/`chat_identity()`
+functions) from `supabase/schema.sql` lines ~265-337, plus a confirmed
+`monitor@nafsam.app` user whose password == MONITOR_PASSWORD. Verify
+end-to-end: star@ (pw `nafsam-ska`) inserts with `Prefer: return=minimal`
+(return=representation 403s because star has no SELECT), monitor@ reads it back.
 
-**Login is word-based like the rest of Nafsam.** The login screen accepts the
-star words (case-insensitive) and maps them to a fixed high-entropy Supabase
-password; any other input is passed through as a raw password. The literal
-password lives ONLY in the monitor app's supabase lib (MONITOR_PASSWORD), not
-here — never write it into memory or schema.sql.
-**Why:** the owner asked to log in with "star"; Supabase min password length
-makes a 4-char literal password impossible, and the monitor app is
-workspace-only (never in the Cloudflare/Replit public deploys), so baking the
-mapping does not expose it to visitors. The password must NOT follow the
-public `nafsam-<x>` pattern (shipped in the telegram-call bundle) or Ilham
-could guess it against the public Supabase auth endpoint and read her own
-surveillance log. Note the monitor artifact.toml has a production service
-block, so a future Replit publish that adds monitor WOULD ship the mapping —
-re-evaluate the login design before ever deploying monitor publicly.
+## No login screen anymore
+The dashboard auto-signs-in on mount using READER_EMAIL + MONITOR_PASSWORD
+(App.tsx AuthState = "checking"|"error"|"in", no Login component). The user
+explicitly asked to remove the login UI. MONITOR_PASSWORD lives ONLY in the
+monitor supabase lib — never write the literal into memory or schema.sql.
+**Why:** monitor is workspace-only (never in Cloudflare/Replit public deploys),
+so baking the password does not expose it to visitors. It must NOT follow the
+public `nafsam-<x>` pattern (that pattern ships in the telegram-call bundle).
+Note: monitor `artifact.toml` has a production service block, so a future
+Replit publish that includes monitor WOULD ship the password — re-evaluate
+before ever deploying monitor publicly.
 
-**Reader account can ONLY be created in the Supabase dashboard.** No Supabase
-admin credentials exist in this repl (checked secrets + connectors). The
-signup REST API now rejects `@nafsam.app` emails with `email_address_invalid`,
-so unlike the chat accounts, it cannot even be pre-created unconfirmed.
-**How to apply:** Authentication → Users → Add user, Auto Confirm ON,
-`monitor@nafsam.app` / `nafsam-monitor-star`. Until then every monitor login
-fails with invalid_credentials even though the app code is correct.
+## Reader account creation
+`monitor@nafsam.app` and its password are managed via the Supabase Management
+API (token is the `sbp_...` Management token, not the SERVICE_ROLE secret which
+currently holds a wrong value). RLS grants SELECT on `activity_events` only to
+that exact email; star@/ilham@ can INSERT (trigger stamps identity), no
+update/delete (append-only).
 
-The monitor's supabase client uses its own storageKey `nafsam-monitor-auth`
-so it never clobbers the chat (`nafsam-chat-auth`) or activity
-(`nafsam-activity-auth`) sessions on the same origin.
+## storageKey
+Monitor client uses storageKey `nafsam-monitor-auth-v2` (bump the suffix
+whenever the project is repointed) so a stale session from the old project
+doesn't pass the email check then 401 on every query. It also avoids clobbering
+the chat (`nafsam-chat-auth`) / activity (`nafsam-activity-auth`) sessions.
