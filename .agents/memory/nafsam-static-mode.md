@@ -125,6 +125,29 @@ the plaintext words in memory/docs) and
 never `/api/chat/session`). `artifacts/nafsam/.env` is gitignored/untracked —
 it exists only locally; don't assume a merge restores it.
 
+**R2 public access DEAD → dev preview switched to SERVER mode (2026-07-21):**
+The public bucket `pub-79afa43f…r2.dev` now returns HTTP 403 for EVERY object
+(content.json, media/*, images/*, posters/*) — public access was revoked. This
+breaks static mode everywhere it is used: the Replit dev preview AND the live
+Cloudflare Pages site (both fetch from that URL). Fix applied for the Replit
+preview: set `VITE_STATIC_MODE=false` in the (untracked) `artifacts/nafsam/.env`
+so dev + Replit-Autoscale go through the api-server (`/api/auth/*` +
+`/api/private/*`), serving media from local `artifacts/api-server/private/`
+(266 media, 245 posters, 31 images on disk). `.env.cloudflare-pages` left as
+`true` (untouched). **The live Cloudflare site is still broken until R2 public
+access is restored** — separate follow-up (needs CF dashboard/API to re-enable
+r2.dev public access on the `media` bucket).
+
+**Auth material MUST be a Secret, never a shared env var (threat-model rule):**
+`setEnvVars({NAFSAM_PASSWORDS...}, "shared")` writes the value in PLAINTEXT into
+git-tracked `.replit` under `[userenv.shared]` — and this repo is pushed to
+GitHub. threat_model.md forbids exactly this ("answers must come from deployment
+secret storage rather than tracked configuration files"). Set NAFSAM_PASSWORDS
+via `requestEnvVar` (Replit Secret, stored outside tracked files), NOT
+setEnvVars. **Why:** dev had NAFSAM_PASSWORDS unset entirely → server login 401s
+on every answer → all `/api/private/*` 401 → no media (the real "images/videos
+don't appear" root cause once static mode was off).
+
 **Static `openAt`:** static `fetchSession()` returns a real `openAt` from
 `VITE_OPEN_AT` (fallback `2026-05-29T17:00:00`, mirrors server `DEFAULT_OPEN_AT`),
 not `0`. Returning `0` made the login "elapsed since" counter show ~20609 days
