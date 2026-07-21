@@ -11,5 +11,6 @@
 - [Telegram Call iOS composer](telegram-call-composer.md) — must stay contenteditable (no input/textarea) + tg-kb-open drops safe-area pad; wrangler pages deploy must run from /tmp.
 - [Workspace wipe recovery](workspace-wipe-recovery.md) — tracked files vanished but git intact: restore via `git archive HEAD | tar -x`, then re-register artifacts (recipe in topic file).
 - [Nafsam index.css cascade traps](nafsam-css-cascade.md) — duplicate ≤768px blocks: edit the LAST one or changes are dead; verify rule order in built CSS; sandbox harness trick for visual checks on auth-gated pages.
+- [Replit secret edit propagation](replit-secret-propagation.md) — edits to existing Secrets take ~2-3 min to reach container/workflow env; wait before re-prompting; verify via len/comma fingerprint.
 - [Nafsam Monitor](nafsam-monitor.md) — monitor MUST read chat project rwpgtnjpqwlddborvyrd (not analytics eevanqnzc…); auto-signs-in (no login screen) as monitor@nafsam.app.
 - [Nafsam static #root fallback](nafsam-static-fallback.md) — "locked" landing with no form/counter = React didn't mount (check main.tsx), NOT the countdown gate; live tracking is lib/activity.ts.
