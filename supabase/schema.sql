@@ -253,8 +253,13 @@ create policy "chat_images_delete_own" on storage.objects
 --
 -- AFTER running this file, create the reader account in the Supabase dashboard:
 --   Authentication -> Users -> Add user  (keep "Auto Confirm User" ON)
---     monitor@nafsam.app   password: <a private password only you know>
---   Then type that same password in the /monitor/ login screen.
+--     monitor@nafsam.app   password: the MONITOR_PASSWORD constant in
+--     artifacts/monitor/src/lib/supabase.ts (high-entropy; deliberately NOT
+--     the public `nafsam-<x>` pattern, which anyone could guess online).
+--   The /monitor/ login screen accepts the star words and maps them to that
+--   fixed password. The monitor app is workspace-only and never part of the
+--   public deploys, so the mapping is not shipped to visitors. A different
+--   private password typed as-is also works instead of the word login.
 -- ============================================================================
 
 -- Reader gate: only the monitor account may read the activity log.

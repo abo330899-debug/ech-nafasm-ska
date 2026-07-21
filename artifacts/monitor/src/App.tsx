@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { supabase, isConfigured, READER_EMAIL } from "@/lib/supabase";
+import {
+  supabase,
+  isConfigured,
+  READER_EMAIL,
+  resolveMonitorPassword,
+} from "@/lib/supabase";
 import { useMonitorData } from "@/lib/useMonitorData";
 import {
   reconstructSessions,
@@ -58,7 +63,7 @@ function Login() {
     setErr(null);
     const { error } = await supabase.auth.signInWithPassword({
       email: READER_EMAIL,
-      password,
+      password: resolveMonitorPassword(password),
     });
     if (error) {
       setErr("كلمة السر غير صحيحة");

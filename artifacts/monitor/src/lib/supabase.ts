@@ -6,9 +6,24 @@ const supabaseAnonKey = 'sb_publishable_gwjES60DPfL4_50IZ9jgeQ_dEiVsWdA';
 export const isConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 // Dedicated read-only dashboard account; RLS in supabase/schema.sql only
-// grants SELECT on activity_events to this email. Its password is never
-// shipped in any bundle — the owner types it at login.
+// grants SELECT on activity_events to this email.
 export const READER_EMAIL = 'monitor@nafsam.app';
+
+// The owner logs in with one of the star words (same words as the archive /
+// chat). The word maps to the fixed Supabase password below. This app is
+// workspace-only (never part of the public Nafsam / Cloudflare deploys), so
+// baking the mapping here does not ship it to visitors. Anything else typed
+// is passed through as a raw password, so a dashboard-set password works too.
+// IMPORTANT: this password is intentionally high-entropy and must NOT follow
+// the public `nafsam-<x>` pattern used by the chat accounts — that pattern is
+// shipped in the public telegram-call bundle, so a pattern-derived reader
+// password could be guessed against the public Supabase auth endpoint.
+const STAR_WORDS = new Set(['ska', 'star', 'kas']);
+const MONITOR_PASSWORD = 'XOLIYKHW8cJzzxteR6m5PHCtJg2NSH6D';
+
+export function resolveMonitorPassword(input: string): string {
+  return STAR_WORDS.has(input.trim().toLowerCase()) ? MONITOR_PASSWORD : input;
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
