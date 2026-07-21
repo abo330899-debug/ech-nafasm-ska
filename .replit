@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "python-3.11"]
+modules = ["nodejs-20", "python-3.11", "postgresql-16"]
 
 [[ports]]
 localPort = 8080
@@ -88,3 +88,6 @@ deploymentTarget = "gce"
 
 [workflows]
 runButton = "Project"
+
+[nix]
+channel = "stable-25_05"
