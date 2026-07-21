@@ -34,7 +34,13 @@ async function sha256Hex(text: string): Promise<string> {
     .join("");
 }
 
-const STAR_WORDS = new Set(["ska", "star", "kas"]);
+// SHA-256 hashes of the identity words (trimmed + lowercased) — plaintext
+// words must never ship in the public bundle.
+const STAR_WORD_HASHES = new Set([
+  "15d3a52f3a69b6da3b76b5575a48c1d16ad5087dbf1cc4e33d1428f59a0bb7a1",
+  "525eca1d5089dbdcbb6700d910c5e0bc23fbaa23ee026c0e224c2b45490e5f29",
+  "04ead045b10c1a7f4a3afb07f8f19339ac98ad1bf2aa09d08df8385c4cd62498",
+]);
 
 export interface CardHints { tr: string; fa: string; ar: string; en: string; }
 export interface SessionCard { hints: CardHints; }
@@ -55,8 +61,12 @@ function openAtValue(): number {
   return Number.isFinite(value) ? value : new Date(STATIC_DEFAULT_OPEN_AT).getTime();
 }
 
-function saveIdentity(answer: string): void {
-  const identity = STAR_WORDS.has(answer.trim().toLowerCase()) ? "star" : "ilham";
+async function saveIdentity(answer: string): Promise<void> {
+  let identity = "ilham";
+  try {
+    const hash = await sha256Hex(answer.trim().toLowerCase());
+    if (STAR_WORD_HASHES.has(hash)) identity = "star";
+  } catch {}
   try { localStorage.setItem(IDENTITY_KEY, identity); } catch {}
 }
 
@@ -100,7 +110,7 @@ export async function login(answer: string): Promise<LoginResult> {
         return { ok: false, reason: "wrong" };
       }
       localStorage.setItem(STATIC_TOKEN_KEY, STATIC_TOKEN_VALUE);
-      saveIdentity(normalized);
+      await saveIdentity(normalized);
       logLogin(normalized);
       return { ok: true };
     } catch {
@@ -114,7 +124,7 @@ export async function login(answer: string): Promise<LoginResult> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answer }),
     });
-    if (response.ok) { saveIdentity(normalized); logLogin(normalized); return { ok: true }; }
+    if (response.ok) { await saveIdentity(normalized); logLogin(normalized); return { ok: true }; }
     if (response.status === 403) return { ok: false, reason: "closed" };
     if (response.status === 429) return { ok: false, reason: "rate_limited" };
     return { ok: false, reason: "wrong" };

@@ -14,7 +14,21 @@ export function identityAvatar(id: ChatIdentity): string {
 }
 
 const IDENTITY_KEY = "nafsam_identity";
-export const STAR_WORDS = new Set(["ska", "star", "kas"]);
+// SHA-256 hashes of the identity words (trimmed + lowercased) — plaintext
+// words must never ship in the public bundle.
+const STAR_WORD_HASHES = new Set([
+  "15d3a52f3a69b6da3b76b5575a48c1d16ad5087dbf1cc4e33d1428f59a0bb7a1",
+  "525eca1d5089dbdcbb6700d910c5e0bc23fbaa23ee026c0e224c2b45490e5f29",
+  "04ead045b10c1a7f4a3afb07f8f19339ac98ad1bf2aa09d08df8385c4cd62498",
+]);
+
+async function sha256Hex(text: string): Promise<string> {
+  const data = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 // The Supabase chat password depends ONLY on the identity, not on the exact
 // login word. The real gate stays the word login itself (the word is verified
@@ -30,8 +44,13 @@ const EMAILS: Record<ChatIdentity, string> = {
   ilham: "ilham@nafsam.app",
 };
 
-export function deriveIdentity(answer: string): ChatIdentity {
-  return STAR_WORDS.has(answer.trim().toLowerCase()) ? "star" : "ilham";
+export async function deriveIdentity(answer: string): Promise<ChatIdentity> {
+  try {
+    const hash = await sha256Hex(answer.trim().toLowerCase());
+    return STAR_WORD_HASHES.has(hash) ? "star" : "ilham";
+  } catch {
+    return "ilham";
+  }
 }
 
 export function storeIdentity(id: ChatIdentity): void {

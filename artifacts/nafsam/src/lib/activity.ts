@@ -22,7 +22,13 @@ const configured = Boolean(url && anonKey);
 type Identity = "star" | "ilham";
 
 const IDENTITY_KEY = "nafsam_identity";
-const STAR_WORDS = new Set(["ska", "star", "kas"]);
+// SHA-256 hashes of the identity words (trimmed + lowercased) — plaintext
+// words must never ship in the public bundle.
+const STAR_WORD_HASHES = new Set([
+  "15d3a52f3a69b6da3b76b5575a48c1d16ad5087dbf1cc4e33d1428f59a0bb7a1",
+  "525eca1d5089dbdcbb6700d910c5e0bc23fbaa23ee026c0e224c2b45490e5f29",
+  "04ead045b10c1a7f4a3afb07f8f19339ac98ad1bf2aa09d08df8385c4cd62498",
+]);
 
 // Fixed per-identity Supabase accounts (same as the chat app). These passwords
 // are public-by-design; the real gate is the word login plus row-level security.
@@ -35,8 +41,21 @@ const PASSWORDS: Record<Identity, string> = {
   ilham: "nafsam-ilham",
 };
 
-export function deriveActivityIdentity(word: string): Identity {
-  return STAR_WORDS.has(word.trim().toLowerCase()) ? "star" : "ilham";
+async function sha256Hex(text: string): Promise<string> {
+  const data = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export async function deriveActivityIdentity(word: string): Promise<Identity> {
+  try {
+    const hash = await sha256Hex(word.trim().toLowerCase());
+    return STAR_WORD_HASHES.has(hash) ? "star" : "ilham";
+  } catch {
+    return "ilham";
+  }
 }
 
 function storedIdentity(): Identity | null {
@@ -185,8 +204,9 @@ export function startActivityTracking(): void {
 
 /** Log the explicit login moment (called right after a successful word login). */
 export function logLogin(word: string): void {
-  const identity = deriveActivityIdentity(word);
-  logActivity("login", identity);
+  void deriveActivityIdentity(word)
+    .then((identity) => logActivity("login", identity))
+    .catch(() => {});
   // Kick off tracking on the next tick so sign-in can settle.
   startActivityTracking();
 }

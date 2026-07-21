@@ -5,16 +5,13 @@
 import { deriveIdentity, type ChatIdentity } from "./chatAuth";
 
 // SHA-256 hashes of accepted login words (trimmed + lowercased).
+// Canonical list lives in the NAFSAM_PASSWORDS secret — never list words here.
 const AUTH_TOKENS_BUILTIN = [
-  "15d3a52f3a69b6da3b76b5575a48c1d16ad5087dbf1cc4e33d1428f59a0bb7a1",
-  "525eca1d5089dbdcbb6700d910c5e0bc23fbaa23ee026c0e224c2b45490e5f29",
-  "04ead045b10c1a7f4a3afb07f8f19339ac98ad1bf2aa09d08df8385c4cd62498",
-  "e467a85cdae98a0cb4edb5570aad4bd093dc2b652b6677a5949bd4ae36922bb4",
   "89332e726a92700b68820e4371347aff05cfbe5fcef459a7e9916266fbbbb6ac",
+  "15d3a52f3a69b6da3b76b5575a48c1d16ad5087dbf1cc4e33d1428f59a0bb7a1",
   "470c8021ba0912f4108bffbb4fe562367912d992f7a1388850b28d34a4a25170",
   "69f81f0d193d163268d961aae99c2e3adf6b5ebe81a97280cf0c235d2f5f3338",
   "c30609e972999f1687758abe73a07ba12a56a009784d9c8c910a6982d55c212c",
-  "2cf4163fd3b0c3d8be020fb37c7b103cee3daaf8c5d678cff9244210d13440a5",
 ];
 
 function authTokens(): Set<string> {
@@ -42,7 +39,7 @@ export async function verifyWord(answer: string): Promise<ChatIdentity | null> {
   try {
     const hash = await sha256Hex(normalized);
     if (!authTokens().has(hash)) return null;
-    return deriveIdentity(normalized);
+    return await deriveIdentity(normalized);
   } catch {
     return null;
   }
