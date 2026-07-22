@@ -1,3 +1,4 @@
+/pub/*    /404.html   404
 /telegram-call/*    /telegram-call/index.html   200
 /monitor/*    /monitor/index.html   200
 /*    /index.html   200
