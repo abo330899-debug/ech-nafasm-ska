@@ -44,6 +44,20 @@ currently holds a wrong value). RLS grants SELECT on `activity_events` only to
 that exact email; star@/ilham@ can INSERT (trigger stamps identity), no
 update/delete (append-only).
 
+## Dashboard build lessons (2026-07-22 rebuild, 10 sections)
+- **recharts breaks under RTL** (html is dir=rtl): every chart AND the heatmap
+  grid must sit inside a `dir="ltr"` wrapper or axes/bars mis-lay out.
+- **Hash routing** (wouter `useHashLocation`) — path routing fights the
+  `/monitor/` proxy base path; hash routes need no server/vite config.
+- **Supabase descending offset-paging on an insert-heavy table duplicates
+  rows**: inserts during backfill shift the offset windows, so page N's tail
+  reappears at page N+1's head. Always dedupe by id when assembling pages
+  (insert-only table ⇒ duplicates only, never skips).
+- Screenshot right after load catches recharts mid-animation (line drawn only
+  part-way) — looks like missing data but isn't; re-shoot or ignore.
+- Heartbeats (45s) are ~90% of rows — never render them in raw lists, only
+  feed them to active/idle session math.
+
 ## storageKey
 Monitor client uses storageKey `nafsam-monitor-auth-v2` (bump the suffix
 whenever the project is repointed) so a stale session from the old project

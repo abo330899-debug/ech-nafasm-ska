@@ -93,6 +93,59 @@ async function ensureSignedIn(): Promise<boolean> {
   }
 }
 
+// Small, dependency-free client classifier. Attached only to "open" and
+// "login" events so the monitor can show device/browser/OS without any
+// external UA-parsing dependency in the public bundle.
+function clientInfo(): Record<string, unknown> {
+  try {
+    const ua = navigator.userAgent;
+    const os = /iPhone|iPad|iPod/i.test(ua)
+      ? "iOS"
+      : /Android/i.test(ua)
+        ? "Android"
+        : /Mac OS X/.test(ua)
+          ? "macOS"
+          : /Windows/.test(ua)
+            ? "Windows"
+            : /Linux/.test(ua)
+              ? "Linux"
+              : "unknown";
+    const browser = /CriOS/.test(ua)
+      ? "Chrome (iOS)"
+      : /FxiOS/.test(ua)
+        ? "Firefox (iOS)"
+        : /EdgiOS|Edg\//.test(ua)
+          ? "Edge"
+          : /OPR\/|Opera/.test(ua)
+            ? "Opera"
+            : /SamsungBrowser/.test(ua)
+              ? "Samsung Internet"
+              : /Chrome\//.test(ua)
+                ? "Chrome"
+                : /Firefox\//.test(ua)
+                  ? "Firefox"
+                  : /Safari\//.test(ua)
+                    ? "Safari"
+                    : "unknown";
+    const device = /iPad/.test(ua)
+      ? "tablet"
+      : /Mobi|iPhone|Android/.test(ua)
+        ? "mobile"
+        : "desktop";
+    return {
+      os,
+      browser,
+      device,
+      screen: `${window.screen.width}x${window.screen.height}`,
+      lang: navigator.language,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      pwa: window.matchMedia("(display-mode: standalone)").matches,
+    };
+  } catch {
+    return {};
+  }
+}
+
 /** Fire-and-forget: record one activity event. Never throws. */
 export function logActivity(
   kind: string,
@@ -156,7 +209,7 @@ export function startActivityTracking(): void {
   if (!storedIdentity()) return;
   started = true;
 
-  logActivity("open");
+  logActivity("open", null, clientInfo());
 
   if (heartbeatTimer === null) {
     heartbeatTimer = setInterval(() => {
@@ -174,7 +227,7 @@ export function startActivityTracking(): void {
 /** Log the explicit login moment (called right after a successful word login). */
 export function logLogin(word: string): void {
   void deriveIdentityFromWord(word)
-    .then((identity) => logActivity("login", identity))
+    .then((identity) => logActivity("login", identity, clientInfo()))
     .catch(() => {});
   // Kick off tracking on the next tick so sign-in can settle.
   startActivityTracking();

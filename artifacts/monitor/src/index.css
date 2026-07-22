@@ -418,3 +418,16 @@
     inset: -1px;
   }
 }
+
+/* Print styles for the Reports page: hide chrome, keep the report body. */
+@media print {
+  [data-sidebar="sidebar"],
+  [data-slot="sidebar"],
+  header {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}

@@ -16,13 +16,37 @@ export interface Session {
   start: Date;
   end: Date;
   durationMs: number;
+  /** Time covered by gaps small enough to imply the tab was visible/active. */
+  activeMs: number;
+  /** durationMs − activeMs (tab hidden or no heartbeats arriving). */
+  idleMs: number;
   events: ActivityEvent[];
   pageViews: number;
   videoOpens: number;
   photoOpens: number;
+  /** Ordered page labels visited (deduped consecutive repeats). */
+  navPath: string[];
+  /** Average gap between consecutive non-heartbeat interactions, or null. */
+  avgInteractionMs: number | null;
+  /** Device info from the session's open/login meta, if any. */
+  client: ClientMeta | null;
+}
+
+export interface ClientMeta {
+  os?: string;
+  browser?: string;
+  device?: string;
+  screen?: string;
+  lang?: string;
+  tz?: string;
+  pwa?: boolean;
 }
 
 export const SESSION_GAP_MS = 2.5 * 60 * 1000;
+
+// Heartbeats fire every 45s while the tab is visible; a gap of more than two
+// missed beats (~100s) means the viewer was hidden/idle for that stretch.
+export const ACTIVE_GAP_MS = 100 * 1000;
 
 export const IDENTITY_LABELS: Record<Identity, string> = {
   ilham: "إلهام",
@@ -172,11 +196,49 @@ export function reconstructSessions(
       const start = new Date(current[0].created_at);
       const end = new Date(current[current.length - 1].created_at);
 
+      // Active vs idle: sum the small gaps (tab visibly alive); anything
+      // longer — or any stretch right after an explicit "leave" — is idle.
+      let activeMs = 0;
+      const navPath: string[] = [];
+      const interactionTimes: number[] = [];
+      let client: ClientMeta | null = null;
+      for (let i = 0; i < current.length; i += 1) {
+        const e = current[i];
+        if (i > 0) {
+          const gap =
+            new Date(e.created_at).getTime() -
+            new Date(current[i - 1].created_at).getTime();
+          const afterLeave = current[i - 1].kind === "leave";
+          if (gap <= ACTIVE_GAP_MS && !afterLeave) activeMs += gap;
+        }
+        if (e.kind === "page_view") {
+          const label = pageLabel(e.label);
+          if (navPath[navPath.length - 1] !== label) navPath.push(label);
+        }
+        if (e.kind !== "heartbeat") {
+          interactionTimes.push(new Date(e.created_at).getTime());
+        }
+        if (!client && (e.kind === "open" || e.kind === "login") && e.meta) {
+          const m = e.meta as ClientMeta;
+          if (m.os || m.browser || m.device) client = m;
+        }
+      }
+      let avgInteractionMs: number | null = null;
+      if (interactionTimes.length >= 2) {
+        avgInteractionMs =
+          (interactionTimes[interactionTimes.length - 1] -
+            interactionTimes[0]) /
+          (interactionTimes.length - 1);
+      }
+
+      const durationMs = end.getTime() - start.getTime();
       sessions.push({
         identity,
         start,
         end,
-        durationMs: end.getTime() - start.getTime(),
+        durationMs,
+        activeMs,
+        idleMs: Math.max(0, durationMs - activeMs),
         events: current,
         pageViews: current.filter(
           (event) => event.kind === "page_view",
@@ -187,6 +249,9 @@ export function reconstructSessions(
         photoOpens: current.filter(
           (event) => event.kind === "photo_open",
         ).length,
+        navPath,
+        avgInteractionMs,
+        client,
       });
 
       current = [];
@@ -226,4 +291,44 @@ export function isLive(
   now: number = Date.now(),
 ): boolean {
   return now - session.end.getTime() <= SESSION_GAP_MS;
+}
+
+export type LiveState = "active" | "idle" | "offline";
+
+/** Finer-grained live status: نشطة (fresh events), خاملة (stale but within
+ *  the session window), or offline. */
+export function liveState(
+  session: Session,
+  now: number = Date.now(),
+): LiveState {
+  const sinceLast = now - session.end.getTime();
+  if (sinceLast <= ACTIVE_GAP_MS) return "active";
+  if (sinceLast <= SESSION_GAP_MS) return "idle";
+  return "offline";
+}
+
+export const LIVE_STATE_LABELS: Record<LiveState, string> = {
+  active: "نشطة الآن",
+  idle: "خاملة",
+  offline: "غير متصلة",
+};
+
+/** The page currently open in a live session (last page_view label). */
+export function currentPage(session: Session): string | null {
+  for (let i = session.events.length - 1; i >= 0; i -= 1) {
+    if (session.events[i].kind === "page_view") {
+      return pageLabel(session.events[i].label);
+    }
+  }
+  return null;
+}
+
+// Baghdad is UTC+3 year-round (no DST since 2008), so a fixed shift is both
+// correct and far faster than Intl.formatToParts over thousands of events.
+const BAGHDAD_OFFSET_MS = 3 * 60 * 60 * 1000;
+
+/** Hour (0-23) and weekday (0=Sun) of a timestamp in Asia/Baghdad. */
+export function baghdadHourDay(t: number): { hour: number; day: number } {
+  const d = new Date(t + BAGHDAD_OFFSET_MS);
+  return { hour: d.getUTCHours(), day: d.getUTCDay() };
 }

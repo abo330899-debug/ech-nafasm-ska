@@ -1,11 +1,11 @@
-- [Nafsam static (R2) mode](nafsam-static-mode.md) — media now SELF-HOSTED on CF Pages /pub/<token>/* (no Replit dependency); content.json static → edits need redeploy; VITE_AUTH_TOKENS = sha256 of NAFSAM_PASSWORDS.
+- [Nafsam static (R2) mode](nafsam-static-mode.md) — media SELF-HOSTED on CF Pages /pub/<token>/*; content edits need redeploy; VITE_AUTH_TOKENS = sha256 of passwords.
 - [Nafsam content i18n](nafsam-content-i18n.md) — videos/journey caption/quote now 4-lang objects via pickLocalized; bulk-translate with gpt-5-mini in FOREGROUND resumable script (bg procs die).
 - [Nafsam chat (telegram-call app, Supabase)](nafsam-chat.md) — chat lives in /telegram-call/ with own word login (iOS PWA storage isolated); word→fixed Supabase account; needs confirmed users + GRANTs.
 - [Nafsam mobile reload-on-scroll](nafsam-mobile-reload.md) — heavy media → mobile tab eviction jumps to top; fix = scroll restoration hook + content-visibility on off-screen cards.
 - [Nafsam photos↔captions](nafsam-photos-captions.md) — album pairs data.photos[i] with captions[lang][i] by index; reorder photos (not captions) to fix; dupes/non-anchored photos make perfect match impossible.
 - [Nafsam mobile gallery windowing](nafsam-mobile-gallery-windowing.md) — large galleries (245 videos) must render a windowed slice + IO sentinel or iOS Safari OOM-reloads.
 - [GitHub push (ECHandSKA-1)](github-push.md) — push via GitHub connector token + credential helper, git-lfs needs bash PATH; remote was force-overwritten to match Replit copy (backup branch saved).
-- [Nafsam CF Pages deploy](nafsam-cloudflare-deploy.md) — git auto-deploy DISABLED (would wipe media); manual wrangler@3 from /tmp only; must include telegram-call dist + /pub media + functions/ (206 ranges) + NO 404.html.
+- [Nafsam CF Pages deploy](nafsam-cloudflare-deploy.md) — manual wrangler@3 from /tmp only (git auto-deploy disabled); include telegram-call dist, /pub media, functions/, NO 404.html.
 - [Replit publish image size](replit-publish-image-size.md) — publish hanging ~20min on "Pushing Repl layer" then failing = near 8GB limit; prune pnpm store in .local/share/pnpm + .cache first (.git not counted).
 - [Publish dies at DB-copy step](replit-publish-frozen-prod-db.md) — silent fail after "Copying development database" = frozen prod DB; user must Unpause in Database pane (dev then prod dropdown).
 - [Telegram Call workflow fix](telegram-call-workflow.md) — standalone workflow SIGKILL-fails; serve dist via api-server static route + /telegram-call path.
@@ -13,5 +13,5 @@
 - [Workspace wipe recovery](workspace-wipe-recovery.md) — tracked files vanished but git intact: restore via `git archive HEAD | tar -x`, then re-register artifacts (recipe in topic file).
 - [Nafsam index.css cascade traps](nafsam-css-cascade.md) — duplicate ≤768px blocks: edit the LAST one or changes are dead; verify rule order in built CSS; sandbox harness trick for visual checks on auth-gated pages.
 - [Replit secret edit propagation](replit-secret-propagation.md) — edits to existing Secrets take ~2-3 min to reach container/workflow env; wait before re-prompting; verify via len/comma fingerprint.
-- [Nafsam Monitor](nafsam-monitor.md) — monitor MUST read chat project rwpgtnjpqwlddborvyrd (not analytics eevanqnzc…); auto-signs-in (no login screen) as monitor@nafsam.app.
+- [Nafsam Monitor](nafsam-monitor.md) — MUST read chat project rwpgtnjpqwlddborvyrd; auto-signs-in as monitor@nafsam.app; recharts needs dir=ltr wrapper; desc offset-paging needs id-dedupe.
 - [Nafsam static #root fallback](nafsam-static-fallback.md) — "locked" landing with no form/counter = React didn't mount (check main.tsx), NOT the countdown gate; live tracking is lib/activity.ts.
