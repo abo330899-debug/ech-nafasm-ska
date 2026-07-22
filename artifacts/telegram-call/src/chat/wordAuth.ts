@@ -2,7 +2,7 @@
 // login in the Nafsam frontend (lib/auth.ts): sha256(word) must match one of
 // the baked-in accepted tokens. Needed because the installed PWA runs in its
 // own storage container on iOS and may not see the identity Nafsam stored.
-import { deriveIdentity, type ChatIdentity } from "./chatAuth";
+import { deriveIdentity, sha256Hex, type ChatIdentity } from "./chatAuth";
 
 // SHA-256 hashes of accepted login words (trimmed + lowercased).
 // Canonical list lives in the NAFSAM_PASSWORDS secret — never list words here.
@@ -22,14 +22,6 @@ function authTokens(): Set<string> {
     if (token) tokens.add(token);
   }
   return tokens;
-}
-
-async function sha256Hex(text: string): Promise<string> {
-  const data = new TextEncoder().encode(text);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
 }
 
 /** Returns the derived identity when the word is accepted, null otherwise. */
