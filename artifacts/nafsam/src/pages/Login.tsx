@@ -226,7 +226,7 @@ export default function Login({ t, lang, onAuth }: Props) {
           <div className={`login-msg ${msgType}`} role="alert" aria-live="assertive">{msg}</div>
         )}
 
-        <p className="login-hint">{t.login_hint}</p>
+        <p className="login-hint border-t-[#fffafa] border-r-[#fffafa] border-b-[#fffafa] border-l-[#fffafa] text-[#9e7b73]">{t.login_hint}</p>
       </div>
     </div>
   );
