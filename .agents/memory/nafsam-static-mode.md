@@ -125,23 +125,26 @@ the plaintext words in memory/docs) and
 never `/api/chat/session`). `artifacts/nafsam/.env` is gitignored/untracked —
 it exists only locally; don't assume a merge restores it.
 
-**R2 RETIRED → static media now served by the Replit deployment (2026-07-21):**
-R2 got disabled account-wide (API error 10042, dashboard-only re-enable; user
-declined). Replacement: token-gated PUBLIC routes on the api-server
-(`src/routes/pub.ts`) mirroring the old R2 URL layout —
-`/api/pub/<NAFSAM_STATIC_MEDIA_TOKEN>/{media,posters,images}/*` +
-`/content.json` (CORS `*`, Range/206 support, media `max-age=86400`,
-content.json `no-store`, fail-closed if token env unset, timingSafeEqual).
-`VITE_R2_BASE` in BOTH `.env.cloudflare-pages` files (nafsam + telegram-call)
-now points at `https://ech-memories-ska-love.replit.app/api/pub/<token>`.
-The content.json handler rewrites heroImageUrl and `/api/private/media/` song
-srcs to the token base. **The Replit deployment MUST be published with PUBLIC
-visibility** or all static-site media 404s (it was `private` before).
-The token is public-by-design (baked in public bundles + public repo) — NEVER
-reuse this pattern for real secrets; rotation = new env value + update both
-env files + push. Earlier same day the dev preview was switched to SERVER mode
-(`VITE_STATIC_MODE=false` in untracked `artifacts/nafsam/.env`), so R2-upload
-recipes above are now historical.
+**R2 RETIRED (2026-07-21) → media now SELF-HOSTED on CF Pages (2026-07-22):**
+R2 got disabled account-wide. First replacement (2026-07-21) proxied media off
+the Replit deployment via `/api/pub/<token>/*`, but that required the Replit
+deploy to be PUBLIC and the user couldn't find the visibility toggle (it stayed
+private → 307 → all media broken). Final architecture (2026-07-22): the whole
+private tree (`media`, `posters`, `images`, ~2.1GB after transcode) plus a
+sanitized `content.json` is uploaded DIRECTLY to the Pages deployment under
+`/pub/<NAFSAM_STATIC_MEDIA_TOKEN>/…`, so `ech-nafasm-ska.pages.dev` is fully
+standalone — zero Replit dependency. `VITE_R2_BASE` in BOTH
+`.env.cloudflare-pages` files points at
+`https://ech-nafasm-ska.pages.dev/pub/<token>` (same-origin). The sanitizer
+mirrors api-server `pub.ts` sanitizeContentForStatic (hero → selfBase images
+URL, song `/api/private/media/x` → bare filename). The token stays
+public-by-design (path obscurity only).
+**Consequences:** content.json is STATIC — any content/media edit requires
+restaging + regenerating sanitized content.json + sizes.json + wrangler
+redeploy (see nafsam-cloudflare-deploy.md). Videos must be ≤25MiB (Pages file
+limit) — 43 oversized originals were transcoded to H.264 720p ~22MiB in place
+(originals remain untouched in `artifacts/api-server/private/`). Range/206 for
+iOS video comes from a Pages Function, not static serving.
 
 **Auth material MUST be a Secret, never a shared env var (threat-model rule):**
 `setEnvVars({NAFSAM_PASSWORDS...}, "shared")` writes the value in PLAINTEXT into

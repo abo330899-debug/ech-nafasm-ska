@@ -5,18 +5,41 @@ description: Which token actually deploys, and the git-lock/wrangler pitfalls wh
 
 # Cloudflare Pages deploy (ech-nafasm-ska)
 
-**Git auto-deploy is the primary path (since 2026-07-21):** the Pages project is
-GitHub-connected (repo abo330899-debug/ech-nafasm-ska, production branch main)
-and rebuilds on every push. Its build command (set via API PATCH on
-build_config) builds BOTH apps and copies telegram-call into place:
-`pnpm --filter @workspace/nafsam run build && pnpm --filter @workspace/telegram-call run build && cp -r artifacts/telegram-call/dist/public artifacts/nafsam/dist/public/telegram-call`,
-destination `artifacts/nafsam/dist/public`. CF sets `CF_PAGES=1` so vite configs
-bake the committed `.env.cloudflare-pages`.
-**Why:** before this, git pushes auto-deployed nafsam only and silently WIPED
-the `/telegram-call/` PWA from pages.dev (SPA fallback made it look 200-alive —
-compare `<title>` to detect). Usually no manual wrangler deploy is needed
-anymore; just push. Manual deploys below still work but a later git push
-overwrites them.
+**Git auto-deploy is DISABLED; manual wrangler is the ONLY path (since
+2026-07-22):** media (~2.1GB) is now self-hosted on Pages under
+`/pub/<token>/{media,posters,images}` + a sanitized `content.json`, uploaded by
+manual direct-upload deploys. A git-triggered build would rebuild from repo
+only (media is gitignored) and WIPE all media. So both
+`deployments_enabled` and `production_deployments_enabled` were set to false
+via API PATCH on the Pages project. Re-enabling git deploys without first
+adding media to the build = instant media wipe.
+**Deploy recipe:** stage `/tmp/nafsam-deploy` = nafsam `dist/public` +
+telegram-call dist at `telegram-call/` + `pub/<token>/…` media tree + sanitized
+content.json; copy `artifacts/nafsam/functions` → `/tmp/functions` (functions
+dir must sit in wrangler's CWD, i.e. /tmp); regenerate
+`functions/pub/[token]/media/sizes.json` from the staged media dir whenever
+media files change; then `cd /tmp && wrangler@3 pages deploy /tmp/nafsam-deploy
+--project-name=ech-nafasm-ska --branch=main`. Uploads are hash-deduped and
+resumable — rerun on timeout.
+**Pages Function is REQUIRED for video playback:** CF Pages static serving
+ignores Range headers (returns 200 full-body) and iOS Safari refuses videos
+without 206. `functions/pub/[token]/media/[file].js` synthesizes 206 by
+stream-slicing `env.ASSETS.fetch`. `ASSETS.fetch` returns NO Content-Length, so
+sizes come from the bundled `sizes.json` manifest. Buffered fallback only
+triggers for filenames ABSENT from the manifest — a filename present with a
+WRONG size is trusted and corrupts range responses (truncated/hung streams),
+so sizes.json MUST be regenerated whenever any media file changes. `_headers` does NOT apply to function responses
+— the function sets CORS/CORP/Cache-Control itself.
+**Never add a 404.html:** its presence disables Pages auto-SPA fallback, and
+`_redirects` 200-rewrites are NOT honored on this project (verified 2026-07-22:
+`/* /index.html 200` was ignored; /photos 404'd). Auto-SPA (no 404.html) is the
+only working deep-link mechanism.
+**Files >25MiB are rejected by Pages** — transcode videos to ≤25MiB first
+(H.264 720p, size-targeted bitrate, resumable foreground script; validate every
+output with ffprobe — a killed faststart pass can leave a corrupt file that
+still passes the size check).
+**Fresh deploys serve MIXED responses for ~1min** (old/new state interleaved,
+even flaky 404s with wrong bodies) — wait and re-verify before debugging.
 
 **Monitor has its own separate Pages project (since 2026-07-21):**
 `nafsam-monitor.pages.dev`, direct-upload (NOT git-connected). Redeploy by
