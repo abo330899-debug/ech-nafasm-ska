@@ -22,7 +22,7 @@ fine.
 `activity_set_identity_trg` + policies + `activity_reader()`/`chat_identity()`
 functions) from `supabase/schema.sql` lines ~265-337, plus a confirmed
 `monitor@nafsam.app` user whose password == MONITOR_PASSWORD. Verify
-end-to-end: star@ (pw `nafsam-ska`) inserts with `Prefer: return=minimal`
+end-to-end: star@ (pw = chat password from chatAuth.ts) inserts with `Prefer: return=minimal`
 (return=representation 403s because star has no SELECT), monitor@ reads it back.
 
 ## No login screen anymore
